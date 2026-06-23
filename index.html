@@ -559,6 +559,26 @@ function generate() {
 
 // ---- 朗读功能 ----
 let speaking = false;
+
+// 挑选最好听的中文女声
+function getBestVoice() {
+  const voices = window.speechSynthesis.getVoices();
+  // 优先级：微软晓晓 > 微软云希 > 其他微软中文女声 > 任意中文声音
+  const prefer = [
+    v => v.name.includes('Xiaoxiao'),
+    v => v.name.includes('Yunxi') || v.name.includes('XiaoYi') || v.name.includes('Xiaoyi'),
+    v => v.name.includes('Microsoft') && v.lang.startsWith('zh') && (v.name.includes('Xiao') || v.name.includes('女')),
+    v => v.name.includes('Microsoft') && v.lang.startsWith('zh'),
+    v => v.lang === 'zh-CN',
+    v => v.lang.startsWith('zh'),
+  ];
+  for (const fn of prefer) {
+    const found = voices.find(fn);
+    if (found) return found;
+  }
+  return null;
+}
+
 function speakBlessing() {
   if (!('speechSynthesis' in window)) {
     alert('你的浏览器不支持朗读功能，建议使用 Chrome 或 Edge 浏览器～');
@@ -577,14 +597,12 @@ function speakBlessing() {
   window.speechSynthesis.cancel();
   const utter = new SpeechSynthesisUtterance(currentSpeak);
   utter.lang = 'zh-CN';
-  utter.rate = 0.88;
-  utter.pitch = 1.15;
+  utter.rate = 0.82;   // 稍慢，更亲切
+  utter.pitch = 1.2;   // 略高音调，像老师说话
+  utter.volume = 1.0;
 
-  // 优先选普通话女声
-  const voices = window.speechSynthesis.getVoices();
-  const cnVoice = voices.find(v => v.lang.startsWith('zh') && v.name.includes('Female'))
-    || voices.find(v => v.lang.startsWith('zh'));
-  if (cnVoice) utter.voice = cnVoice;
+  const voice = getBestVoice();
+  if (voice) utter.voice = voice;
 
   speaking = true;
   sb.textContent = '⏹ 停止朗读';
