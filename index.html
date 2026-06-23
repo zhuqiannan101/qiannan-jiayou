@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>倩楠老师的期末加油站 🌟</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #ff9a9e 0%, #a18cd1 50%, #84fab0 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  /* 背景星星 */
+  .stars { position: fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:0; }
+  .star {
+    position: absolute;
+    background: rgba(255,255,255,0.85);
+    border-radius: 50%;
+    animation: twinkle 2s infinite alternate;
+  }
+  @keyframes twinkle {
+    from { opacity: 0.2; transform: scale(1); }
+    to   { opacity: 1;   transform: scale(1.4); }
+  }
+
+  /* 漂浮表情 */
+  .float-emoji {
+    position: fixed; font-size: 30px;
+    animation: floatUp 7s linear infinite;
+    pointer-events: none; z-index: 0; opacity: 0;
+  }
+  @keyframes floatUp {
+    0%   { transform: translateY(110vh) rotate(0deg);   opacity: 0; }
+    10%  { opacity: 0.8; }
+    90%  { opacity: 0.5; }
+    100% { transform: translateY(-10vh) rotate(360deg); opacity: 0; }
+  }
+
+  /* 音乐控制按钮 */
+  .music-btn {
+    position: fixed;
+    top: 18px; right: 18px;
+    z-index: 100;
+    width: 52px; height: 52px;
+    border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.6);
+    background: rgba(255,255,255,0.2);
+    backdrop-filter: blur(10px);
+    font-size: 22px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: transform .2s, background .2s;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+  }
+  .music-btn:hover { transform: scale(1.1); background: rgba(255,255,255,0.3); }
+  .music-btn.playing { animation: music-spin 3s linear infinite; }
+  @keyframes music-spin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+  }
+  .music-label {
+    position: fixed;
+    top: 26px; right: 80px;
+    z-index: 100;
+    color: rgba(255,255,255,0.85);
+    font-size: 12px;
+    background: rgba(0,0,0,0.2);
+    padding: 4px 10px;
+    border-radius: 20px;
+    backdrop-filter: blur(6px);
+    white-space: nowrap;
+  }
+
+  /* 主卡片 */
+  .card {
+    position: relative; z-index: 10;
+    background: rgba(255,255,255,0.18);
+    backdrop-filter: blur(22px);
+    border: 1.5px solid rgba(255,255,255,0.4);
+    border-radius: 36px;
+    padding: 40px 38px 36px;
+    width: min(540px, 93vw);
+    box-shadow: 0 32px 64px rgba(0,0,0,0.2);
+    text-align: center;
+    margin: 16px 0;
+  }
+
+  .teacher-avatar {
+    width: 72px; height: 72px;
+    border-radius: 50%;
+    border: 3px solid rgba(255,255,255,0.7);
+    margin: 0 auto 10px;
+    background: linear-gradient(135deg,#f9ca24,#f0932b);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 38px;
+    box-shadow: 0 4px 20px rgba(240,147,43,0.4);
+    animation: bounce 2s infinite;
+  }
+  @keyframes bounce {
+    0%,100% { transform: translateY(0) scale(1); }
+    50%      { transform: translateY(-8px) scale(1.05); }
+  }
+
+  h1 {
+    color: #fff;
+    font-size: 24px;
+    font-weight: 900;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    margin-bottom: 4px;
+    letter-spacing: 1px;
+  }
+  .subtitle {
+    color: rgba(255,255,255,0.85);
+    font-size: 13px;
+    margin-bottom: 26px;
+  }
+
+  /* 模式切换 */
+  .mode-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 22px;
+    background: rgba(0,0,0,0.12);
+    border-radius: 50px;
+    padding: 5px;
+  }
+  .tab-btn {
+    flex: 1;
+    padding: 10px 8px;
+    border-radius: 40px;
+    border: none;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all .25s;
+    background: transparent;
+    color: rgba(255,255,255,0.7);
+  }
+  .tab-btn.active {
+    background: rgba(255,255,255,0.9);
+    color: #764ba2;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+  }
+
+  /* 输入区 */
+  .input-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  input[type="text"] {
+    flex: 1;
+    padding: 13px 18px;
+    border-radius: 50px;
+    border: 2px solid rgba(255,255,255,0.45);
+    background: rgba(255,255,255,0.22);
+    color: #fff;
+    font-size: 17px;
+    font-family: inherit;
+    outline: none;
+    transition: border-color .3s, background .3s;
+  }
+  input[type="text"]::placeholder { color: rgba(255,255,255,0.6); }
+  input[type="text"]:focus {
+    border-color: rgba(255,255,255,0.9);
+    background: rgba(255,255,255,0.3);
+  }
+  .btn-gen {
+    padding: 13px 20px;
+    border-radius: 50px;
+    border: none;
+    background: linear-gradient(135deg, #f9ca24, #f0932b);
+    color: #fff;
+    font-size: 15px;
+    font-weight: 800;
+    cursor: pointer;
+    font-family: inherit;
+    box-shadow: 0 4px 16px rgba(240,147,43,0.5);
+    transition: transform .15s, box-shadow .15s;
+    white-space: nowrap;
+  }
+  .btn-gen:hover  { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(240,147,43,0.6); }
+  .btn-gen:active { transform: scale(0.96); }
+
+  /* 祝福卡片 */
+  .blessing-box {
+    display: none;
+    border-radius: 24px;
+    padding: 26px 22px 22px;
+    margin-top: 2px;
+    animation: popIn .5s cubic-bezier(.34,1.56,.64,1);
+    position: relative;
+    overflow: hidden;
+  }
+  .blessing-box.show { display: block; }
+  .blessing-box.mode-parent {
+    background: linear-gradient(135deg, rgba(255,154,158,0.35), rgba(254,207,239,0.35));
+    border: 1.5px solid rgba(255,154,158,0.5);
+  }
+  .blessing-box.mode-teacher {
+    background: linear-gradient(135deg, rgba(132,250,176,0.3), rgba(143,211,244,0.3));
+    border: 1.5px solid rgba(132,250,176,0.5);
+  }
+
+  @keyframes popIn {
+    from { transform: scale(0.7) translateY(20px); opacity: 0; }
+    to   { transform: scale(1)   translateY(0);    opacity: 1; }
+  }
+
+  /* 老师签名标签 */
+  .teacher-tag {
+    display: inline-block;
+    background: linear-gradient(135deg, #43e97b, #38f9d7);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 12px;
+    border-radius: 20px;
+    margin-bottom: 12px;
+    letter-spacing: 1px;
+    box-shadow: 0 2px 8px rgba(67,233,123,0.4);
+  }
+  .parent-tag {
+    display: inline-block;
+    background: linear-gradient(135deg, #f093fb, #f5576c);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 12px;
+    border-radius: 20px;
+    margin-bottom: 12px;
+    letter-spacing: 1px;
+    box-shadow: 0 2px 8px rgba(245,87,108,0.4);
+  }
+
+  .blessing-name {
+    font-size: 20px;
+    font-weight: 900;
+    color: #ffe082;
+    margin-bottom: 12px;
+    text-shadow: 0 0 14px rgba(255,224,130,0.7);
+  }
+  .blessing-text {
+    font-size: 16px;
+    line-height: 1.9;
+    color: rgba(255,255,255,0.96);
+    text-shadow: 0 1px 4px rgba(0,0,0,0.15);
+    text-align: left;
+  }
+  .blessing-sign {
+    margin-top: 14px;
+    font-size: 14px;
+    color: rgba(255,255,255,0.75);
+    text-align: right;
+    font-style: italic;
+  }
+  .blessing-emoji-row {
+    margin-top: 14px;
+    font-size: 24px;
+    letter-spacing: 8px;
+  }
+
+  .btn-again {
+    display: inline-block;
+    margin-top: 16px;
+    padding: 9px 26px;
+    border-radius: 50px;
+    border: 2px solid rgba(255,255,255,0.5);
+    background: transparent;
+    color: #fff;
+    font-size: 13px;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background .2s, border-color .2s;
+  }
+  .btn-again:hover { background: rgba(255,255,255,0.15); border-color: #fff; }
+
+  .btn-speak {
+    display: inline-block;
+    padding: 9px 26px;
+    border-radius: 50px;
+    border: 2px solid rgba(255,224,130,0.7);
+    background: rgba(255,224,130,0.15);
+    color: #ffe082;
+    font-size: 13px;
+    font-family: inherit;
+    cursor: pointer;
+    font-weight: 700;
+    transition: background .2s, border-color .2s;
+  }
+  .btn-speak:hover { background: rgba(255,224,130,0.28); border-color: #ffe082; }
+  .btn-speak.speaking {
+    background: rgba(255,224,130,0.3);
+    animation: speak-pulse .8s infinite alternate;
+  }
+  @keyframes speak-pulse {
+    from { box-shadow: 0 0 0 rgba(255,224,130,0); }
+    to   { box-shadow: 0 0 14px rgba(255,224,130,0.7); }
+  }
+
+  /* 烟花 */
+  .firework { position: fixed; pointer-events: none; z-index: 999; }
+  .spark {
+    position: absolute;
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    animation: spark-fly .9s ease-out forwards;
+  }
+  @keyframes spark-fly {
+    0%   { transform: translate(0,0) scale(1); opacity: 1; }
+    100% { transform: translate(var(--dx), var(--dy)) scale(0); opacity: 0; }
+  }
+
+  /* 彩带 */
+  .confetti {
+    position: fixed;
+    width: 8px; height: 14px;
+    border-radius: 2px;
+    pointer-events: none;
+    z-index: 998;
+    animation: confetti-fall var(--dur) linear forwards;
+  }
+  @keyframes confetti-fall {
+    0%   { transform: translateY(-10px) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(110vh) rotate(var(--rot)); opacity: 0.5; }
+  }
+</style>
+</head>
+<body>
+
+<div class="stars" id="stars"></div>
+
+
+<!-- 音乐控制 -->
+<div class="music-label" id="musicLabel">🎵 点击播放音乐</div>
+<button class="music-btn" id="musicBtn" onclick="toggleMusic()" title="开关音乐">🎵</button>
+
+<div class="card">
+  <div class="teacher-avatar">👩‍🏫</div>
+  <h1>倩楠老师的加油站</h1>
+  <p class="subtitle">专属祝福，为期末考试冲鸭！🚀</p>
+
+  <div class="input-row">
+    <input type="text" id="nameInput" placeholder="小朋友叫什么名字？" maxlength="8">
+    <button class="btn-gen" onclick="generate()">✨ 生成祝福</button>
+  </div>
+
+  <div class="blessing-box" id="blessingBox">
+    <div id="roleTag"></div>
+    <div class="blessing-name" id="blessingName"></div>
+    <div class="blessing-text" id="blessingText"></div>
+    <div class="blessing-sign" id="blessingSign"></div>
+    <div class="blessing-emoji-row" id="blessingEmoji"></div>
+    <div style="display:flex;gap:10px;justify-content:center;margin-top:16px;flex-wrap:wrap;">
+      <button class="btn-again" onclick="generate()">🔀 再换一条</button>
+      <button class="btn-speak" id="speakBtn" onclick="speakBlessing()">🔊 朗读祝福语</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ---- 星星 ----
+const starsEl = document.getElementById('stars');
+for (let i = 0; i < 70; i++) {
+  const s = document.createElement('div');
+  s.className = 'star';
+  const sz = Math.random()*3+1;
+  s.style.cssText = `width:${sz}px;height:${sz}px;top:${Math.random()*100}%;left:${Math.random()*100}%;animation-delay:${Math.random()*3}s;animation-duration:${1.5+Math.random()*2}s;`;
+  starsEl.appendChild(s);
+}
+
+// ---- 漂浮表情 ----
+const emojiPool = ['📚','✏️','🌟','💪','🎉','🏆','🍀','⭐','🌈','🦋','🎈','🔥','🎀','🌸','💯','🐣','🦄','🍭','🐰','🐼','🐨','🐸','🦊','🐹','🐻','🐯','🐙','🍬','🌺','🎠'];
+function spawnEmoji() {
+  const el = document.createElement('div');
+  el.className = 'float-emoji';
+  el.textContent = emojiPool[Math.floor(Math.random()*emojiPool.length)];
+  el.style.left = Math.random()*100 + 'vw';
+  el.style.animationDuration = (4+Math.random()*5)+'s';
+  el.style.animationDelay = Math.random()*1.5+'s';
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 11000);
+}
+setInterval(spawnEmoji, 750);
+
+// ---- 音乐：天天向上旋律（Web Audio API）----
+// 音名频率：C4=261 D4=293 E4=329 F4=349 G4=392 A4=440 B4=493
+// C5=523 D5=587 E5=659 G5=784 A5=880
+// 天天向上主旋律（简谱 3355|6654|3355|2221|3355|665·|3355|6664|3321|）
+const B = 0.22; // 一拍时长
+const melody = [
+  // 第一句：3355 6654
+  [329,B],[329,B],[392,B],[392,B],
+  [440,B],[440,B],[392,B*2],
+  [349,B],[349,B],[329,B],[329,B],
+  [293,B*3],
+  // 第二句：3355 2221
+  [329,B],[329,B],[392,B],[392,B],
+  [440,B],[440,B],[392,B*2],
+  [293,B],[293,B],[261,B],[261,B],
+  [261,B*3],
+  // 第三句：3355 665.
+  [329,B],[329,B],[392,B],[392,B],
+  [440,B],[440,B],[392,B*2],
+  [440,B],[440,B],[392,B],[329,B],
+  [293,B*2],[0,B],
+  // 第四句：3355 6664 3321
+  [329,B],[329,B],[392,B],[392,B],
+  [440,B],[440,B],[392,B*2],
+  [440,B],[440,B],[392,B],[349,B],
+  [329,B],[329,B],[293,B],[261,B],
+  [261,B*4],
+  [0,B*2],
+];
+
+let audioCtx = null;
+let musicPlaying = false;
+let musicNodes = [];
+let reverbNode = null;
+
+// 创建混响（让音色更温润）
+function createReverb(ctx) {
+  const conv = ctx.createConvolver();
+  const len = ctx.sampleRate * 1.5;
+  const buf = ctx.createBuffer(2, len, ctx.sampleRate);
+  for (let ch = 0; ch < 2; ch++) {
+    const d = buf.getChannelData(ch);
+    for (let i = 0; i < len; i++) d[i] = (Math.random()*2-1) * Math.pow(1 - i/len, 2.5);
+  }
+  conv.buffer = buf;
+  return conv;
+}
+
+// 音乐盒/木琴音色：正弦波快速衰减
+function playNote(freq, startT, dur) {
+  if (freq === 0) return;
+  if (!reverbNode) {
+    reverbNode = createReverb(audioCtx);
+    const wet = audioCtx.createGain();
+    wet.gain.value = 0.25;
+    reverbNode.connect(wet);
+    wet.connect(audioCtx.destination);
+  }
+
+  // 主音：明亮拨弦感（多倍频叠加）
+  [1, 2, 4].forEach((harmonic, i) => {
+    const osc  = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(freq * harmonic, startT);
+    const vol = [0.28, 0.10, 0.04][i];
+    gain.gain.setValueAtTime(vol, startT);
+    gain.gain.exponentialRampToValueAtTime(0.001, startT + Math.min(dur * 1.8, 1.2));
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    gain.connect(reverbNode);
+    osc.start(startT);
+    osc.stop(startT + 1.4);
+    musicNodes.push(osc);
+  });
+}
+
+function playMelodyLoop() {
+  if (!musicPlaying || !audioCtx) return;
+  let t = audioCtx.currentTime + 0.05;
+  melody.forEach(([freq, dur]) => { playNote(freq, t, dur); t += dur; });
+  const totalDur = melody.reduce((s,[,d])=>s+d, 0);
+  setTimeout(() => { if (musicPlaying) playMelodyLoop(); }, totalDur * 1000);
+}
+
+function toggleMusic() {
+  const btn = document.getElementById('musicBtn');
+  const lbl = document.getElementById('musicLabel');
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+
+  if (!musicPlaying) {
+    musicPlaying = true;
+    btn.classList.add('playing');
+    btn.textContent = '🎶';
+    lbl.textContent = '🎵 音乐播放中～';
+    playMelodyLoop();
+  } else {
+    musicPlaying = false;
+    btn.classList.remove('playing');
+    btn.textContent = '🎵';
+    lbl.textContent = '🎵 点击播放音乐';
+    musicNodes.forEach(n => { try { n.stop(); } catch(e){} });
+    musicNodes = [];
+  }
+}
+
+// ---- 倩楠老师祝福语（线上编程课老师视角，小学生版）----
+const teacherTemplates = [
+  { full: (n) => `${n}，期末考试不要紧张哦！就像写代码一样，遇到难题先冷静想一想，一步一步来，你一定可以的！加油！` },
+  { full: (n) => `超级棒的${n}！倩楠老师有个考试小魔法——进考场前在心里默默说三遍"我最棒"，然后深呼一口气，把会的全写上，稳稳的！老师等你的好消息哟！` },
+  { full: (n) => `${n}小朋友，期末考试就是把这学期学到的本领全展示出来的时候，别紧张，放轻松，你是最棒的！倩楠老师给你加油！` },
+  { full: (n) => `${n}！倩楠老师悄悄告诉你一个考试小秘诀：先把会做的做完，再回来想难的，最后检查一遍，这样保准分数高！你那么聪明，一定没问题，冲冲冲！` },
+  { full: (n) => `亲爱的${n}，考试的时候每道题都认真想一想，就像解决一道有趣的编程题一样！你一定会有大大的惊喜！倩楠老师为你加油！` },
+  { full: (n) => `${n}宝贝，记住三步走：审题要仔细，字要写整齐，做完要检查！做到这三步，你就是考场小达人！倩楠老师为你鼓掌！` },
+  { full: (n) => `${n}，期末考试是你展示自己的舞台，不要害怕，大胆写，认真想！倩楠老师在远方为你加油，你是最闪亮的小星星！` },
+  { full: (n) => `好样的，${n}！你努力了整整一学期，期末考试就是摘苹果的时候啦！倩楠老师在心里给你最大最大的加油，冲冲冲！` },
+  { full: (n) => `亲爱的${n}，遇到不会的题目不要慌，先做旁边会的，回来再想，说不定突然就想到了！你比你以为的还要厉害，加油哦！` },
+  { full: (n) => `${n}，走进考场之前，记得在心里对自己说——"我准备好了，我可以！"因为你真的可以！倩楠老师会一直为你加油鼓劲，期待你的好消息！` },
+];
+
+const emojiSets = [
+  '📚 ✏️ 🌟','💪 🏆 🎉','🍀 ⭐ 🌈',
+  '🎓 🔥 💯','🎈 🦋 ✨','🌸 💡 👑',
+  '🦄 🍭 🎀','🐣 🌻 🏅',
+];
+
+// ---- 生成祝福 ----
+let lastIdx = -1;
+let currentSpeak = '';
+function generate() {
+  const rawName = document.getElementById('nameInput').value.trim();
+  const name = rawName || '小朋友';
+  let idx;
+  do { idx = Math.floor(Math.random()*teacherTemplates.length); } while (idx===lastIdx && teacherTemplates.length>1);
+  lastIdx = idx;
+  const item = teacherTemplates[idx];
+
+  const nameCall = name === '小朋友' ? '小朋友' : name;
+  currentSpeak = `${nameCall}，我是你的编程课老师！我知道你马上就要期末考试啦～我来给你加油打气了！${item.full(name)}`;
+
+  const box = document.getElementById('blessingBox');
+  box.className = 'blessing-box mode-teacher';
+
+  document.getElementById('roleTag').innerHTML = '<span class="teacher-tag">👩‍🏫 倩楠老师专属祝福</span>';
+  document.getElementById('blessingName').textContent = `✨ 致 ${name} ✨`;
+  document.getElementById('blessingText').textContent = item.full(name);
+  document.getElementById('blessingSign').textContent = '—— 倩楠老师 💝';
+  document.getElementById('blessingEmoji').textContent = emojiSets[Math.floor(Math.random()*emojiSets.length)];
+
+  // 重置朗读按钮
+  const sb = document.getElementById('speakBtn');
+  sb.textContent = '🔊 朗读祝福语';
+  sb.classList.remove('speaking');
+
+  box.classList.remove('show');
+  void box.offsetWidth;
+  box.classList.add('show');
+
+  launchFireworks();
+  launchConfetti();
+  if (audioCtx && musicPlaying) playDing();
+}
+
+// ---- 朗读功能 ----
+let speaking = false;
+function speakBlessing() {
+  if (!('speechSynthesis' in window)) {
+    alert('你的浏览器不支持朗读功能，建议使用 Chrome 或 Edge 浏览器～');
+    return;
+  }
+  const sb = document.getElementById('speakBtn');
+  if (speaking) {
+    window.speechSynthesis.cancel();
+    speaking = false;
+    sb.textContent = '🔊 朗读祝福语';
+    sb.classList.remove('speaking');
+    return;
+  }
+  if (!currentSpeak) return;
+
+  window.speechSynthesis.cancel();
+  const utter = new SpeechSynthesisUtterance(currentSpeak);
+  utter.lang = 'zh-CN';
+  utter.rate = 0.88;
+  utter.pitch = 1.15;
+
+  // 优先选普通话女声
+  const voices = window.speechSynthesis.getVoices();
+  const cnVoice = voices.find(v => v.lang.startsWith('zh') && v.name.includes('Female'))
+    || voices.find(v => v.lang.startsWith('zh'));
+  if (cnVoice) utter.voice = cnVoice;
+
+  speaking = true;
+  sb.textContent = '⏹ 停止朗读';
+  sb.classList.add('speaking');
+
+  utter.onend = utter.onerror = () => {
+    speaking = false;
+    sb.textContent = '🔊 朗读祝福语';
+    sb.classList.remove('speaking');
+  };
+  window.speechSynthesis.speak(utter);
+}
+
+// ---- 叮咚音效 ----
+function playDing() {
+  if (!audioCtx) return;
+  [880, 1047, 1319].forEach((freq, i) => {
+    const osc  = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sine';
+    osc.frequency.value = freq;
+    const t = audioCtx.currentTime + i * 0.12;
+    gain.gain.setValueAtTime(0, t);
+    gain.gain.linearRampToValueAtTime(0.25, t+0.02);
+    gain.gain.exponentialRampToValueAtTime(0.001, t+0.5);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start(t); osc.stop(t+0.6);
+  });
+}
+
+// ---- 烟花 ----
+const fwColors = ['#f9ca24','#f0932b','#eb4d4b','#6ab04c','#4fc3f7','#e056fd','#fff','#ff9ff3'];
+function launchFireworks() {
+  for (let i = 0; i < 6; i++) {
+    setTimeout(() => {
+      const fw = document.createElement('div');
+      fw.className = 'firework';
+      fw.style.left = (10+Math.random()*80)+'vw';
+      fw.style.top  = (8+Math.random()*55)+'vh';
+      document.body.appendChild(fw);
+      for (let j = 0; j < 18; j++) {
+        const sp = document.createElement('div');
+        sp.className = 'spark';
+        const ang = (j/18)*Math.PI*2;
+        const d   = 35+Math.random()*55;
+        sp.style.setProperty('--dx', Math.cos(ang)*d+'px');
+        sp.style.setProperty('--dy', Math.sin(ang)*d+'px');
+        sp.style.background = fwColors[Math.floor(Math.random()*fwColors.length)];
+        sp.style.animationDelay = Math.random()*0.15+'s';
+        fw.appendChild(sp);
+      }
+      setTimeout(()=>fw.remove(), 1300);
+    }, i*160);
+  }
+}
+
+// ---- 彩带 ----
+const confettiColors = ['#f9ca24','#f0932b','#eb4d4b','#6ab04c','#4fc3f7','#e056fd','#ff9ff3','#fff'];
+function launchConfetti() {
+  for (let i = 0; i < 30; i++) {
+    setTimeout(() => {
+      const el = document.createElement('div');
+      el.className = 'confetti';
+      const dur = (2+Math.random()*2).toFixed(1)+'s';
+      const rot = (360+Math.random()*720).toFixed(0)+'deg';
+      el.style.cssText = `
+        left:${Math.random()*100}vw;
+        background:${confettiColors[Math.floor(Math.random()*confettiColors.length)]};
+        --dur:${dur}; --rot:${rot};
+        transform: rotate(${Math.random()*360}deg);
+      `;
+      document.body.appendChild(el);
+      setTimeout(()=>el.remove(), 4500);
+    }, i*60);
+  }
+}
+
+// 回车触发
+document.getElementById('nameInput').addEventListener('keydown', e => {
+  if (e.key==='Enter') generate();
+});
+
+</script>
+</body>
+</html>
