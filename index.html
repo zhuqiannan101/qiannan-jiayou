@@ -563,11 +563,13 @@ let speaking = false;
 // 挑选最好听的中文女声
 function getBestVoice() {
   const voices = window.speechSynthesis.getVoices();
-  // 优先级：微软晓晓 > 微软云希 > 其他微软中文女声 > 任意中文声音
+  // 优先级：Online Natural（Edge在线神经声音，最像真人）> 晓晓 > 其他微软中文
   const prefer = [
+    v => v.name.includes('Xiaoxiao') && v.name.includes('Natural'),
+    v => v.name.includes('XiaoYi')   && v.name.includes('Natural'),
+    v => v.name.includes('Natural')  && v.lang.startsWith('zh'),
     v => v.name.includes('Xiaoxiao'),
-    v => v.name.includes('Yunxi') || v.name.includes('XiaoYi') || v.name.includes('Xiaoyi'),
-    v => v.name.includes('Microsoft') && v.lang.startsWith('zh') && (v.name.includes('Xiao') || v.name.includes('女')),
+    v => v.name.includes('XiaoYi') || v.name.includes('Xiaoyi'),
     v => v.name.includes('Microsoft') && v.lang.startsWith('zh'),
     v => v.lang === 'zh-CN',
     v => v.lang.startsWith('zh'),
@@ -577,6 +579,14 @@ function getBestVoice() {
     if (found) return found;
   }
   return null;
+}
+
+// 列出当前可用的中文声音（调试用）
+function listVoices() {
+  const voices = window.speechSynthesis.getVoices().filter(v => v.lang.startsWith('zh'));
+  console.log('可用中文声音：', voices.map(v => v.name + ' | ' + v.lang));
+  const best = getBestVoice();
+  console.log('当前选用：', best ? best.name : '无');
 }
 
 function speakBlessing() {
