@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>天天向上 · 开学能量站 ☀️</title>
+<title>开学能量站 ☀️</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -239,6 +239,12 @@
   .btn-riddle.right { background: linear-gradient(135deg, #51cf66, #37b24d); box-shadow: 0 6px 18px rgba(55,178,77,.4); }
   .btn-riddle.wrong { background: linear-gradient(135deg, #ff8787, #fa5252); box-shadow: 0 6px 18px rgba(250,82,82,.4); }
   .btn-riddle:disabled { opacity: .5; cursor: not-allowed; }
+  .report-link {
+    display: inline-block; margin-top: 6px; padding: 11px 22px; border-radius: 50px;
+    background: linear-gradient(135deg, #ff922b, #ff6b6b); color: #fff; text-decoration: none;
+    font-size: 15px; font-weight: 800; box-shadow: 0 6px 18px rgba(255,107,107,.4); transition: transform .15s;
+  }
+  .report-link:hover { transform: translateY(-2px); }
   .coin {
     position: fixed; top: -40px; z-index: 210; font-size: 34px;
     pointer-events: none; animation: coinFall 1.4s ease-in forwards;
@@ -293,7 +299,7 @@
 <div class="grass"></div>
 
 <a href="index.html" class="back-link">← 返回入口</a>
-<div class="music-label" id="musicLabel">🎵 天天向上</div>
+<div class="music-label" id="musicLabel">🎵 轻快音乐</div>
 <button class="music-btn" id="musicBtn" onclick="toggleMusic()" title="开关音乐">🎵</button>
 
 <div class="hero">
@@ -358,9 +364,9 @@ function showTab(name) {
   document.getElementById('tabRiddle').classList.toggle('active', name==='riddle');
 }
 
-// ---- 音乐：《天天向上》阳光旋律（Web Audio 木琴音色，可循环）----
+// ---- 音乐：阳光轻快旋律（Web Audio 木琴音色，可循环）----
 // C4=261 D4=293 E4=329 F4=349 G4=392 A4=440 B4=493 C5=523 D5=587 E5=659 G5=784
-// a=明快上行旋律（"天天向上，心里有光，一步一步往高处飞"）
+// a=明快上行旋律，循环播放
 const B = 0.21;
 const melody = [
   // 第一乐句：向上 (1 3 5 1' | 5 3 1 5)
@@ -422,10 +428,10 @@ function toggleMusic() {
   if (audioCtx.state === 'suspended') audioCtx.resume();
   if (!musicPlaying) {
     musicPlaying = true; btn.classList.add('playing'); btn.textContent = '🎶';
-    lbl.textContent = '🎵 天天向上 播放中～'; playMelodyLoop();
+    lbl.textContent = '🎵 轻快旋律 播放中～'; playMelodyLoop();
   } else {
     musicPlaying = false; btn.classList.remove('playing'); btn.textContent = '🎵';
-    lbl.textContent = '🎵 天天向上'; musicNodes.forEach(n => { try { n.stop(); } catch(e){} }); musicNodes = [];
+    lbl.textContent = '🎵 轻快旋律'; musicNodes.forEach(n => { try { n.stop(); } catch(e){} }); musicNodes = [];
   }
 }
 
@@ -438,7 +444,7 @@ function startMusic() {
   musicPlaying = true;
   const btn = document.getElementById('musicBtn'), lbl = document.getElementById('musicLabel');
   btn.classList.add('playing'); btn.textContent = '🎶';
-  lbl.textContent = '🎵 天天向上 播放中～';
+  lbl.textContent = '🎵 轻快旋律 播放中～';
   playMelodyLoop();
 }
 function autoStartMusic(e) {
@@ -530,11 +536,11 @@ function openGuess() {
 function answer(correct) {
   const fb = document.getElementById('riddleFeedback');
   if (correct) {
-    fb.innerHTML = '🎉 太棒啦！被你轻松猜对！快去<strong>发消息告诉倩楠老师</strong>：你答对啦！记得去领 <strong>10 枚金币</strong> 哦～';
+    fb.innerHTML = '🎉 太棒啦！被你轻松猜对！记得找倩楠老师领 <strong>10 枚金币</strong> 哦～<br><br><a class="report-link" href="https://wrpnn3mat2.feishu.cn/wiki/VQVsw4yU9iiYNukVkADcjDMvnBf" target="_blank" rel="noopener">📝 去告诉倩楠老师：我叫什么、答对了几道</a>';
     fb.classList.add('win');
     coinRain();
   } else {
-    fb.textContent = '💡 没关系，下次再试！能勇敢地一起玩，你已经超棒啦～';
+    fb.innerHTML = '💡 没关系，下次再试！能勇敢地一起玩，你已经超棒啦～<br><br><a class="report-link" href="https://wrpnn3mat2.feishu.cn/wiki/VQVsw4yU9iiYNukVkADcjDMvnBf" target="_blank" rel="noopener">📝 去告诉倩楠老师：我叫什么、答对了几道</a>';
     fb.classList.remove('win');
   }
   document.getElementById('guessBox').style.display = 'none';
