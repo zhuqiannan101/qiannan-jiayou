@@ -239,12 +239,6 @@
   .btn-riddle.right { background: linear-gradient(135deg, #51cf66, #37b24d); box-shadow: 0 6px 18px rgba(55,178,77,.4); }
   .btn-riddle.wrong { background: linear-gradient(135deg, #ff8787, #fa5252); box-shadow: 0 6px 18px rgba(250,82,82,.4); }
   .btn-riddle:disabled { opacity: .5; cursor: not-allowed; }
-  .report-link {
-    display: inline-block; margin-top: 6px; padding: 11px 22px; border-radius: 50px;
-    background: linear-gradient(135deg, #ff922b, #ff6b6b); color: #fff; text-decoration: none;
-    font-size: 15px; font-weight: 800; box-shadow: 0 6px 18px rgba(255,107,107,.4); transition: transform .15s;
-  }
-  .report-link:hover { transform: translateY(-2px); }
   .coin {
     position: fixed; top: -40px; z-index: 210; font-size: 34px;
     pointer-events: none; animation: coinFall 1.4s ease-in forwards;
@@ -536,11 +530,11 @@ function openGuess() {
 function answer(correct) {
   const fb = document.getElementById('riddleFeedback');
   if (correct) {
-    fb.innerHTML = '🎉 太棒啦！被你轻松猜对！记得找倩楠老师领 <strong>10 枚金币</strong> 哦～<br><br><a class="report-link" href="https://wrpnn3mat2.feishu.cn/wiki/VQVsw4yU9iiYNukVkADcjDMvnBf" target="_blank" rel="noopener">📝 去告诉倩楠老师：我叫什么、答对了几道</a>';
+    fb.innerHTML = '🎉 太棒啦！被你轻松猜对！快去<strong>发消息告诉倩楠老师</strong>：你答对啦！记得去领 <strong>10 枚金币</strong> 哦～';
     fb.classList.add('win');
     coinRain();
   } else {
-    fb.innerHTML = '💡 没关系，下次再试！能勇敢地一起玩，你已经超棒啦～<br><br><a class="report-link" href="https://wrpnn3mat2.feishu.cn/wiki/VQVsw4yU9iiYNukVkADcjDMvnBf" target="_blank" rel="noopener">📝 去告诉倩楠老师：我叫什么、答对了几道</a>';
+    fb.textContent = '💡 没关系，下次再试！能勇敢地一起玩，你已经超棒啦～';
     fb.classList.remove('win');
   }
   document.getElementById('guessBox').style.display = 'none';
