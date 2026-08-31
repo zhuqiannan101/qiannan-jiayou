@@ -346,7 +346,7 @@
       <button class="btn-riddle right" onclick="answer(true)">🎉 我猜对啦！</button>
       <button class="btn-riddle wrong" onclick="answer(false)">🙈 没猜对～</button>
     </div>
-    <p class="riddle-hint">先看答案，再诚实告诉老师，你猜对了吗？</p>
+    <p class="riddle-hint">先看答案，再告诉老师，你猜对了吗？</p>
   </div>
 </div>
 
@@ -429,10 +429,33 @@ function toggleMusic() {
   }
 }
 
+// 浏览器不允许网页加载时真正自动播放声音，必须有一次点击/触摸。
+// 这里让"第一次点到页面任意处"就自动开始播放(点音乐按钮除外)，小朋友不用专门去找小按钮。
+function startMusic() {
+  if (musicPlaying) return;
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  musicPlaying = true;
+  const btn = document.getElementById('musicBtn'), lbl = document.getElementById('musicLabel');
+  btn.classList.add('playing'); btn.textContent = '🎶';
+  lbl.textContent = '🎵 天天向上 播放中～';
+  playMelodyLoop();
+}
+function autoStartMusic(e) {
+  if (e.target && e.target.closest && e.target.closest('#musicBtn')) return;
+  startMusic();
+  document.removeEventListener('pointerdown', autoStartMusic);
+  document.removeEventListener('touchstart', autoStartMusic);
+  document.removeEventListener('click', autoStartMusic);
+}
+document.addEventListener('pointerdown', autoStartMusic);
+document.addEventListener('touchstart', autoStartMusic);
+document.addEventListener('click', autoStartMusic);
+
 // ---- 鼓励文案（缓解焦虑、给信心、逗开心）----
 const boostTemplates = [
   { full: (n) => `${n}，开学啦！倩楠老师隔着屏幕给你比个大大的👍！新学期的你一定会更棒，每天进步一点点就是超级厉害！🎒` },
-  { full: (n) => `告诉你一个小秘密，${n}：老师每天早上也会赖床，但一想到要见到可爱的你，马上就有精神啦！我们一起加油鸭！🐥` },
+  { full: (n) => `告诉你一个小秘密，${n}：老师每天早上也会赖床，但一想到你们这群小可爱在努力长大、认真学习，老师马上就满血复活啦！我们一起加油鸭！🐥` },
   { full: (n) => `${n}，如果开学有点紧张，就把它当成一场冒险！你是勇敢的小勇士，背上'勇气背包'出发，去认识新朋友、学新本领，棒棒的！🛡️` },
   { full: (n) => `${n}，你是独一无二的小星星！不用跟别人比，只要比昨天的自己更棒一点点，就已经超级棒啦！继续闪亮！✨` },
   { full: (n) => `${n}，在学校遇到难题别慌，先举手问老师，弄懂的那一刻你会'啊哈！原来是这样！'超开心的！👍` },
@@ -497,7 +520,7 @@ function showAnswer() {
   a.textContent = '👉 ' + currentRiddle.a; a.classList.add('visible');
   document.getElementById('btnAns').disabled = true;
   document.getElementById('btnGuess').disabled = false;
-  document.getElementById('riddleFeedback').textContent = '👀 这就是答案啦，诚实告诉老师：你猜对了吗？';
+  document.getElementById('riddleFeedback').textContent = '👀 这就是答案啦，告诉老师：你猜对了吗？';
   document.getElementById('riddleFeedback').classList.remove('win');
 }
 function openGuess() {
