@@ -335,6 +335,29 @@ function toggleMusic() {
   }
 }
 
+// 浏览器不允许网页加载时真正自动播放声音，必须有一次点击/触摸。
+// 这里让"第一次点到页面任意处"就自动开始播放(点音乐按钮除外)。
+function startMusic() {
+  if (musicPlaying) return;
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  musicPlaying = true;
+  const btn = document.getElementById('musicBtn'), lbl = document.getElementById('musicLabel');
+  btn.classList.add('playing'); btn.textContent = '🎶';
+  lbl.textContent = '🎵 阳光彩虹小白马 播放中～';
+  playMelodyLoop();
+}
+function autoStartMusic(e) {
+  if (e.target && e.target.closest && e.target.closest('#musicBtn')) return;
+  startMusic();
+  document.removeEventListener('pointerdown', autoStartMusic);
+  document.removeEventListener('touchstart', autoStartMusic);
+  document.removeEventListener('click', autoStartMusic);
+}
+document.addEventListener('pointerdown', autoStartMusic);
+document.addEventListener('touchstart', autoStartMusic);
+document.addEventListener('click', autoStartMusic);
+
 // ---- 开学倒计时 ----
 const targetDate = new Date('2026-09-01T08:00:00+08:00').getTime();
 function updateCountdown() {
