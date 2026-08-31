@@ -211,7 +211,7 @@
 <div class="rainbow"></div>
 
 <a href="index.html" class="back-link">← 返回入口</a>
-<div class="music-label" id="musicLabel">🎵 阳光彩虹小白马</div>
+<div class="music-label" id="musicLabel">🎵 轻快音乐</div>
 <button class="music-btn" id="musicBtn" onclick="toggleMusic()" title="开关音乐">🎵</button>
 
 <div class="hero">
@@ -263,7 +263,7 @@
 </div>
 
 <script>
-// ---- 音乐：《阳光彩虹小白马》轻快旋律（Web Audio 木琴音色，可循环）----
+// ---- 音乐：轻快旋律（Web Audio 木琴音色，可循环）----
 // C4=261 D4=293 E4=329 F4=349 G4=392 A4=440 B4=493 C5=523 D5=587 E5=659 G5=784 A5=880
 // 明快蹦跳感（"你是最棒哒最亮哒最发光哒"的跳跃旋律氛围）
 const B = 0.17;
@@ -328,10 +328,10 @@ function toggleMusic() {
   if (audioCtx.state === 'suspended') audioCtx.resume();
   if (!musicPlaying) {
     musicPlaying = true; btn.classList.add('playing'); btn.textContent = '🎶';
-    lbl.textContent = '🎵 阳光彩虹小白马 播放中～'; playMelodyLoop();
+    lbl.textContent = '🎵 轻快旋律 播放中～'; playMelodyLoop();
   } else {
     musicPlaying = false; btn.classList.remove('playing'); btn.textContent = '🎵';
-    lbl.textContent = '🎵 阳光彩虹小白马'; musicNodes.forEach(n => { try { n.stop(); } catch(e){} }); musicNodes = [];
+    lbl.textContent = '🎵 轻快旋律'; musicNodes.forEach(n => { try { n.stop(); } catch(e){} }); musicNodes = [];
   }
 }
 
@@ -344,7 +344,7 @@ function startMusic() {
   musicPlaying = true;
   const btn = document.getElementById('musicBtn'), lbl = document.getElementById('musicLabel');
   btn.classList.add('playing'); btn.textContent = '🎶';
-  lbl.textContent = '🎵 阳光彩虹小白马 播放中～';
+  lbl.textContent = '🎵 轻快旋律 播放中～';
   playMelodyLoop();
 }
 function autoStartMusic(e) {
