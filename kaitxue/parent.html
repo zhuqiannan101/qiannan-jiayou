@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>做最棒的父母 · 家长能量站 🦄</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    min-height: 100vh;
+    background: linear-gradient(180deg, #ffd9a0 0%, #ffc8a8 30%, #ffe3d0 65%, #fff0e6 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+    overflow-x: hidden;
+    position: relative;
+    padding: 28px 16px 60px;
+  }
+
+  /* 暖阳 */
+  .sun {
+    position: fixed; top: 30px; right: 34px;
+    width: 88px; height: 88px; border-radius: 50%;
+    background: radial-gradient(circle at 40% 40%, #fff3b0, #ffc94d 55%, #ff9e2e);
+    box-shadow: 0 0 44px rgba(255,201,77,0.9);
+    z-index: 0; animation: sunPulse 4s ease-in-out infinite;
+  }
+  .sun::before, .sun::after {
+    content: ""; position: absolute; inset: -15px; border-radius: 50%;
+    background: conic-gradient(from 0deg, transparent 0 22deg, #ffe28a 22deg 42deg, transparent 42deg 62deg, #ffe28a 62deg 82deg, transparent 82deg 102deg, #ffe28a 102deg 122deg, transparent 122deg 142deg, #ffe28a 142deg 162deg, transparent 162deg 182deg, #ffe28a 182deg 202deg, transparent 202deg 222deg, #ffe28a 222deg 242deg, transparent 242deg 262deg, #ffe28a 262deg 282deg, transparent 282deg 302deg, #ffe28a 302deg 322deg, transparent 322deg 342deg, #ffe28a 342deg 360deg);
+    animation: sunSpin 14s linear infinite;
+  }
+  @keyframes sunSpin { to { transform: rotate(360deg); } }
+  @keyframes sunPulse { 0%,100% { transform: scale(1);} 50% { transform: scale(1.06);} }
+
+  /* 彩虹 + 云 */
+  .rainbow {
+    position: fixed; right: -10%; top: 20vh;
+    width: 60vw; height: 40vh; z-index: 0; opacity: 0.16;
+    pointer-events: none;
+    background: repeating-linear-gradient(90deg,
+      #ff6b6b 0 10%, #ffa94d 10% 20%, #ffd43b 20% 30%, #69db7c 30% 40%,
+      #4dabf7 40% 50%, #9775fa 50% 60%, #ff8787 60% 70%, #ffa94d 70% 80%,
+      #ffd43b 80% 90%, #69db7c 90% 100%);
+    border-radius: 0 0 60% 60% / 40% 40% 0 0;
+  }
+  .cloud {
+    position: fixed; z-index: 0; width: 150px; height: 48px;
+    background: rgba(255,255,255,0.9); border-radius: 50px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.05);
+  }
+  .cloud::before, .cloud::after { content:""; position:absolute; background:inherit; border-radius:50%; }
+  .cloud::before { width: 60px; height: 60px; top: -28px; left: 26px; }
+  .cloud::after  { width: 44px; height: 44px; top: -20px; left: 74px; }
+  .cloud.c1 { top: 70px;  left: -40px; animation: drift 30s linear infinite; }
+  .cloud.c2 { top: 170px; left: 100%; width: 130px; animation: drift 36s linear infinite reverse; }
+  @keyframes drift { from { transform: translateX(0);} to { transform: translateX(120vw);} }
+
+  .hero {
+    position: relative; z-index: 5; text-align: center; margin-bottom: 22px; padding-top: 8px;
+  }
+  .hero .mascot {
+    width: 76px; height: 76px; border-radius: 50%;
+    margin: 0 auto 10px;
+    background: linear-gradient(135deg, #ffc94d, #ff9e2e);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 42px; box-shadow: 0 8px 24px rgba(255,158,46,0.4);
+    animation: bounce 2.2s ease-in-out infinite;
+  }
+  @keyframes bounce { 0%,100%{ transform: translateY(0);} 50%{ transform: translateY(-8px);} }
+  .hero h1 {
+    font-size: 28px; font-weight: 900; letter-spacing: 1px;
+    background: linear-gradient(90deg, #ff6b6b, #ff922b, #f76707);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    filter: drop-shadow(0 2px 3px rgba(0,0,0,0.08));
+  }
+  .hero p { color: #9a7b6a; font-size: 14px; margin-top: 6px; font-weight: 600; }
+
+  /* 倒计时 */
+  .countdown-card {
+    position: relative; z-index: 5;
+    width: min(540px, 92vw);
+    background: rgba(255,255,255,0.75);
+    border-radius: 24px; padding: 22px 20px 18px; text-align: center;
+    box-shadow: 0 12px 28px rgba(0,0,0,0.07);
+    margin-bottom: 16px; border: 1px solid rgba(255,255,255,0.9);
+  }
+  .countdown-title { color: #f76707; font-size: 19px; font-weight: 900; margin-bottom: 4px; }
+  .countdown-sub { color: #a08b7c; font-size: 12px; margin-bottom: 14px; }
+  .countdown-row { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+  .cd-item { background: #fff; border: 1.5px solid #ffe0b3; border-radius: 16px; padding: 12px 8px 8px; min-width: 72px; }
+  .cd-num { color: #ff922b; font-size: 30px; font-weight: 900; line-height: 1; font-variant-numeric: tabular-nums; }
+  .cd-label { color: #a08b7c; font-size: 12px; margin-top: 4px; }
+  .countdown-tip { margin-top: 14px; color: #8a6f5a; font-size: 13px; line-height: 1.7; background: rgba(255,201,77,0.18); border-radius: 12px; padding: 10px 14px; }
+
+  .card {
+    position: relative; z-index: 5;
+    width: min(540px, 92vw);
+    background: rgba(255,255,255,0.85);
+    border-radius: 28px; padding: 28px 26px 24px;
+    box-shadow: 0 18px 40px rgba(0,0,0,0.07);
+    border: 1px solid rgba(255,255,255,0.9);
+  }
+  .card-label {
+    display: inline-block; font-size: 11px; font-weight: 800; letter-spacing: 1px;
+    padding: 4px 12px; border-radius: 20px; margin-bottom: 12px; color: #fff;
+    background: linear-gradient(135deg, #ffc94d, #ff922b);
+    box-shadow: 0 2px 8px rgba(255,146,43,0.35);
+  }
+  .input-row { display: flex; gap: 10px; margin-bottom: 16px; }
+  input[type="text"] {
+    flex: 1; padding: 14px 18px; border-radius: 50px;
+    border: 2px solid #ffe0b3; background: #fff; color: #4a4a4a;
+    font-size: 17px; font-family: inherit; outline: none; transition: border-color .3s;
+  }
+  input[type="text"]::placeholder { color: #b8b8b8; }
+  input[type="text"]:focus { border-color: #ff922b; }
+  .btn-gen {
+    padding: 14px 20px; border-radius: 50px; border: none;
+    background: linear-gradient(135deg, #ff922b, #ff6b6b); color: #fff;
+    font-size: 15px; font-weight: 800; cursor: pointer; font-family: inherit;
+    box-shadow: 0 6px 18px rgba(255,107,107,0.4); transition: transform .15s; white-space: nowrap;
+  }
+  .btn-gen:hover { transform: translateY(-2px); }
+
+  .blessing-box {
+    display: none; border-radius: 20px; padding: 24px 20px 20px;
+    background: linear-gradient(135deg, #fff4e6, #ffe9f0);
+    border: 1.5px solid #ffd8a8; animation: popIn .45s cubic-bezier(.34,1.56,.64,1);
+  }
+  @keyframes popIn { from { transform: scale(.8); opacity:0;} to { transform: scale(1); opacity:1;} }
+  .blessing-name { font-size: 19px; font-weight: 900; color: #ff6b6b; margin-bottom: 10px; }
+  .blessing-text { font-size: 16px; line-height: 1.95; color: #5c5c5c; text-align: left; }
+  .blessing-sign { margin-top: 12px; font-size: 13px; color: #ff922b; text-align: right; font-style: italic; font-weight: 700; }
+  .blessing-emoji-row { margin-top: 12px; font-size: 22px; letter-spacing: 6px; }
+
+  .btn-again, .btn-speak {
+    display: inline-block; margin-top: 14px; padding: 10px 24px; border-radius: 50px;
+    border: 2px solid; font-size: 13px; font-family: inherit; cursor: pointer; font-weight: 800; transition: all .2s;
+  }
+  .btn-again { border-color: #ff922b; background: rgba(255,146,43,0.08); color: #ff922b; }
+  .btn-again:hover { background: rgba(255,146,43,0.18); }
+  .btn-speak { border-color: #e64980; background: rgba(230,73,128,0.08); color: #c2255c; }
+  .btn-speak:hover { background: rgba(230,73,128,0.18); }
+  .btn-speak.speaking { background: rgba(230,73,128,0.22); animation: speak-pulse .8s infinite alternate; }
+  @keyframes speak-pulse { from { box-shadow: 0 0 0 rgba(230,73,128,0);} to { box-shadow: 0 0 14px rgba(230,73,128,0.7);} }
+  .action-row { display: flex; gap: 10px; justify-content: center; margin-top: 8px; flex-wrap: wrap; }
+
+  /* 今日夸夸 */
+  .cheer-card { text-align: center; }
+  .cheer-card h2 { color: #ff6b6b; font-size: 20px; font-weight: 900; margin-bottom: 6px; }
+  .cheer-sub { color: #a08b7c; font-size: 13px; margin-bottom: 10px; }
+  .cheer-text {
+    font-size: 17px; font-weight: 800; line-height: 1.8; color: #f76707;
+    margin: 14px 0 6px; min-height: 60px;
+  }
+  .btn-cheer {
+    margin-top: 12px; padding: 13px 30px; border: none; border-radius: 50px;
+    background: linear-gradient(135deg, #e64980, #d6336c); color: #fff;
+    font-size: 15px; font-weight: 800; cursor: pointer; font-family: inherit;
+    box-shadow: 0 6px 18px rgba(230,73,128,0.4); transition: transform .15s;
+  }
+  .btn-cheer:hover { transform: translateY(-2px); }
+
+  .music-btn {
+    position: fixed; bottom: 18px; right: 18px; z-index: 100;
+    width: 56px; height: 56px; border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.9); background: linear-gradient(135deg,#e64980,#d6336c);
+    color: #fff; font-size: 24px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 8px 24px rgba(230,73,128,0.5); transition: transform .2s;
+  }
+  .music-btn:hover { transform: scale(1.08); }
+  .music-btn.playing { animation: music-spin 3s linear infinite; }
+  @keyframes music-spin { from { transform: rotate(0);} to { transform: rotate(360deg);} }
+  .music-label {
+    position: fixed; bottom: 26px; right: 84px; z-index: 100;
+    font-size: 12px; font-weight: 700; color: #9a7b6a; background: rgba(255,255,255,0.85);
+    padding: 5px 12px; border-radius: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); white-space: nowrap;
+  }
+  .back-link {
+    position: fixed; top: 18px; left: 18px; z-index: 100;
+    font-size: 13px; font-weight: 700; text-decoration: none; color: #9a7b6a;
+    background: rgba(255,255,255,0.8); padding: 8px 16px; border-radius: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+  }
+  .back-link:hover { background: #fff; }
+  .popup {
+    position: fixed; z-index: 200; font-size: 46px; font-weight: 900; pointer-events: none;
+    animation: popUp 1.4s ease-out forwards;
+  }
+  @keyframes popUp {
+    0% { transform: translateY(0) scale(.6) rotate(-8deg); opacity: 0; }
+    20% { opacity: 1; }
+    100% { transform: translateY(-120px) scale(1.1) rotate(6deg); opacity: 0; }
+  }
+</style>
+</head>
+<body>
+
+<div class="sun"></div>
+<div class="cloud c1"></div>
+<div class="cloud c2"></div>
+<div class="rainbow"></div>
+
+<a href="index.html" class="back-link">← 返回入口</a>
+<div class="music-label" id="musicLabel">🎵 阳光彩虹小白马</div>
+<button class="music-btn" id="musicBtn" onclick="toggleMusic()" title="开关音乐">🎵</button>
+
+<div class="hero">
+  <div class="mascot">🦄</div>
+  <h1>你已经是非常棒的父母啦 · 家长能量站</h1>
+  <p>陪伴了一个暑假，您真的很了不起！</p>
+</div>
+
+<!-- 倒计时 -->
+<div class="countdown-card">
+  <div class="countdown-title">🎒 距新学期开学还有</div>
+  <p class="countdown-sub">9 月 1 日，宝贝背起小书包，您也开启新学期"陪跑"模式</p>
+  <div class="countdown-row" id="countdownRow">
+    <div class="cd-item"><div class="cd-num" id="cdDays">0</div><div class="cd-label">天</div></div>
+    <div class="cd-item"><div class="cd-num" id="cdHours">0</div><div class="cd-label">时</div></div>
+    <div class="cd-item"><div class="cd-num" id="cdMins">0</div><div class="cd-label">分</div></div>
+    <div class="cd-item"><div class="cd-num" id="cdSecs">0</div><div class="cd-label">秒</div></div>
+  </div>
+  <div class="countdown-tip" id="countdownTip">🌷 先给辛苦一暑假的自己，一个大大拥抱吧～</div>
+</div>
+
+<!-- 家长加油卡 -->
+<div class="card">
+  <span class="card-label">💌 倩楠老师写给家长</span>
+  <div class="input-row">
+    <input type="text" id="nameInput" placeholder="输入宝贝的名字～" maxlength="8">
+    <button class="btn-gen" onclick="generate()">💛 收能量</button>
+  </div>
+  <div class="blessing-box" id="blessingBox">
+    <div class="blessing-name" id="blessingName"></div>
+    <div class="blessing-text" id="blessingText"></div>
+    <div class="blessing-sign" id="blessingSign"></div>
+    <div class="blessing-emoji-row" id="blessingEmoji"></div>
+    <div class="action-row">
+      <button class="btn-again" onclick="generate()">🔀 再来一条</button>
+      <button class="btn-speak" id="speakBtn" onclick="speakBlessing()">🔊 读给我听</button>
+    </div>
+  </div>
+</div>
+
+<!-- 今日夸夸 -->
+<div class="card cheer-card" style="margin-top:16px;">
+  <h2>🌟 今日夸夸</h2>
+  <p class="cheer-sub">每天一句，说给最棒的你听</p>
+  <div class="cheer-text" id="cheerText">点击下面按钮，领取一句今天的夸夸～</div>
+  <div class="action-row">
+    <button class="btn-cheer" id="btnCheer" onclick="cheer()">🌸 夸夸我</button>
+  </div>
+</div>
+
+<script>
+// ---- 音乐：《阳光彩虹小白马》轻快旋律（Web Audio 木琴音色，可循环）----
+// C4=261 D4=293 E4=329 F4=349 G4=392 A4=440 B4=493 C5=523 D5=587 E5=659 G5=784 A5=880
+// 明快蹦跳感（"你是最棒哒最亮哒最发光哒"的跳跃旋律氛围）
+const B = 0.17;
+const melody = [
+  // 蹦跳音型：5' 6' 5' 3' | 2' 3' 5' | 5' 6' 5' 3' | 1' 6 5
+  [523,B],[587,B],[523,B],[659,B],
+  [587,B],[659,B],[523,B],
+  [523,B],[587,B],[523,B],[659,B],
+  [523,B],[440,B],[392,B],
+  // 第二段跳跃：3' 5' 6' 5' | 3' 5' | 2' 3' 5' | 1' 6 5
+  [659,B],[784,B],[880,B],[784,B],
+  [659,B],[784,B],
+  [587,B],[659,B],[523,B],
+  [523,B],[440,B],[392,B],
+  // 收尾：1' 2' 3' | 5' 6' 5' | 3' 1' | 1' - -
+  [523,B],[587,B],[659,B],
+  [784,B],[880,B],[784,B],
+  [659,B],[523,B],[523,B*2],
+  [0,B],
+];
+
+let audioCtx = null, musicPlaying = false, musicNodes = [], reverbNode = null;
+function createReverb(ctx) {
+  const conv = ctx.createConvolver();
+  const len = ctx.sampleRate * 1.5;
+  const buf = ctx.createBuffer(2, len, ctx.sampleRate);
+  for (let ch = 0; ch < 2; ch++) {
+    const d = buf.getChannelData(ch);
+    for (let i = 0; i < len; i++) d[i] = (Math.random()*2-1) * Math.pow(1 - i/len, 2.5);
+  }
+  conv.buffer = buf; return conv;
+}
+function playNote(freq, startT, dur) {
+  if (freq === 0) return;
+  if (!reverbNode) {
+    reverbNode = createReverb(audioCtx);
+    const wet = audioCtx.createGain(); wet.gain.value = 0.22;
+    reverbNode.connect(wet); wet.connect(audioCtx.destination);
+  }
+  [1, 2, 4].forEach((harmonic, i) => {
+    const osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(freq * harmonic, startT);
+    const vol = [0.26, 0.10, 0.04][i];
+    gain.gain.setValueAtTime(vol, startT);
+    gain.gain.exponentialRampToValueAtTime(0.001, startT + Math.min(dur * 1.8, 1.1));
+    osc.connect(gain); gain.connect(audioCtx.destination); gain.connect(reverbNode);
+    osc.start(startT); osc.stop(startT + 1.3);
+    musicNodes.push(osc);
+  });
+}
+function playMelodyLoop() {
+  if (!musicPlaying || !audioCtx) return;
+  let t = audioCtx.currentTime + 0.05;
+  melody.forEach(([f, d]) => { playNote(f, t, d); t += d; });
+  const total = melody.reduce((s,[,d])=>s+d, 0);
+  setTimeout(() => { if (musicPlaying) playMelodyLoop(); }, total * 1000);
+}
+function toggleMusic() {
+  const btn = document.getElementById('musicBtn'), lbl = document.getElementById('musicLabel');
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  if (!musicPlaying) {
+    musicPlaying = true; btn.classList.add('playing'); btn.textContent = '🎶';
+    lbl.textContent = '🎵 阳光彩虹小白马 播放中～'; playMelodyLoop();
+  } else {
+    musicPlaying = false; btn.classList.remove('playing'); btn.textContent = '🎵';
+    lbl.textContent = '🎵 阳光彩虹小白马'; musicNodes.forEach(n => { try { n.stop(); } catch(e){} }); musicNodes = [];
+  }
+}
+
+// ---- 开学倒计时 ----
+const targetDate = new Date('2026-09-01T08:00:00+08:00').getTime();
+function updateCountdown() {
+  const now = Date.now(); let diff = targetDate - now;
+  const tip = document.getElementById('countdownTip');
+  if (diff <= 0) {
+    ['cdDays','cdHours','cdMins','cdSecs'].forEach(id => document.getElementById(id).textContent = '0');
+    tip.textContent = '🎉 今天就是开学日啦！祝宝贝新学期闪闪发光，也祝您陪跑顺利、一切顺利！';
+    return;
+  }
+  const d = Math.floor(diff/86400000); diff -= d*86400000;
+  const h = Math.floor(diff/3600000); diff -= h*3600000;
+  const m = Math.floor(diff/60000); diff -= m*60000;
+  const s = Math.floor(diff/1000);
+  document.getElementById('cdDays').textContent  = String(d).padStart(2,'0');
+  document.getElementById('cdHours').textContent = String(h).padStart(2,'0');
+  document.getElementById('cdMins').textContent  = String(m).padStart(2,'0');
+  document.getElementById('cdSecs').textContent  = String(s).padStart(2,'0');
+  if (d >= 7) tip.textContent = '🌷 还有时间，陪宝贝慢慢准备，也别忘了给自己放个松～';
+  else if (d >= 3) tip.textContent = '⏰ 快开学了，帮宝贝调回作息，您也早点睡个好觉！';
+  else if (d >= 1) tip.textContent = '🎒 明天就开学啦！今晚陪宝贝收拾书包，也给自己换副好心情～';
+  else tip.textContent = '🌟 明天是新学期的开始，您已经做得非常棒了！';
+}
+updateCountdown(); setInterval(updateCountdown, 1000);
+
+// ---- 鼓励家长文案（认可父母最棒、肯定陪伴）----
+const parentTemplates = [
+  { full: (n) => `亲爱的家长，一整个暑假，您陪${n}睡觉、吃饭、做作业、出去玩、还可能辅导了功课……暑假的每一天，都是您用耐心铺出来的。您真的辛苦了，而且做得特别棒！倩楠老师真心向您致敬！💛` },
+  { full: (n) => `亲爱的家长，开学啦！倩楠老师想对您说：每个父母都是最棒的！您不用完美，您愿意陪${n}、愿意为他/她操心，就已经是满分了。这个暑假您给${n}的陪伴，是他/她心里最暖的光。🌷` },
+  { full: (n) => `亲爱的家长，您知道吗？${n}每天能安心地笑，是因为他知道身后有一个稳稳的您。您给的这份安全感，比任何成绩都珍贵。新学期也请记得多爱自己一点，您值得被温柔以待。💐` },
+  { full: (n) => `亲爱的家长，暑假里${n}可能小吵小闹、也可能让您头疼过，但那些都过去了。别怀疑自己，您已经是最努力的那位妈妈/爸爸了！倩楠老师看到您的用心，特别想给您点个大大的赞！👏` },
+  { full: (n) => `亲爱的家长，新学期${n}会慢慢长大，也会慢慢学会独立。这个过程会有波折，但请您相信——您现在每一分的爱和陪伴，都在为他/她未来铺路。您已经很棒了，继续加油，我们一起走！🌟` },
+  { full: (n) => `亲爱的家长，教育是一场漫长的马拉松，您咬牙坚持了这么久，真的很了不起！比起完美，${n}更需要的是一个快乐的、有爱的、会笑的您。记得偶尔放下焦虑，抱抱自己，您辛苦了！🦄` },
+  { full: (n) => `亲爱的家长，您不是一个人在战斗！${n}的成长有您，也有倩楠老师。新学期我们一起把${n}照顾好——您在家给他/她温暖，我在课堂给他/她信心。您是最棒的家长，我们做他/她最强的后盾！🤝` },
+  { full: (n) => `亲爱的家长，倩楠老师想提醒您：您已经做得很好了，不要再苛责自己。陪${n}成长是一趟单程旅行，您用尽全力参与的每一站，都值得被感谢。新学期，请也给自己一些宽容和掌声。🌸` },
+  { full: (n) => `亲爱的家长，这个暑假您陪${n}一起阅读、一起玩耍、一起成长，那些一起笑一起闹的瞬间，都会成为后来最美好的回忆。您给${n}的，不只是时间，更是完整的心。谢谢您，您真的很棒！💝` },
+];
+
+const emojiSets = ['💛 🌸 🌟','🌷 💐 🦄','💝 ✨ 🏆','🥰 🌈 💛','🍀 🌻 📚','💫 🏅 🌷'];
+
+let lastIdx = -1, currentSpeak = '';
+function generate() {
+  const raw = document.getElementById('nameInput').value.trim();
+  const name = raw || '宝贝';
+  let idx; do { idx = Math.floor(Math.random()*parentTemplates.length); } while (idx===lastIdx && parentTemplates.length>1);
+  lastIdx = idx; const item = parentTemplates[idx];
+  currentSpeak = `亲爱的家长您好！我是${name}的老师倩楠。一整个暑假陪伴${name}，您辛苦了，我来对您说句心里话。${item.full(name)}`;
+  const box = document.getElementById('blessingBox');
+  document.getElementById('blessingName').textContent = `💌 致 ${name} 的家长 💌`;
+  document.getElementById('blessingText').textContent = item.full(name);
+  document.getElementById('blessingSign').textContent = '—— 倩楠老师 敬上 💐';
+  document.getElementById('blessingEmoji').textContent = emojiSets[Math.floor(Math.random()*emojiSets.length)];
+  const sb = document.getElementById('speakBtn'); sb.textContent = '🔊 读给我听'; sb.classList.remove('speaking');
+  box.style.display = 'block'; box.classList.remove('show');
+  void box.offsetWidth; box.classList.add('show');
+  popup(['💛','🌸','✨'][Math.floor(Math.random()*3)]);
+  if (audioCtx && musicPlaying) playDing();
+}
+
+// ---- 今日夸夸 ----
+const cheers = [
+  '您不需要完美，您愿意陪孩子，就已经是最棒的父母了。',
+  '一整个暑假的陪伴，就是给孩子最好的教育。您辛苦了！',
+  '孩子是您的骄傲，您也是孩子心里最亮的灯塔。',
+  '别总忙着照顾所有人，您也值得被温柔以待。',
+  '您给的耐心和爱，孩子都看在眼里，记在心里。',
+  '教育不是赛跑，您一直在孩子身边稳稳地走，就是满分。',
+  '您已经做得够好了，今天也给自己放个小小的假吧。',
+  '每个父母都是最棒的，您也不例外。相信自己！',
+];
+let lastCheer = -1;
+function cheer() {
+  let idx; do { idx = Math.floor(Math.random()*cheers.length); } while (idx===lastCheer && cheers.length>1);
+  lastCheer = idx;
+  document.getElementById('cheerText').textContent = '🌟 ' + cheers[idx];
+  popup(['🌸','💛','🎉'][Math.floor(Math.random()*3)]);
+}
+
+function popup(ch) {
+  const el = document.createElement('div');
+  el.className = 'popup'; el.textContent = ch;
+  el.style.left = (20+Math.random()*60)+'vw';
+  el.style.top = (25+Math.random()*30)+'vh';
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(), 1400);
+}
+
+// ---- 朗读 ----
+let speaking = false;
+function getBestVoice() {
+  const voices = window.speechSynthesis.getVoices();
+  const prefer = [
+    v => v.name.includes('Xiaoxiao') && v.name.includes('Natural'),
+    v => v.name.includes('XiaoYi')   && v.name.includes('Natural'),
+    v => v.name.includes('Natural')  && v.lang.startsWith('zh'),
+    v => v.name.includes('Xiaoxiao'),
+    v => v.name.includes('XiaoYi') || v.name.includes('Xiaoyi'),
+    v => v.name.includes('Microsoft') && v.lang.startsWith('zh'),
+    v => v.lang === 'zh-CN', v => v.lang.startsWith('zh'),
+  ];
+  for (const fn of prefer) { const found = voices.find(fn); if (found) return found; }
+  return null;
+}
+function speakBlessing() {
+  if (!('speechSynthesis' in window)) { alert('浏览器不支持朗读，建议用 Chrome 或 Edge 哦～'); return; }
+  const sb = document.getElementById('speakBtn');
+  if (speaking) { window.speechSynthesis.cancel(); speaking = false; sb.textContent = '🔊 读给我听'; sb.classList.remove('speaking'); return; }
+  if (!currentSpeak) return;
+  window.speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(currentSpeak);
+  u.lang = 'zh-CN'; u.rate = 0.85; u.pitch = 1.12; u.volume = 1;
+  const v = getBestVoice(); if (v) u.voice = v;
+  speaking = true; sb.textContent = '⏹ 停下'; sb.classList.add('speaking');
+  u.onend = u.onerror = () => { speaking = false; sb.textContent = '🔊 读给我听'; sb.classList.remove('speaking'); };
+  window.speechSynthesis.speak(u);
+}
+
+function playDing() {
+  if (!audioCtx) return;
+  [880,1047,1319].forEach((f,i) => {
+    const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    o.type='sine'; o.frequency.value=f; const t = audioCtx.currentTime + i*0.12;
+    g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(0.22,t+0.02);
+    g.gain.exponentialRampToValueAtTime(0.001,t+0.5);
+    o.connect(g); g.connect(audioCtx.destination); o.start(t); o.stop(t+0.6);
+  });
+}
+
+document.getElementById('nameInput').addEventListener('keydown', e => { if (e.key==='Enter') generate(); });
+</script>
+</body>
+</html>
