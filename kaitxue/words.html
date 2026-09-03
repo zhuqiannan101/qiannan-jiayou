@@ -174,6 +174,7 @@ let learned = new Set();    // 已答对的单词下标
 let streak = 0, bestStreak = 0;
 let current = null;         // {index, type}
 let audioCtx = null;
+let speechAudio = null;
 
 const tiers = [
   [0,  '🐣', '小萌新'],
@@ -248,7 +249,7 @@ function render() {
   const fb = document.getElementById('feedback');
   fb.textContent = ''; fb.className = 'feedback';
   optionsArea.innerHTML = ''; optionsArea.style.display = 'none';
-  spellArea.style.display = 'none'; speakBtn.style.display = 'none';
+  spellArea.style.display = 'none'; speakBtn.style.display = 'inline-flex';
 
   if (current.type === 'spellZhEn') {
     qType.textContent = '✍️ 看中文，写英文单词';
@@ -372,6 +373,18 @@ function speakCurrent() {
   speakEn(words[current.index].en);
 }
 function speakEn(text) {
+  // 优先用有道词典发音接口（国内可访问，是单词真人发音，微信也能播）
+  const url = 'https://dict.youdao.com/dictvoice?audio=' + encodeURIComponent(text) + '&type=2';
+  try {
+    if (speechAudio) { speechAudio.pause(); speechAudio.src = ''; }
+    speechAudio = new Audio(url);
+    speechAudio.onerror = () => trySpeechSynthesis(text);
+    speechAudio.play().catch(() => trySpeechSynthesis(text));
+  } catch (e) {
+    trySpeechSynthesis(text);
+  }
+}
+function trySpeechSynthesis(text) {
   if (!('speechSynthesis' in window)) return;
   window.speechSynthesis.cancel();
   const u = new SpeechSynthesisUtterance(text);
