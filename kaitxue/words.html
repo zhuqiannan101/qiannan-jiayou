@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>单词小乐园 · 倩楠老师</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    min-height: 100vh;
+    background: linear-gradient(180deg, #7cc8ff 0%, #b7e9d8 45%, #ffe8b0 100%);
+    font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+    padding: 22px 14px 48px; position: relative; overflow-x: hidden;
+    display: flex; flex-direction: column; align-items: center;
+  }
+  .deco { position: fixed; z-index: 0; font-size: 54px; opacity: .5; user-select: none; }
+  .d1 { top: 36px; left: 22px; animation: float 6s ease-in-out infinite; }
+  .d2 { top: 70px; right: 26px; animation: float 7s ease-in-out infinite reverse; }
+  .d3 { bottom: 90px; left: 30px; animation: float 8s ease-in-out infinite; }
+  .d4 { bottom: 130px; right: 34px; animation: float 5s ease-in-out infinite; }
+  @keyframes float { 0%,100% { transform: translateY(0);} 50% { transform: translateY(-18px);} }
+
+  .hero { position: relative; z-index: 5; text-align: center; margin-bottom: 18px; }
+  .hero .mascot { width: 74px; height: 74px; margin: 0 auto 8px; border-radius: 22px;
+    background: linear-gradient(135deg, #63e6be, #20c997); display: flex; align-items: center; justify-content: center;
+    font-size: 42px; box-shadow: 0 8px 22px rgba(32,201,151,.4); animation: rock 2.6s ease-in-out infinite; }
+  @keyframes rock { 0%,100%{ transform: rotate(-6deg);} 50%{ transform: rotate(6deg);} }
+  .hero h1 { font-size: 30px; font-weight: 900; letter-spacing: 1px;
+    background: linear-gradient(90deg, #12b886, #37b24d, #4dabf7); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .hero p { color: #5c6b8a; margin-top: 6px; font-size: 14px; font-weight: 600; }
+
+  .card { position: relative; z-index: 5; width: 100%; max-width: 640px;
+    background: rgba(255,255,255,0.92); border-radius: 26px; padding: 22px 20px; margin-bottom: 16px;
+    box-shadow: 0 16px 40px rgba(0,0,0,0.08); border: 1px solid rgba(255,255,255,0.9); }
+  .card h2 { font-size: 20px; font-weight: 900; color: #2b8a3e; margin-bottom: 6px; }
+  .card .sub { font-size: 12px; color: #8a8a8a; margin-bottom: 12px; }
+
+  .label { display: block; font-size: 13px; font-weight: 800; color: #495057; margin: 10px 0 6px; }
+  textarea, input[type="text"] { width: 100%; font-family: inherit; font-size: 15px; border: 2px solid #d0ebff;
+    border-radius: 14px; padding: 12px 14px; background: #f8fbff; transition: border-color .2s; }
+  textarea { min-height: 110px; resize: vertical; line-height: 1.7; }
+  textarea:focus, input[type="text"]:focus { border-color: #20c997; outline: none; }
+  .hint { font-size: 12px; color: #adb5bd; margin-top: 6px; line-height: 1.6; }
+
+  .btn { display: inline-block; border: none; border-radius: 50px; padding: 12px 26px; font-family: inherit;
+    font-size: 15px; font-weight: 800; cursor: pointer; color: #fff; transition: transform .15s, box-shadow .15s; }
+  .btn:hover { transform: translateY(-2px); }
+  .btn-primary { background: linear-gradient(135deg, #20c997, #12b886); box-shadow: 0 8px 20px rgba(32,201,151,.4); }
+  .btn-secondary { background: linear-gradient(135deg, #4dabf7, #339af0); box-shadow: 0 8px 20px rgba(51,154,240,.4); }
+  .btn-ghost { background: #f1f3f5; color: #5c6b8a; box-shadow: none; }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+
+  /* quiz */
+  .quiz-top { display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    background: #f2fff9; border: 1px solid #c3f3df; border-radius: 16px; padding: 12px 14px; margin-bottom: 16px; }
+  .pet { display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 800; color: #2b8a3e; }
+  .pet .pet-emoji { font-size: 34px; }
+  .pet .pet-name { font-size: 12px; font-weight: 700; color: #8a8a8a; display: block; line-height: 1.2; }
+  .quiz-stats { text-align: right; font-size: 13px; color: #3b5bdb; font-weight: 700; line-height: 1.5; }
+  .quiz-stats .pts { color: #f76707; font-size: 16px; }
+
+  .q-type { display: inline-block; font-size: 12px; font-weight: 800; padding: 4px 12px; border-radius: 20px;
+    background: linear-gradient(135deg, #ffc94d, #ff922b); color: #fff; margin-bottom: 12px; }
+  .q-prompt { font-size: 23px; font-weight: 900; color: #343a40; text-align: center; margin: 6px 0 4px; }
+  .q-prompt .en { color: #1c7ed6; }
+
+  .options { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 18px; }
+  .option { border: 2px solid #e9ecef; border-radius: 16px; padding: 16px 10px; text-align: center; font-size: 18px;
+    font-weight: 800; color: #343a40; cursor: pointer; background: #fff; transition: transform .15s, border-color .2s; }
+  .option:hover { transform: translateY(-2px); border-color: #20c997; }
+  .option.correct { border-color: #37b24d; background: #e6fcf5; }
+  .option.wrong { border-color: #fa5252; background: #fff5f5; }
+
+  .spell { margin-top: 18px; }
+  .feedback { text-align: center; font-size: 17px; font-weight: 800; margin-top: 18px; min-height: 24px; }
+  .feedback.ok { color: #2b8a3e; }
+  .feedback.no { color: #e8590c; }
+
+  .speak-btn { display: inline-flex; align-items: center; gap: 6px; margin-top: 6px;
+    background: #edf2ff; color: #3b5bdb; border: none; border-radius: 50px; padding: 8px 16px;
+    font-size: 13px; font-weight: 800; cursor: pointer; }
+  .speak-btn:hover { background: #dbe4ff; }
+
+  .done { text-align: center; padding: 20px 6px; }
+  .done .big { font-size: 52px; }
+  .done h3 { font-size: 24px; color: #2b8a3e; margin: 8px 0 6px; }
+  .done p { color: #6a6a6a; font-size: 15px; line-height: 1.8; }
+  .done .reward { margin-top: 12px; background: #fff9db; border: 1px solid #ffe066; border-radius: 14px;
+    padding: 12px 14px; color: #e8590c; font-weight: 800; }
+
+  .hid { display: none; }
+
+  .coin { position: fixed; top: -30px; z-index: 99; font-size: 28px; pointer-events: none; animation: fall 1.6s linear forwards; }
+  @keyframes fall { to { transform: translateY(110vh) rotate(540deg); opacity: 0; } }
+  .footer { position: relative; z-index: 5; color: #7a8aa0; font-size: 13px; margin-top: 8px; text-align: center; }
+</style>
+</head>
+<body>
+
+<div class="deco d1">📚</div>
+<div class="deco d2">🎈</div>
+<div class="deco d3">✏️</div>
+<div class="deco d4">🌟</div>
+
+<div class="hero">
+  <div class="mascot">🦄</div>
+  <h1>单词小乐园</h1>
+  <p>今天背单词，也能超有趣！爸爸妈妈放单词，宝贝来闯关～</p>
+</div>
+
+<!-- 家长放单词 -->
+<div class="card" id="setupCard">
+  <h2>🧩 今天要背的单词</h2>
+  <p class="sub">家长点这里，把今天必须学会的单词放进去</p>
+
+  <label class="label">单词（每行一个，写「英文 中文」）</label>
+  <textarea id="wordInput" placeholder="apple 苹果&#10;banana 香蕉&#10;cat 猫&#10;dog 狗&#10;sun 太阳"></textarea>
+  <div class="hint">例如：第一行写 <b>apple 苹果</b>，第二行写 <b>banana 香蕉</b>，一行一个。</div>
+
+  <label class="label">🎁 答对全部的奖励（家长承诺，可选）</label>
+  <input type="text" id="rewardInput" placeholder="例如：看动画 20 分钟 / 一个小贴纸 / 周末去公园">
+
+  <div class="row">
+    <button class="btn btn-primary" onclick="start()">▶ 开始学习</button>
+    <button class="btn btn-ghost" onclick="loadSample()">✨ 给我示例</button>
+  </div>
+</div>
+
+<!-- 闯关区 -->
+<div class="card hid" id="quizCard">
+  <div class="quiz-top">
+    <div class="pet">
+      <span class="pet-emoji" id="petEmoji">🐣</span>
+      <span><span id="petName">小萌新</span><span class="pet-name">我的小动物</span></span>
+    </div>
+    <div class="quiz-stats">
+      <div><span class="pts" id="pts">0</span> 分</div>
+      <div id="progress">0 / 0</div>
+      <div id="streak">🔥 连对 0</div>
+    </div>
+  </div>
+
+  <div id="qArea">
+    <span class="q-type" id="qType">看中文写单词</span>
+    <div class="q-prompt" id="qPrompt"></div>
+    <button class="speak-btn" id="speakBtn" style="display:none" onclick="speakCurrent()">🔊 听发音</button>
+    <div class="options" id="optionsArea"></div>
+    <div class="spell" id="spellArea" style="display:none">
+      <input type="text" id="spellInput" placeholder="在这里写英文单词～" autocomplete="off">
+      <div class="row" style="justify-content:center"><button class="btn btn-secondary" onclick="submitSpell()">✓ 提交</button></div>
+    </div>
+    <div class="feedback" id="feedback"></div>
+  </div>
+
+  <div class="done hid" id="doneArea">
+    <div class="big">🎉</div>
+    <h3>全部通关啦！</h3>
+    <p>今天的 <b id="doneWords">0</b> 个单词你都学会啦！<br>你一共攒了 <b id="donePts">0</b> 分，你的小动物正为你骄傲～</p>
+    <div class="reward" id="doneReward"></div>
+    <div class="row" style="justify-content:center">
+      <button class="btn btn-primary" onclick="restart()">🔁 再学一轮</button>
+      <button class="btn btn-ghost" onclick="editWords()">📝 换单词</button>
+    </div>
+  </div>
+</div>
+
+<div class="footer">✨ 倩楠老师 · 把学习变有趣 ✨</div>
+
+<script>
+// ---- 数据与状态 ----
+let words = [];            // [{en, zh}]
+let score = 0;
+let learned = new Set();    // 已答对的单词下标
+let streak = 0, bestStreak = 0;
+let current = null;         // {index, type}
+let audioCtx = null;
+
+const tiers = [
+  [0,  '🐣', '小萌新'],
+  [20, '🐥', '小雏'],
+  [40, '🐰', '小兔'],
+  [80, '🐱', '小猫'],
+  [120,'🐶', '小狗'],
+  [200,'🦁', '小狮子'],
+];
+function tierFor(s) {
+  let cur = tiers[0];
+  for (const [t, e, n] of tiers) if (s >= t) cur = [t, e, n];
+  return cur;
+}
+
+// ---- 家长操作 ----
+function parseWords(text) {
+  const list = [];
+  text.split(/\n+/).forEach(line => {
+    line = line.trim();
+    if (!line) return;
+    const parts = line.split(/\s+/);
+    if (parts.length >= 2) {
+      const en = parts[0];
+      const zh = parts.slice(1).join(' ');
+      if (en && zh) list.push({ en: en, zh });
+    }
+  });
+  return list;
+}
+function loadSample() {
+  document.getElementById('wordInput').value = 'apple 苹果\nbanana 香蕉\ncat 猫\ndog 狗\nsun 太阳\nred 红色\nmilk 牛奶';
+  document.getElementById('rewardInput').value = '看动画 20 分钟';
+}
+function start() {
+  const text = document.getElementById('wordInput').value;
+  words = parseWords(text);
+  if (words.length < 2) { alert('请至少放 2 个单词哦～每个格式：英文 中文'); return; }
+  try { localStorage.setItem('wcWords', text); } catch(e){}
+  try { localStorage.setItem('wcReward', document.getElementById('rewardInput').value); } catch(e){}
+  score = 0; learned = new Set(); streak = 0; bestStreak = 0;
+  document.getElementById('setupCard').classList.add('hid');
+  document.getElementById('quizCard').classList.remove('hid');
+  document.getElementById('doneArea').classList.add('hid');
+  document.getElementById('qArea').classList.remove('hid');
+  render();
+}
+function editWords() {
+  document.getElementById('quizCard').classList.add('hid');
+  document.getElementById('setupCard').classList.remove('hid');
+}
+
+// ---- 出题 ----
+function pickQuestion() {
+  const pool = words.map((w, i) => i).filter(i => !learned.has(i));
+  if (pool.length === 0) return null;
+  const idx = pool[Math.floor(Math.random() * pool.length)];
+  const types = ['spellZhEn', 'mcEnZh', 'listen'];
+  const type = types[Math.floor(Math.random() * types.length)];
+  return { index: idx, type };
+}
+function render() {
+  current = pickQuestion();
+  if (!current) { showDone(); return; }
+  const w = words[current.index];
+  const qType = document.getElementById('qType');
+  const qPrompt = document.getElementById('qPrompt');
+  const optionsArea = document.getElementById('optionsArea');
+  const spellArea = document.getElementById('spellArea');
+  const speakBtn = document.getElementById('speakBtn');
+  const spellInput = document.getElementById('spellInput');
+  const fb = document.getElementById('feedback');
+  fb.textContent = ''; fb.className = 'feedback';
+  optionsArea.innerHTML = ''; optionsArea.style.display = 'none';
+  spellArea.style.display = 'none'; speakBtn.style.display = 'none';
+
+  if (current.type === 'spellZhEn') {
+    qType.textContent = '✍️ 看中文，写英文单词';
+    qPrompt.innerHTML = w.zh;
+    spellArea.style.display = 'block';
+    setTimeout(() => spellInput.focus(), 50);
+  } else if (current.type === 'mcEnZh') {
+    qType.textContent = '👀 看英文，选中文';
+    qPrompt.innerHTML = '<span class="en">' + esc(w.en) + '</span>';
+    buildOptions(w.index, 'zh', 'mcEnZh');
+  } else { // listen
+    qType.textContent = '🔊 听发音，选出对的单词';
+    qPrompt.innerHTML = '🎧 你听到的是哪个单词？';
+    speakBtn.style.display = 'inline-flex';
+    buildOptions(w.index, 'en', 'listen');
+    setTimeout(() => speakCurrent(), 150);
+  }
+}
+function esc(s) { return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+function buildOptions(correctIndex, field, type) {
+  const correctVal = words[correctIndex][field];
+  const others = words.map((w, i) => i !== correctIndex ? w[field] : null).filter(Boolean);
+  const uniq = [...new Set(others)];
+  // 打乱
+  for (let i = uniq.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i+1)); [uniq[i], uniq[j]] = [uniq[j], uniq[i]]; }
+  const distractors = uniq.slice(0, 3);
+  const opts = [correctVal, ...distractors];
+  for (let i = opts.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i+1)); [opts[i], opts[j]] = [opts[j], opts[i]]; }
+  const area = document.getElementById('optionsArea');
+  area.style.display = 'grid';
+  opts.forEach(val => {
+    const b = document.createElement('div');
+    b.className = 'option';
+    b.textContent = val;
+    b.onclick = () => chooseOpt(b, val, correctVal, type);
+    area.appendChild(b);
+  });
+}
+function chooseOpt(el, val, correctVal, type) {
+  const area = document.getElementById('optionsArea');
+  const buttons = area.querySelectorAll('.option');
+  buttons.forEach(b => b.onclick = null);
+  if (val === correctVal) {
+    el.classList.add('correct');
+    correct(type);
+  } else {
+    el.classList.add('wrong');
+    // 高亮正确答案
+    buttons.forEach(b => { if (b.textContent === correctVal) b.classList.add('correct'); });
+    wrong();
+  }
+}
+function submitSpell() {
+  const inp = document.getElementById('spellInput');
+  const val = inp.value.trim().toLowerCase();
+  const w = words[current.index];
+  const fb = document.getElementById('feedback');
+  if (!val) { fb.textContent = '先写出来再提交哦～'; fb.className = 'feedback no'; return; }
+  if (val === w.en.toLowerCase()) { correct('spellZhEn'); }
+  else {
+    fb.innerHTML = '差一点点！正确答案是 <b>' + esc(w.en) + '</b> 再试一次～';
+    fb.className = 'feedback no';
+    inp.value = '';
+  }
+}
+
+// ---- 对错处理 ----
+function correct(type) {
+  score += 10; learned.add(current.index); streak++; bestStreak = Math.max(bestStreak, streak);
+  playDing(); confetti();
+  const tier = tierFor(score);
+  document.getElementById('petEmoji').textContent = tier[1];
+  document.getElementById('petName').textContent = tier[2];
+  const fb = document.getElementById('feedback');
+  const isUpgrade = tier[0] > 0 && score === tier[0];
+  fb.innerHTML = isUpgrade ? ('🎊 升级啦！小动物变成 ' + tier[1] + ' ' + tier[2] + '！') : randomPraise();
+  fb.className = 'feedback ok';
+  renderStats();
+  setTimeout(next, 1100);
+}
+function wrong() {
+  streak = 0;
+  renderStats();
+}
+function randomPraise() {
+  const arr = ['答对啦，太棒了！🎉','聪明！就是你！👏','厉害咯，继续！🌟','小脑袋真棒！💡','又拿下一分！⚡'];
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+function next() {
+  const fb = document.getElementById('feedback');
+  fb.textContent = ''; fb.className = 'feedback';
+  document.getElementById('spellInput').value = '';
+  render();
+}
+function renderStats() {
+  document.getElementById('pts').textContent = score;
+  document.getElementById('progress').textContent = learned.size + ' / ' + words.length;
+  document.getElementById('streak').textContent = '🔥 连对 ' + streak;
+}
+function showDone() {
+  document.getElementById('qArea').classList.add('hid');
+  document.getElementById('doneArea').classList.remove('hid');
+  document.getElementById('doneWords').textContent = words.length;
+  document.getElementById('donePts').textContent = score;
+  const reward = document.getElementById('rewardInput').value.trim();
+  document.getElementById('doneReward').textContent = reward ? ('🎁 爸爸妈妈的奖励：' + reward) : ('🌟 爸爸妈妈一定为你骄傲！');
+  confetti();
+}
+function restart() {
+  learned = new Set(); score = 0; streak = 0; bestStreak = 0;
+  document.getElementById('qArea').classList.remove('hid');
+  document.getElementById('doneArea').classList.add('hid');
+  document.getElementById('spellInput').value = '';
+  render();
+}
+
+// ---- 发音 ----
+function speakCurrent() {
+  if (!current || !words[current.index]) return;
+  speakEn(words[current.index].en);
+}
+function speakEn(text) {
+  if (!('speechSynthesis' in window)) return;
+  window.speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = 'en-US'; u.rate = 0.85; u.pitch = 1.1;
+  window.speechSynthesis.speak(u);
+}
+
+// ---- 音效 & 特效 ----
+function ensureCtx() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+}
+function playDing() {
+  try {
+    ensureCtx();
+    [880,1047,1319].forEach((f, i) => {
+      const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+      o.type = 'sine'; o.frequency.value = f; const t = audioCtx.currentTime + i * 0.1;
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.2, t + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 0.5);
+      o.connect(g); g.connect(audioCtx.destination); o.start(t); o.stop(t + 0.6);
+    });
+  } catch(e) {}
+}
+function confetti() {
+  const emojis = ['🌟','⭐','🎉','✨','💫','🍀','🪙'];
+  for (let i = 0; i < 14; i++) {
+    const el = document.createElement('div');
+    el.className = 'coin';
+    el.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+    el.style.left = (8 + Math.random() * 84) + 'vw';
+    el.style.animationDelay = (Math.random() * 0.4) + 's';
+    el.style.fontSize = (20 + Math.random() * 16) + 'px';
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 1900);
+  }
+}
+
+document.addEventListener('pointerdown', ensureCtx);
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && document.getElementById('spellArea').style.display !== 'none') submitSpell();
+});
+</script>
+</body>
+</html>
