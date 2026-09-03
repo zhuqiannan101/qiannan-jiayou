@@ -97,6 +97,17 @@
 
   .coin { position: fixed; top: -30px; z-index: 99; font-size: 28px; pointer-events: none; animation: fall 1.6s linear forwards; }
   @keyframes fall { to { transform: translateY(110vh) rotate(540deg); opacity: 0; } }
+
+  .score-pop { position: fixed; left: 50%; top: 40%; transform: translate(-50%, 0); z-index: 999;
+    pointer-events: none; font-size: 40px; font-weight: 900; color: #f76707;
+    text-shadow: 0 2px 8px rgba(255,255,255,0.85), 0 0 16px rgba(255,201,77,0.6);
+    animation: scorePop 1s ease-out forwards; }
+  @keyframes scorePop {
+    0%   { opacity: 0; transform: translate(-50%, 26px) scale(0.6); }
+    20%  { opacity: 1; transform: translate(-50%, 0) scale(1.15); }
+    100% { opacity: 0; transform: translate(-50%, -72px) scale(1); }
+  }
+
   .footer { position: relative; z-index: 5; color: #7a8aa0; font-size: 13px; margin-top: 8px; text-align: center; }
 </style>
 </head>
@@ -140,8 +151,8 @@
 <div class="card hid" id="quizCard">
   <div class="quiz-top">
     <div class="pet">
-      <span class="pet-emoji" id="petEmoji">🥚</span>
-      <span><span id="petName">宠物蛋</span><span class="pet-name">我的宠物</span></span>
+      <span class="pet-emoji" id="petEmoji">🦄</span>
+      <span><span id="petName">小独角兽</span><span class="pet-name">我的宠物</span></span>
     </div>
     <div class="quiz-stats">
       <div><span class="pts" id="pts">0</span> 分</div>
@@ -199,20 +210,6 @@ let audioCtx = null;
 let speechAudio = null;
 
 const TYPES = ['fill', 'listen', 'spellEnZh', 'spellZhEn'];
-
-const tiers = [
-  [0,   '🥚', '宠物蛋'],
-  [20,  '🐣', '宠物宝宝'],
-  [40,  '🐾', '宠物幼崽'],
-  [80,  '🦄', '魔法宠物'],
-  [120, '🌠', '闪亮宠物'],
-  [200, '👑', '冠军宠物'],
-];
-function tierFor(s) {
-  let cur = tiers[0];
-  for (const [t, e, n] of tiers) if (s >= t) cur = [t, e, n];
-  return cur;
-}
 
 // ---- 家长操作 ----
 function parseWords(text) {
@@ -369,15 +366,9 @@ function correct(type) {
   const left = todo.filter(t => t.index === current.index).length;
   const nowMastered = left === 0 && !mastered.has(current.index);
   if (nowMastered) mastered.add(current.index);
-  playDing(); confetti();
-  const tier = tierFor(score);
-  document.getElementById('petEmoji').textContent = tier[1];
-  document.getElementById('petName').textContent = tier[2];
+  playDing(); confetti(); scorePop();
   const fb = document.getElementById('feedback');
-  const isUpgrade = tier[0] > 0 && score === tier[0];
-  if (isUpgrade) {
-    fb.innerHTML = '🎊 升级啦！小动物变成 ' + tier[1] + ' ' + tier[2] + '！';
-  } else if (nowMastered) {
+  if (nowMastered) {
     fb.innerHTML = '🌟 ' + esc(words[current.index].en) + ' 四种题型都会啦，真棒！';
   } else {
     fb.innerHTML = randomPraise();
@@ -393,6 +384,13 @@ function wrong() {
 function randomPraise() {
   const arr = ['答对啦，太棒了！🎉','聪明！就是你！👏','厉害咯，继续！🌟','小脑袋真棒！💡','又拿下一分！⚡'];
   return arr[Math.floor(Math.random() * arr.length)];
+}
+function scorePop() {
+  const el = document.createElement('div');
+  el.className = 'score-pop';
+  el.textContent = '+10 分';
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 1000);
 }
 function next() {
   const fb = document.getElementById('feedback');
@@ -434,23 +432,13 @@ function speakCurrent() {
   speakEn(words[current.index].en);
 }
 function speakEn(text) {
-  // 优先用有道词典发音接口（国内可访问，是单词真人发音，微信也能播）
+  // 只用有道词典的一条真人发音，避免同时出现两个声音
   const url = 'https://dict.youdao.com/dictvoice?audio=' + encodeURIComponent(text) + '&type=2';
   try {
     if (speechAudio) { speechAudio.pause(); speechAudio.src = ''; }
     speechAudio = new Audio(url);
-    speechAudio.onerror = () => trySpeechSynthesis(text);
-    speechAudio.play().catch(() => trySpeechSynthesis(text));
-  } catch (e) {
-    trySpeechSynthesis(text);
-  }
-}
-function trySpeechSynthesis(text) {
-  if (!('speechSynthesis' in window)) return;
-  window.speechSynthesis.cancel();
-  const u = new SpeechSynthesisUtterance(text);
-  u.lang = 'en-US'; u.rate = 0.85; u.pitch = 1.1;
-  window.speechSynthesis.speak(u);
+    speechAudio.play().catch(() => {});
+  } catch (e) {}
 }
 
 // ---- 音效 & 特效 ----
