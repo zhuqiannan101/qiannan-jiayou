@@ -98,7 +98,7 @@
   </div>
   <div class="hint">规则：从 <b>1</b> 开始，按顺序点到最后一个数字，用时越短越厉害。别点错哦！</div>
   <div class="row">
-    <button class="btn btn-primary" onclick="startPlay()">▶ 开始</button>
+    <button class="btn btn-primary" onclick="qnNameGate('舒尔特方格', function(){ qnRecordStart('舒尔特方格'); startPlay(); })">▶ 开始</button>
   </div>
 </div>
 
@@ -127,6 +127,7 @@
 
 <div class="footer">✨ 倩楠老师 · 专注力训练 ✨</div>
 
+<script src="record.js"></script>
 <script>
 // ---- 状态 ----
 let size = 4;
@@ -238,6 +239,7 @@ function finish() {
   document.getElementById('doneBox').innerHTML =
     emoji + ' ' + grade + '<br>用时 <b>' + seconds + '</b> 秒 · 目标 ' + size + '×' + size + '<br>' +
     (isNew ? '<span style="color:#e8590c;">🎉 新纪录！</span>' : '<span style="color:#6a6a6a;">最快纪录 ' + best + ' 秒</span>');
+  qnRecordFinish(size + '×' + size + ' · ' + seconds + '秒');
 }
 function saveBest() {
   try { savedBest = parseInt(localStorage.getItem('schulteBest_' + size) || '0', 10); } catch(e){ savedBest = 0; }
