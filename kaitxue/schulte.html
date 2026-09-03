@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>舒尔特方格 · 倩楠老师</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    min-height: 100vh;
+    background: linear-gradient(180deg, #b8a9f0 0%, #d7c9ff 40%, #ffe8b0 100%);
+    font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+    padding: 22px 14px 48px; position: relative; overflow-x: hidden;
+    display: flex; flex-direction: column; align-items: center;
+  }
+  .deco { position: fixed; z-index: 0; font-size: 54px; opacity: .5; user-select: none; }
+  .d1 { top: 36px; left: 22px; animation: float 6s ease-in-out infinite; }
+  .d2 { top: 70px; right: 26px; animation: float 7s ease-in-out infinite reverse; }
+  .d3 { bottom: 90px; left: 30px; animation: float 8s ease-in-out infinite; }
+  .d4 { bottom: 130px; right: 34px; animation: float 5s ease-in-out infinite; }
+  @keyframes float { 0%,100% { transform: translateY(0);} 50% { transform: translateY(-18px);} }
+
+  .hero { position: relative; z-index: 5; text-align: center; margin-bottom: 18px; }
+  .hero .mascot { width: 74px; height: 74px; margin: 0 auto 8px; border-radius: 22px;
+    background: linear-gradient(135deg, #9775fa, #7048e8); display: flex; align-items: center; justify-content: center;
+    font-size: 42px; box-shadow: 0 8px 22px rgba(112,72,232,.4); animation: rock 2.6s ease-in-out infinite; }
+  @keyframes rock { 0%,100%{ transform: rotate(-6deg);} 50%{ transform: rotate(6deg);} }
+  .hero h1 { font-size: 30px; font-weight: 900; letter-spacing: 1px;
+    background: linear-gradient(90deg, #7048e8, #9775fa, #ff922b); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .hero p { color: #5c6b8a; margin-top: 6px; font-size: 14px; font-weight: 600; }
+
+  .card { position: relative; z-index: 5; width: 100%; max-width: 640px;
+    background: rgba(255,255,255,0.92); border-radius: 26px; padding: 22px 20px; margin-bottom: 16px;
+    box-shadow: 0 16px 40px rgba(0,0,0,0.08); border: 1px solid rgba(255,255,255,0.9); }
+  .card h2 { font-size: 20px; font-weight: 900; color: #7048e8; margin-bottom: 6px; }
+  .card .sub { font-size: 12px; color: #8a8a8a; margin-bottom: 12px; }
+
+  .chips { display: flex; gap: 10px; flex-wrap: wrap; }
+  .chip { border: 2px solid #e9ecef; background: #fff; border-radius: 16px; padding: 10px 16px;
+    font-size: 15px; font-weight: 800; color: #495057; cursor: pointer; transition: all .15s; font-family: inherit; }
+  .chip.on { border-color: #7048e8; background: #f3f0ff; color: #7048e8; }
+  .btn { display: inline-block; border: none; border-radius: 50px; padding: 12px 26px; font-family: inherit;
+    font-size: 15px; font-weight: 800; cursor: pointer; color: #fff; transition: transform .15s, box-shadow .15s; }
+  .btn:hover { transform: translateY(-2px); }
+  .btn-primary { background: linear-gradient(135deg, #9775fa, #7048e8); box-shadow: 0 8px 20px rgba(112,72,232,.4); }
+  .btn-ghost { background: #f1f3f5; color: #5c6b8a; box-shadow: none; }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; justify-content: center; }
+  .hint { font-size: 12px; color: #adb5bd; margin-top: 6px; line-height: 1.6; }
+
+  /* countdown */
+  #countdown { font-size: 80px; font-weight: 900; color: #7048e8; text-align: center; margin: 20px 0; }
+  #stage { text-align: center; min-height: 24px; }
+  #stage .target { font-size: 17px; font-weight: 800; color: #495057; margin-top: 8px; }
+  #stage .target b { color: #7048e8; font-size: 24px; }
+  #stage .time { font-size: 15px; font-weight: 800; color: #e8590c; margin-top: 4px; }
+
+  .grid { display: grid; gap: 8px; margin: 16px auto 8px; max-width: 420px; }
+  .cell { aspect-ratio: 1/1; display: flex; align-items: center; justify-content: center;
+    border-radius: 16px; font-size: 24px; font-weight: 900; color: #343a40; cursor: pointer;
+    background: #f1f3f5; border: 2px solid #e9ecef; transition: all .15s; user-select: none; }
+  .cell:hover { transform: translateY(-2px); border-color: #7048e8; }
+  .cell.done { background: #d3f9d8; border-color: #40c057; color: #2b8a3e; animation: pop .2s; }
+  .cell.wrong { background: #fff5f5; border-color: #fa5252; color: #e03131; animation: shake .3s; }
+  @keyframes pop { 0%{ transform: scale(.85);} 60%{ transform: scale(1.15);} 100%{ transform: scale(1);} }
+  @keyframes shake { 0%,100%{ transform: translateX(0);} 25%{ transform: translateX(-6px);} 75%{ transform: translateX(6px);} }
+
+  .done { text-align: center; padding: 20px 6px; }
+  .done .big { font-size: 52px; }
+  .done h3 { font-size: 24px; color: #7048e8; margin: 8px 0 6px; }
+  .done p { color: #6a6a6a; font-size: 15px; line-height: 1.9; }
+  .done .score-box { margin-top: 12px; background: #f3f0ff; border: 1px solid #d0bfff; border-radius: 14px;
+    padding: 12px 14px; color: #6741d9; font-weight: 800; font-size: 15px; line-height: 1.8; }
+  .hid { display: none; }
+  .footer { position: relative; z-index: 5; color: #7a8aa0; font-size: 13px; margin-top: 8px; text-align: center; }
+</style>
+</head>
+<body>
+
+<div class="deco d1">🔍</div>
+<div class="deco d2">👀</div>
+<div class="deco d3">🎯</div>
+<div class="deco d4">💫</div>
+
+<div class="hero">
+  <div class="mascot">👁️</div>
+  <h1>舒尔特方格</h1>
+  <p>眼睛+小脑瓜比赛：按顺序找出所有数字，越找越快！</p>
+</div>
+
+<!-- 设置 -->
+<div class="card" id="setupCard">
+  <h2>🎯 选一个大小</h2>
+  <p class="sub">格子越大越难，专治走神、训练专注力</p>
+  <div class="chips" id="sizeChips">
+    <button class="chip" data-n="3">3×3 简单</button>
+    <button class="chip on" data-n="4">4×4 刚刚好</button>
+    <button class="chip" data-n="5">5×5 挑战</button>
+  </div>
+  <div class="hint">规则：从 <b>1</b> 开始，按顺序点到最后一个数字，用时越短越厉害。别点错哦！</div>
+  <div class="row">
+    <button class="btn btn-primary" onclick="startPlay()">▶ 开始</button>
+  </div>
+</div>
+
+<!-- 游戏区 -->
+<div class="card hid" id="playCard">
+  <div id="countdown"></div>
+  <div id="stage">
+    <div class="grid" id="grid"></div>
+    <div class="target">下一个：<b id="nextNum">1</b></div>
+    <div class="time">⏱ <span id="time">0</span> 秒</div>
+  </div>
+</div>
+
+<!-- 结算 -->
+<div class="card hid" id="doneCard">
+  <div class="done">
+    <div class="big">🏆</div>
+    <h3>找完了！真专注！</h3>
+    <div class="score-box" id="doneBox"></div>
+    <div class="row">
+      <button class="btn btn-primary" onclick="restart()">🔁 再来一局</button>
+      <button class="btn btn-ghost" onclick="editSetting()">⚙️ 换大小</button>
+    </div>
+  </div>
+</div>
+
+<div class="footer">✨ 倩楠老师 · 专注力训练 ✨</div>
+
+<script>
+// ---- 状态 ----
+let size = 4;
+let next = 1, totalCells = size * size;
+let startAt = 0, timerId = null, seconds = 0;
+let playing = false;
+let savedBest = 0;
+
+function loadChips() {
+  document.querySelectorAll('#sizeChips .chip').forEach(ch => {
+    ch.addEventListener('click', () => {
+      document.querySelectorAll('#sizeChips .chip').forEach(x => x.classList.remove('on'));
+      ch.classList.add('on');
+      size = parseInt(ch.dataset.n);
+    });
+  });
+}
+loadChips();
+
+function ri() { return Math.random() - 0.5; }
+function shuffle(a) { return a.slice().sort(ri); }
+
+function startPlay() {
+  totalCells = size * size;
+  next = 1;
+  saveBest();
+  document.getElementById('setupCard').classList.add('hid');
+  document.getElementById('doneCard').classList.add('hid');
+  document.getElementById('playCard').classList.remove('hid');
+  buildGrid();
+  const cd = document.getElementById('countdown');
+  cd.classList.remove('hid');
+  let n = 3;
+  cd.textContent = n;
+  clearInterval(cd._it);
+  cd._it = setInterval(() => {
+    n--;
+    if (n <= 0) { clearInterval(cd._it); cd.classList.add('hid'); begin(); }
+    else cd.textContent = n;
+  }, 600);
+}
+function buildGrid() {
+  const nums = Array.from({ length: totalCells }, (_, i) => i + 1);
+  const grid = document.getElementById('grid');
+  grid.innerHTML = '';
+  grid.style.gridTemplateColumns = 'repeat(' + size + ', 1fr)';
+  shuffle(nums).forEach(v => {
+    const c = document.createElement('div');
+    c.className = 'cell';
+    c.textContent = v;
+    c.dataset.v = v;
+    c.addEventListener('click', () => tap(c, v));
+    grid.appendChild(c);
+  });
+}
+function begin() {
+  playing = true;
+  startAt = Date.now();
+  clearInterval(timerId);
+  timerId = setInterval(tick, 200);
+  updateNext();
+}
+function tick() {
+  seconds = Math.floor((Date.now() - startAt) / 1000);
+  document.getElementById('time').textContent = seconds;
+}
+function updateNext() {
+  document.getElementById('nextNum').textContent = next;
+}
+function tap(cell, v) {
+  if (!playing) return;
+  if (v === next) {
+    cell.classList.add('done');
+    cell.style.pointerEvents = 'none';
+    next++;
+    updateNext();
+    if (next > totalCells) finish();
+  } else {
+    cell.classList.add('wrong');
+    setTimeout(() => cell.classList.remove('wrong'), 350);
+  }
+}
+function finish() {
+  playing = false;
+  clearInterval(timerId);
+  seconds = Math.floor((Date.now() - startAt) / 1000);
+  document.getElementById('playCard').classList.add('hid');
+  document.getElementById('doneCard').classList.remove('hid');
+  let grade, emoji;
+  if (size === 5) {
+    if (seconds <= 30) { grade = '神速！'; emoji = '👑'; }
+    else if (seconds <= 45) { grade = '很棒！'; emoji = '🌟'; }
+    else if (seconds <= 70) { grade = '不错，继续！'; emoji = '👍'; }
+    else { grade = '加油，多练几次！'; emoji = '💪'; }
+  } else if (size === 4) {
+    if (seconds <= 18) { grade = '神速！'; emoji = '👑'; }
+    else if (seconds <= 30) { grade = '很棒！'; emoji = '🌟'; }
+    else if (seconds <= 50) { grade = '不错，继续！'; emoji = '👍'; }
+    else { grade = '加油，多练几次！'; emoji = '💪'; }
+  } else {
+    if (seconds <= 8) { grade = '神速！'; emoji = '👑'; }
+    else if (seconds <= 14) { grade = '很棒！'; emoji = '🌟'; }
+    else if (seconds <= 25) { grade = '不错，继续！'; emoji = '👍'; }
+    else { grade = '加油，多练几次！'; emoji = '💪'; }
+  }
+  const isNew = seconds < savedBest || savedBest === 0;
+  const best = savedBest === 0 || seconds < savedBest ? seconds : savedBest;
+  try { localStorage.setItem('schulteBest_' + size, best); } catch(e){}
+  document.getElementById('doneBox').innerHTML =
+    emoji + ' ' + grade + '<br>用时 <b>' + seconds + '</b> 秒 · 目标 ' + size + '×' + size + '<br>' +
+    (isNew ? '<span style="color:#e8590c;">🎉 新纪录！</span>' : '<span style="color:#6a6a6a;">最快纪录 ' + best + ' 秒</span>');
+}
+function saveBest() {
+  try { savedBest = parseInt(localStorage.getItem('schulteBest_' + size) || '0', 10); } catch(e){ savedBest = 0; }
+}
+function restart() {
+  document.getElementById('doneCard').classList.add('hid');
+  document.getElementById('playCard').classList.remove('hid');
+  startPlay();
+}
+function editSetting() {
+  document.getElementById('playCard').classList.add('hid');
+  document.getElementById('doneCard').classList.add('hid');
+  document.getElementById('setupCard').classList.remove('hid');
+  clearInterval(timerId);
+  playing = false;
+}
+</script>
+</body>
+</html>
