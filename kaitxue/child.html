@@ -333,7 +333,7 @@
   <div class="card riddle-card">
     <div class="mascot" style="margin:0 auto 8px; background:linear-gradient(135deg,#9775fa,#7048e8);">🤔</div>
     <h2 style="color:#7048e8; font-size:20px; font-weight:900; margin-bottom:6px;">倩楠老师的脑筋急转弯</h2>
-    <p style="color:#8b8f9a; font-size:13px; margin-bottom:10px;">动动小脑筋，猜对了找倩楠老师领金币哦！</p>
+    <p style="color:#8b8f9a; font-size:13px; margin-bottom:10px;">每天 10 题，动动小脑筋，猜对了找倩楠老师领金币哦！</p>
     <div class="riddle-q" id="riddleQ">点击按钮，看老师给你出什么题～</div>
     <div class="riddle-a" id="riddleA"></div>
     <div class="riddle-feedback" id="riddleFeedback"></div>
@@ -487,24 +487,94 @@ function generate() {
   if (audioCtx && musicPlaying) playDing();
 }
 
-// ---- 脑筋急转弯（逗孩子开心）----
+// ---- 脑筋急转弯（逗孩子开心，每天 10 题）----
 const riddles = [
   { q: '什么东西越洗越脏？', a: '水' },
-  { q: '小明从 1 楼跳到 10 楼，为什么没受伤？', a: '因为他是从一楼往二楼跳的（一层一层爬上去的）' },
   { q: '什么门永远关不上？', a: '球门' },
-  { q: '什么东西有脚却不会走路？', a: '桌子和椅子' },
+  { q: '什么东西有脚却不会走路？', a: '桌椅' },
   { q: '什么车没有轮子也能跑？', a: '风车' },
-  { q: '一个小朋友从飞机上掉下来，为什么没摔疼？', a: '因为飞机还没起飞' },
-  { q: '什么东西越生气越大？', a: '气球' },
   { q: '什么牛不会吃草？', a: '蜗牛' },
-  { q: '盒子里有两个苹果，你吃了一个，盒子里还有几个？', a: '还有一个（另一个苹果还在盒子里）' },
-  { q: '什么东西只有你自己有，但别人用的比你还多？', a: '你的名字' },
+  { q: '什么马不会跑？', a: '海马' },
+  { q: '什么鱼不会游泳？', a: '木鱼' },
+  { q: '什么花不会结果？', a: '烟花' },
+  { q: '什么鸟不会飞？', a: '企鹅' },
+  { q: '什么灯不能照明？', a: '红绿灯' },
+  { q: '什么路不能走人？', a: '电路' },
+  { q: '什么蛋不能吃？', a: '脸蛋' },
+  { q: '什么东西越用越小？', a: '橡皮擦' },
+  { q: '什么东西越擦越脏？', a: '黑板' },
+  { q: '小明的妈妈有三个孩子，老大叫大毛、老二叫二毛，老三叫什么？', a: '小明' },
+  { q: '什么东西越分享越多？', a: '快乐' },
+  { q: '什么东西倒挂树上也会飞？', a: '蝙蝠' },
+  { q: '什么水不能喝？', a: '墨水' },
+  { q: '什么伞不能挡雨？', a: '降落伞' },
+  { q: '什么东西没有嘴却会说话？', a: '电话' },
+  { q: '什么书不能读？', a: '秘书' },
+  { q: '什么东西有头没有脚？', a: '枕头' },
+  { q: '什么猫不会抓老鼠？', a: '熊猫' },
+  { q: '什么东西越冷越往上爬？', a: '温度计里的水银' },
+  { q: '什么池子没有水？', a: '电池' },
+  { q: '什么人一年只上一天班？', a: '圣诞老人' },
+  { q: '什么球不能拍？', a: '眼球' },
+  { q: '什么东西白天有、晚上没有？', a: '太阳' },
+  { q: '什么东西晚上有、白天没有？', a: '星星和月亮' },
+  { q: '什么袋子不能装东西？', a: '脑袋' },
+  { q: '什么东西越剪越大？', a: '洞' },
+  { q: '什么东西有翅膀却飞不起来？', a: '家鸡' },
+  { q: '什么车坐的人最多？', a: '公交车' },
+  { q: '什么东西没有脚却能走遍天下？', a: '邮票' },
+  { q: '什么米不能做饭？', a: '虾米' },
+  { q: '什么东西越煮越硬？', a: '鸡蛋' },
+  { q: '什么东西一碰就碎？', a: '泡泡' },
+  { q: '什么东西没有骨头却站得直？', a: '影子' },
+  { q: '什么东西越洗越小？', a: '肥皂' },
+  { q: '什么桥不能走人？', a: '彩虹' },
+  { q: '什么东西有眼睛却看不见？', a: '针' },
+  { q: '什么山没有石头？', a: '火山' },
+  { q: '什么东西有十个头？', a: '手指头' },
+  { q: '什么东西越老越值钱？', a: '古董' },
+  { q: '什么东西越生气越大？', a: '气球' },
+  { q: '什么东西越晒越湿？', a: '冰' },
+  { q: '什么东西只有你有，但别人用得比你还多？', a: '你的名字' },
+  { q: '什么车子不载人？', a: '水车' },
+  { q: '一个小球从飞机上掉下来，为什么没摔碎？', a: '因为飞机还没起飞' },
 ];
-let lastRiddle = -1, currentRiddle = null;
+
+// 每天用日期做种子，随机抽 10 题
+function todaySeed() {
+  const d = new Date();
+  return d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
+}
+function seededRnd(seed) {
+  let a = seed >>> 0;
+  return function () {
+    a |= 0; a = a + 0x6D2B79F5 | 0;
+    let t = Math.imul(a ^ a >>> 15, 1 | a);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+function makeDaily() {
+  const r = seededRnd(todaySeed());
+  const arr = riddles.slice();
+  for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]]; }
+  return arr.slice(0, 10);
+}
+let daily = makeDaily(), dailyPos = 0, currentRiddle = null;
+
 function riddle() {
-  let idx; do { idx = Math.floor(Math.random()*riddles.length); } while (idx===lastRiddle && riddles.length>1);
-  lastRiddle = idx; currentRiddle = riddles[idx];
-  document.getElementById('riddleQ').textContent = '🤔 ' + currentRiddle.q;
+  if (dailyPos >= daily.length) {
+    document.getElementById('riddleQ').textContent = '🎉 今天的 10 个脑筋急转弯都玩完啦！明天再来哦～';
+    const a = document.getElementById('riddleA'); a.textContent = ''; a.classList.remove('visible');
+    document.getElementById('riddleFeedback').textContent = '';
+    document.getElementById('guessBox').style.display = 'none';
+    document.getElementById('btnAns').disabled = true;
+    const g = document.getElementById('btnGuess'); g.disabled = true; g.textContent = '🤔 你猜对了吗？';
+    document.getElementById('btnRiddle').textContent = '🌙 明天再来';
+    return;
+  }
+  currentRiddle = daily[dailyPos];
+  document.getElementById('riddleQ').textContent = '（' + (dailyPos + 1) + '/10）🤔 ' + currentRiddle.q;
   const a = document.getElementById('riddleA');
   a.textContent = '👉 ' + currentRiddle.a; a.classList.remove('visible');
   document.getElementById('riddleFeedback').textContent = '';
@@ -512,7 +582,9 @@ function riddle() {
   document.getElementById('btnAns').textContent = '📖 看答案';
   document.getElementById('btnAns').disabled = false;
   const g = document.getElementById('btnGuess'); g.disabled = true; g.textContent = '🤔 你猜对了吗？';
+  document.getElementById('btnRiddle').textContent = '🎲 下一题';
   popup(['💡','🎈','😄'][Math.floor(Math.random()*3)]);
+  dailyPos++;
 }
 // 先看答案，看完答案才允许"你猜对了吗"
 function showAnswer() {
