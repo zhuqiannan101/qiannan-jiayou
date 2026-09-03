@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>口算小达人 · 倩楠老师</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    min-height: 100vh;
+    background: linear-gradient(180deg, #a5d8ff 0%, #d3f9d8 45%, #ffe8b0 100%);
+    font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+    padding: 22px 14px 48px; position: relative; overflow-x: hidden;
+    display: flex; flex-direction: column; align-items: center;
+  }
+  .deco { position: fixed; z-index: 0; font-size: 54px; opacity: .5; user-select: none; }
+  .d1 { top: 36px; left: 22px; animation: float 6s ease-in-out infinite; }
+  .d2 { top: 70px; right: 26px; animation: float 7s ease-in-out infinite reverse; }
+  .d3 { bottom: 90px; left: 30px; animation: float 8s ease-in-out infinite; }
+  .d4 { bottom: 130px; right: 34px; animation: float 5s ease-in-out infinite; }
+  @keyframes float { 0%,100% { transform: translateY(0);} 50% { transform: translateY(-18px);} }
+
+  .hero { position: relative; z-index: 5; text-align: center; margin-bottom: 18px; }
+  .hero .mascot { width: 74px; height: 74px; margin: 0 auto 8px; border-radius: 22px;
+    background: linear-gradient(135deg, #ffc94d, #ff922b); display: flex; align-items: center; justify-content: center;
+    font-size: 42px; box-shadow: 0 8px 22px rgba(255,146,43,.4); animation: rock 2.6s ease-in-out infinite; }
+  @keyframes rock { 0%,100%{ transform: rotate(-6deg);} 50%{ transform: rotate(6deg);} }
+  .hero h1 { font-size: 30px; font-weight: 900; letter-spacing: 1px;
+    background: linear-gradient(90deg, #e8590c, #f76707, #ff922b); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .hero p { color: #5c6b8a; margin-top: 6px; font-size: 14px; font-weight: 600; }
+
+  .card { position: relative; z-index: 5; width: 100%; max-width: 640px;
+    background: rgba(255,255,255,0.92); border-radius: 26px; padding: 22px 20px; margin-bottom: 16px;
+    box-shadow: 0 16px 40px rgba(0,0,0,0.08); border: 1px solid rgba(255,255,255,0.9); }
+  .card h2 { font-size: 20px; font-weight: 900; color: #e8590c; margin-bottom: 6px; }
+  .card .sub { font-size: 12px; color: #8a8a8a; margin-bottom: 12px; }
+
+  .label { display: block; font-size: 13px; font-weight: 800; color: #495057; margin: 12px 0 6px; }
+  select, input[type="text"], input[type="number"] { font-family: inherit; font-size: 15px; border: 2px solid #ffe0a3;
+    border-radius: 14px; padding: 11px 14px; background: #fffdf6; width: 100%; }
+  select:focus, input:focus { border-color: #f76707; outline: none; }
+
+  .chips { display: flex; gap: 10px; flex-wrap: wrap; }
+  .chip { border: 2px solid #e9ecef; background: #fff; border-radius: 16px; padding: 10px 16px;
+    font-size: 15px; font-weight: 800; color: #495057; cursor: pointer; transition: all .15s; font-family: inherit; }
+  .chip.on { border-color: #f76707; background: #fff4e6; color: #e8590c; }
+
+  .btn { display: inline-block; border: none; border-radius: 50px; padding: 12px 26px; font-family: inherit;
+    font-size: 15px; font-weight: 800; cursor: pointer; color: #fff; transition: transform .15s, box-shadow .15s; }
+  .btn:hover { transform: translateY(-2px); }
+  .btn-primary { background: linear-gradient(135deg, #ffa94d, #f76707); box-shadow: 0 8px 20px rgba(247,103,7,.4); }
+  .btn-ghost { background: #f1f3f5; color: #5c6b8a; box-shadow: none; }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; justify-content: center; }
+  .hint { font-size: 12px; color: #adb5bd; margin-top: 6px; line-height: 1.6; }
+
+  /* quiz */
+  .quiz-top { display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    background: #fff8f0; border: 1px solid #ffd8a8; border-radius: 16px; padding: 12px 14px; margin-bottom: 16px;
+    font-size: 14px; color: #5c6b8a; font-weight: 700; }
+  .quiz-top b { color: #e8590c; font-size: 18px; }
+  .problem { font-size: 44px; font-weight: 900; color: #343a40; text-align: center; margin: 20px 0 6px; letter-spacing: 2px; }
+  .answer-row { display: flex; gap: 10px; align-items: center; margin-top: 8px; }
+  .answer-row input { flex: 1; text-align: center; font-size: 26px; font-weight: 900; color: #343a40; }
+  .feedback { text-align: center; font-size: 17px; font-weight: 800; margin-top: 16px; min-height: 24px; }
+  .feedback.ok { color: #2b8a3e; }
+  .feedback.no { color: #e8590c; }
+
+  .done { text-align: center; padding: 20px 6px; }
+  .done .big { font-size: 52px; }
+  .done h3 { font-size: 24px; color: #e8590c; margin: 8px 0 6px; }
+  .done p { color: #6a6a6a; font-size: 15px; line-height: 1.9; }
+  .done .score-box { margin-top: 12px; background: #fff9db; border: 1px solid #ffe066; border-radius: 14px;
+    padding: 12px 14px; color: #e8590c; font-weight: 800; font-size: 15px; line-height: 1.8; }
+
+  .hid { display: none; }
+  .coin { position: fixed; top: -30px; z-index: 99; font-size: 28px; pointer-events: none; animation: fall 1.6s linear forwards; }
+  @keyframes fall { to { transform: translateY(110vh) rotate(540deg); opacity: 0; } }
+
+  .score-pop { position: fixed; left: 50%; top: 40%; transform: translate(-50%, 0); z-index: 999;
+    pointer-events: none; font-size: 40px; font-weight: 900; color: #f76707;
+    text-shadow: 0 2px 8px rgba(255,255,255,0.85), 0 0 16px rgba(255,201,77,0.6);
+    animation: scorePop 1s ease-out forwards; }
+  @keyframes scorePop { 0% { opacity: 0; transform: translate(-50%, 26px) scale(0.6); }
+    20% { opacity: 1; transform: translate(-50%, 0) scale(1.15); }
+    100% { opacity: 0; transform: translate(-50%, -72px) scale(1); } }
+
+  .footer { position: relative; z-index: 5; color: #7a8aa0; font-size: 13px; margin-top: 8px; text-align: center; }
+</style>
+</head>
+<body>
+
+<div class="deco d1">🧮</div>
+<div class="deco d2">⭐</div>
+<div class="deco d3">✖️</div>
+<div class="deco d4">🎈</div>
+
+<div class="hero">
+  <div class="mascot">🧮</div>
+  <h1>口算小达人</h1>
+  <p>每天几分钟，算得又快又对，数学稳稳进步！</p>
+</div>
+
+<!-- 设置 -->
+<div class="card" id="setupCard">
+  <h2>🎯 选一下怎么练</h2>
+  <p class="sub">练口算能提升计算速度和数学成绩哦</p>
+
+  <label class="label">难度</label>
+  <div class="chips" id="levelChips">
+    <button class="chip on" data-lv="0">🐣 入门</button>
+    <button class="chip" data-lv="1">🌟 进阶</button>
+    <button class="chip" data-lv="2">👑 挑战</button>
+  </div>
+
+  <label class="label">口算题型（可多选）</label>
+  <div class="chips" id="opChips">
+    <button class="chip on" data-op="add">➕ 加法</button>
+    <button class="chip on" data-op="sub">➖ 减法</button>
+    <button class="chip" data-op="mul">✖️ 乘法</button>
+    <button class="chip" data-op="div">➗ 除法</button>
+  </div>
+
+  <label class="label">题数</label>
+  <div class="chips" id="countChips">
+    <button class="chip on" data-n="10">10 题</button>
+    <button class="chip" data-n="20">20 题</button>
+  </div>
+  <div class="hint">入门：加减到 20，乘除到 5；进阶：加减到 100，乘除到 9；挑战：加减到 200，乘除到 12。</div>
+
+  <div class="row">
+    <button class="btn btn-primary" onclick="start()">▶ 开始练习</button>
+  </div>
+</div>
+
+<!-- 练习区 -->
+<div class="card hid" id="quizCard">
+  <div class="quiz-top">
+    <span>第 <b id="qNo">1</b> / <b id="qTotal">10</b> 题</span>
+    <span>🔥 连对 <b id="streak">0</b></span>
+    <span>答对 <b id="correct">0</b></span>
+    <span>⏱ <b id="timer">0</b>s</span>
+  </div>
+  <div class="problem" id="problem"></div>
+  <div class="answer-row">
+    <input type="number" id="answer" placeholder="在这里填答案" autocomplete="off">
+  </div>
+  <div class="row">
+    <button class="btn btn-primary" onclick="submitAnswer()">✓ 提交</button>
+  </div>
+  <div class="feedback" id="feedback"></div>
+</div>
+
+<!-- 结算 -->
+<div class="card hid" id="doneCard">
+  <div class="done">
+    <div class="big">🏆</div>
+    <h3>练完啦，真棒！</h3>
+    <div class="score-box" id="doneBox"></div>
+    <div class="row">
+      <button class="btn btn-primary" onclick="restart()">🔁 再练一轮</button>
+      <button class="btn btn-ghost" onclick="editSetting()">⚙️ 换设置</button>
+    </div>
+  </div>
+</div>
+
+<div class="footer">✨ 倩楠老师 · 口算小达人 ✨</div>
+
+<script>
+// ---- 状态 ----
+let level = 0;
+let ops = ['add', 'sub'];
+let totalN = 10;
+let cur = 0;            // 当前第几题（1-based）
+let correct = 0, streak = 0, bestStreak = 0;
+let startAt = 0, timerId = null, seconds = 0;
+let problems = [];
+
+function loadChips(id, cb) {
+  document.querySelectorAll('#' + id + ' .chip').forEach(ch => {
+    ch.addEventListener('click', () => {
+      const multi = (id === 'opChips');
+      if (multi) {
+        ch.classList.toggle('on');
+      } else {
+        document.querySelectorAll('#' + id + ' .chip').forEach(x => x.classList.remove('on'));
+        ch.classList.add('on');
+      }
+      cb();
+    });
+  });
+}
+loadChips('levelChips', () => { level = parseInt(document.querySelector('#levelChips .chip.on').dataset.lv); });
+loadChips('opChips', () => { ops = Array.from(document.querySelectorAll('#opChips .chip.on')).map(x => x.dataset.op); });
+loadChips('countChips', () => { totalN = parseInt(document.querySelector('#countChips .chip.on').dataset.n); });
+
+// ---- 出题 ----
+function ri(a, b) { return Math.floor(Math.random() * (b - a + 1)) + a; }
+function makeProblem() {
+  const op = ops[Math.floor(Math.random() * ops.length)];
+  const [max, table] = level === 0 ? [20, 5] : level === 1 ? [100, 9] : [200, 12];
+  let text, answer;
+  if (op === 'add') {
+    const a = ri(1, max), b = ri(1, max);
+    text = a + ' + ' + b; answer = a + b;
+  } else if (op === 'sub') {
+    const a = ri(1, max), b = ri(1, a);
+    text = a + ' - ' + b; answer = a - b;
+  } else if (op === 'mul') {
+    const a = ri(1, table), b = ri(1, table);
+    text = a + ' × ' + b; answer = a * b;
+  } else {
+    const b = ri(1, table), q = ri(1, table), a = b * q;
+    text = a + ' ÷ ' + b; answer = q;
+  }
+  return { text, answer };
+}
+
+// ---- 流程 ----
+function start() {
+  if (ops.length === 0) { alert('至少选一种题型哦～'); return; }
+  correct = 0; streak = 0; cur = 0; seconds = 0; bestStreak = 0;
+  problems = Array.from({ length: totalN }, makeProblem);
+  document.getElementById('setupCard').classList.add('hid');
+  document.getElementById('doneCard').classList.add('hid');
+  document.getElementById('quizCard').classList.remove('hid');
+  renderProblem();
+  startAt = Date.now();
+  clearInterval(timerId);
+  timerId = setInterval(tick, 500);
+  document.getElementById('answer').focus();
+}
+function tick() {
+  seconds = Math.floor((Date.now() - startAt) / 1000);
+  document.getElementById('timer').textContent = seconds;
+}
+function renderProblem() {
+  const p = problems[cur];
+  document.getElementById('qNo').textContent = cur + 1;
+  document.getElementById('qTotal').textContent = totalN;
+  document.getElementById('problem').textContent = p.text + ' = ?';
+  document.getElementById('correct').textContent = correct;
+  document.getElementById('streak').textContent = streak;
+  const inp = document.getElementById('answer');
+  inp.value = ''; inp.focus();
+  const fb = document.getElementById('feedback');
+  fb.textContent = ''; fb.className = 'feedback';
+}
+function submitAnswer() {
+  const inp = document.getElementById('answer');
+  const val = inp.value.trim();
+  const fb = document.getElementById('feedback');
+  if (val === '') { fb.textContent = '先填答案再提交哦～'; fb.className = 'feedback no'; return; }
+  const p = problems[cur];
+  if (parseInt(val, 10) === p.answer) {
+    correct++; streak++; bestStreak = Math.max(bestStreak, streak);
+    playDing(); confetti(); scorePop();
+    fb.textContent = randomPraise(); fb.className = 'feedback ok';
+    inp.value = '';
+    cur++;
+    document.getElementById('correct').textContent = correct;
+    document.getElementById('streak').textContent = streak;
+    if (cur >= totalN) { finish(); return; }
+    setTimeout(renderProblem, 650);
+  } else {
+    streak = 0;
+    document.getElementById('streak').textContent = 0;
+    fb.innerHTML = '不对哦，再想想～';
+    fb.className = 'feedback no';
+    inp.value = '';
+  }
+}
+function randomPraise() {
+  const arr = ['算对啦，太棒了！🎉','脑子转得真快！⚡','厉害咯，继续！🌟','又快又对！👍','小神算子！🧠'];
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+function finish() {
+  clearInterval(timerId);
+  seconds = Math.floor((Date.now() - startAt) / 1000);
+  document.getElementById('quizCard').classList.add('hid');
+  document.getElementById('doneCard').classList.remove('hid');
+  const acc = Math.round(correct / totalN * 100);
+  let grade = acc === 100 ? '🏅 全对，完美！' : acc >= 80 ? '🎉 很棒！' : acc >= 60 ? '👍 继续加油！' : '💪 多练几次就好啦！';
+  try {
+    const key = 'mathBest_' + totalN + '_' + level;
+    const best = parseInt(localStorage.getItem(key) || '0', 10);
+    if (correct > best) localStorage.setItem(key, correct);
+  } catch(e){}
+  document.getElementById('doneBox').innerHTML =
+    '答对 <b>' + correct + '</b> / ' + totalN + ' 题 · 准确率 <b>' + acc + '%</b><br>' +
+    '用时 <b>' + seconds + '</b> 秒 · 最长连对 <b>' + bestStreak + '</b> 题<br><span style="font-size:14px;color:#6a6a6a;">' + grade + '</span>';
+  confetti();
+}
+function restart() {
+  document.getElementById('doneCard').classList.add('hid');
+  document.getElementById('quizCard').classList.remove('hid');
+  correct = 0; streak = 0; cur = 0; seconds = 0; bestStreak = 0;
+  problems = Array.from({ length: totalN }, makeProblem);
+  renderProblem();
+  startAt = Date.now();
+  clearInterval(timerId);
+  timerId = setInterval(tick, 500);
+  document.getElementById('answer').focus();
+}
+function editSetting() {
+  document.getElementById('quizCard').classList.add('hid');
+  document.getElementById('doneCard').classList.add('hid');
+  document.getElementById('setupCard').classList.remove('hid');
+  clearInterval(timerId);
+}
+
+// ---- 音效 & 特效 ----
+let audioCtx = null;
+function ensureCtx() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+}
+function playDing() {
+  try {
+    ensureCtx();
+    [880,1047,1319].forEach((f, i) => {
+      const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+      o.type = 'sine'; o.frequency.value = f; const t = audioCtx.currentTime + i * 0.1;
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.2, t + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 0.5);
+      o.connect(g); g.connect(audioCtx.destination); o.start(t); o.stop(t + 0.6);
+    });
+  } catch(e) {}
+}
+function confetti() {
+  const emojis = ['🌟','⭐','🎉','✨','💫','🍀','🪙','🏅'];
+  for (let i = 0; i < 14; i++) {
+    const el = document.createElement('div');
+    el.className = 'coin';
+    el.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+    el.style.left = (8 + Math.random() * 84) + 'vw';
+    el.style.animationDelay = (Math.random() * 0.4) + 's';
+    el.style.fontSize = (20 + Math.random() * 16) + 'px';
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 1900);
+  }
+}
+function scorePop() {
+  const el = document.createElement('div');
+  el.className = 'score-pop';
+  el.textContent = '+1';
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 1000);
+}
+
+document.addEventListener('pointerdown', ensureCtx);
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !document.getElementById('quizCard').classList.contains('hid')) submitAnswer();
+});
+</script>
+</body>
+</html>
