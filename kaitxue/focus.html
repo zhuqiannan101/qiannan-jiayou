@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>番茄专注种树 · 倩楠老师</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    min-height: 100vh;
+    background: linear-gradient(180deg, #b2f2bb 0%, #d3f9d8 40%, #e9ecef 100%);
+    font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+    padding: 22px 14px 48px; position: relative; overflow-x: hidden;
+    display: flex; flex-direction: column; align-items: center;
+  }
+  .deco { position: fixed; z-index: 0; font-size: 54px; opacity: .5; user-select: none; }
+  .d1 { top: 36px; left: 22px; animation: float 6s ease-in-out infinite; }
+  .d2 { top: 70px; right: 26px; animation: float 7s ease-in-out infinite reverse; }
+  .d3 { bottom: 90px; left: 30px; animation: float 8s ease-in-out infinite; }
+  .d4 { bottom: 130px; right: 34px; animation: float 5s ease-in-out infinite; }
+  @keyframes float { 0%,100% { transform: translateY(0);} 50% { transform: translateY(-18px);} }
+
+  .hero { position: relative; z-index: 5; text-align: center; margin-bottom: 18px; }
+  .hero .mascot { width: 74px; height: 74px; margin: 0 auto 8px; border-radius: 22px;
+    background: linear-gradient(135deg, #69db7c, #2f9e44); display: flex; align-items: center; justify-content: center;
+    font-size: 42px; box-shadow: 0 8px 22px rgba(47,158,68,.4); animation: rock 2.6s ease-in-out infinite; }
+  @keyframes rock { 0%,100%{ transform: rotate(-6deg);} 50%{ transform: rotate(6deg);} }
+  .hero h1 { font-size: 30px; font-weight: 900; letter-spacing: 1px;
+    background: linear-gradient(90deg, #2f9e44, #40c057, #12b886); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .hero p { color: #5c6b8a; margin-top: 6px; font-size: 14px; font-weight: 600; }
+
+  .card { position: relative; z-index: 5; width: 100%; max-width: 640px;
+    background: rgba(255,255,255,0.92); border-radius: 26px; padding: 22px 20px; margin-bottom: 16px;
+    box-shadow: 0 16px 40px rgba(0,0,0,0.08); border: 1px solid rgba(255,255,255,0.9); }
+  .card h2 { font-size: 20px; font-weight: 900; color: #2f9e44; margin-bottom: 6px; }
+  .card .sub { font-size: 12px; color: #8a8a8a; margin-bottom: 12px; }
+
+  .chips { display: flex; gap: 10px; flex-wrap: wrap; }
+  .chip { border: 2px solid #e9ecef; background: #fff; border-radius: 16px; padding: 10px 16px;
+    font-size: 15px; font-weight: 800; color: #495057; cursor: pointer; transition: all .15s; font-family: inherit; }
+  .chip.on { border-color: #40c057; background: #e6fcf5; color: #2b8a3e; }
+  .btn { display: inline-block; border: none; border-radius: 50px; padding: 12px 26px; font-family: inherit;
+    font-size: 15px; font-weight: 800; cursor: pointer; color: #fff; transition: transform .15s, box-shadow .15s; }
+  .btn:hover { transform: translateY(-2px); }
+  .btn-primary { background: linear-gradient(135deg, #69db7c, #2f9e44); box-shadow: 0 8px 20px rgba(47,158,68,.4); }
+  .btn-ghost { background: #f1f3f5; color: #5c6b8a; box-shadow: none; }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; justify-content: center; }
+  .hint { font-size: 12px; color: #adb5bd; margin-top: 6px; line-height: 1.6; }
+
+  /* focus */
+  .tree-box { text-align: center; padding: 8px 0; }
+  .tree { font-size: 96px; line-height: 1; display: inline-block; transition: transform .3s; }
+  .tree.grow { animation: sway 2.4s ease-in-out infinite; }
+  @keyframes sway { 0%,100%{ transform: rotate(-3deg);} 50%{ transform: rotate(3deg);} }
+  .timer { font-size: 64px; font-weight: 900; color: #2b8a3e; letter-spacing: 2px; margin: 6px 0 2px; }
+  .target { font-size: 16px; font-weight: 800; color: #495057; margin-top: 4px; }
+  .note { font-size: 14px; font-weight: 800; color: #e8590c; margin-top: 8px; min-height: 20px; }
+  .bar-wrap { background: #f1f3f5; border-radius: 50px; height: 14px; overflow: hidden; margin: 14px 0 4px; }
+  .bar { height: 100%; width: 0; background: linear-gradient(90deg, #69db7c, #2f9e44); transition: width .5s; border-radius: 50px; }
+
+  .done { text-align: center; padding: 20px 6px; }
+  .done .big { font-size: 52px; }
+  .done h3 { font-size: 24px; color: #2f9e44; margin: 8px 0 6px; }
+  .done p { color: #6a6a6a; font-size: 15px; line-height: 1.9; }
+  .done .score-box { margin-top: 12px; background: #e6fcf5; border: 1px solid #96f2d7; border-radius: 14px;
+    padding: 12px 14px; color: #0b7285; font-weight: 800; font-size: 15px; line-height: 1.8; }
+  .hid { display: none; }
+  .footer { position: relative; z-index: 5; color: #7a8aa0; font-size: 13px; margin-top: 8px; text-align: center; }
+
+  .warn { position: fixed; inset: 0; z-index: 998; background: rgba(0,0,0,0.45); display: none;
+    align-items: center; justify-content: center; color: #fff; font-size: 24px; font-weight: 900; text-align: center; padding: 30px; }
+</style>
+</head>
+<body>
+
+<div class="deco d1">🌲</div>
+<div class="deco d2">🕐</div>
+<div class="deco d3">📖</div>
+<div class="deco d4">🌱</div>
+
+<div class="hero">
+  <div class="mascot">🌳</div>
+  <h1>番茄专注种树</h1>
+  <p>静下心学一会儿，小树就长高一点，专注力也变强！</p>
+</div>
+
+<!-- 设置 -->
+<div class="card" id="setupCard">
+  <h2>🍅 今天专注多久</h2>
+  <p class="sub">选一个时长，期间专心做一件事，别切走页面</p>
+  <div class="chips" id="minChips">
+    <button class="chip" data-m="5">5 分钟</button>
+    <button class="chip on" data-m="10">10 分钟</button>
+    <button class="chip" data-m="15">15 分钟</button>
+    <button class="chip" data-m="25">25 分钟</button>
+  </div>
+  <label class="label" style="font-size:13px;font-weight:800;color:#495057;margin:12px 0 6px;">这段时间要做什么？</label>
+  <input type="text" id="taskInput" placeholder="例如：写数学作业 / 看课外书 / 背古诗" style="width:100%;font-family:inherit;font-size:15px;border:2px solid #b2f2bb;border-radius:14px;padding:11px 14px;background:#f8fff9;">
+  <div class="hint">小树会跟着专注的时间慢慢长大，中途切走页面会暂停并算一次“走神”。</div>
+  <div class="row">
+    <button class="btn btn-primary" onclick="startFocus()">▶ 开始专注</button>
+  </div>
+</div>
+
+<!-- 专注区 -->
+<div class="card hid" id="focusCard">
+  <div class="tree-box">
+    <div class="tree" id="tree">🌱</div>
+    <div class="timer" id="timer">25:00</div>
+    <div class="target" id="target">🌳 小树在长大…</div>
+    <div class="note" id="note"></div>
+    <div class="bar-wrap"><div class="bar" id="bar"></div></div>
+  </div>
+  <div class="row">
+    <button class="btn btn-ghost" onclick="togglePause()" id="pauseBtn">⏸ 暂停</button>
+    <button class="btn btn-ghost" onclick="giveUp()">✋ 提前结束</button>
+  </div>
+</div>
+
+<!-- 结算 -->
+<div class="card hid" id="doneCard">
+  <div class="done">
+    <div class="big" id="doneBig">🌳</div>
+    <h3>专注完成！</h3>
+    <div class="score-box" id="doneBox"></div>
+    <div class="row">
+      <button class="btn btn-primary" onclick="restart()">🔁 再来一轮</button>
+      <button class="btn btn-ghost" onclick="editSetting()">⚙️ 换时长</button>
+    </div>
+  </div>
+</div>
+
+<div class="warn" id="warn">别走神哦，<br>专心回来继续～</div>
+
+<div class="footer">✨ 倩楠老师 · 专注力训练 ✨</div>
+
+<script>
+// ---- 状态 ----
+const STAGES = ['🌱', '🌿', '🪴', '🎍', '🌳'];
+let minutes = 10;
+let totalMs = 0;
+let focusedMs = 0;     // 真正专注的累计毫秒
+let runStart = 0;      // 本次开始/继续的时间戳
+let timerId = null;
+let pausedBy = null;   // null | 'manual' | 'blur'
+let focusCount = 0;    // 走神次数
+let done = false;
+
+function loadChips() {
+  document.querySelectorAll('#minChips .chip').forEach(ch => {
+    ch.addEventListener('click', () => {
+      document.querySelectorAll('#minChips .chip').forEach(x => x.classList.remove('on'));
+      ch.classList.add('on');
+      minutes = parseInt(ch.dataset.m);
+    });
+  });
+}
+loadChips();
+
+function startFocus() {
+  const task = document.getElementById('taskInput').value.trim() || '专心学习';
+  totalMs = minutes * 60 * 1000;
+  focusedMs = 0; focusCount = 0; done = false; pausedBy = null;
+  document.getElementById('setupCard').classList.add('hid');
+  document.getElementById('doneCard').classList.add('hid');
+  document.getElementById('focusCard').classList.remove('hid');
+  document.getElementById('pauseBtn').textContent = '⏸ 暂停';
+  document.getElementById('target').textContent = '🌳 ' + task;
+  runStart = Date.now();
+  clearInterval(timerId);
+  timerId = setInterval(tick, 250);
+  render();
+}
+function remaining() { return Math.max(0, totalMs - focusedMs - (Date.now() - runStart)); }
+function tick() {
+  if (done) return;
+  const rem = remaining();
+  if (rem <= 0) { finish(); return; }
+  render();
+}
+function render() {
+  const rem = remaining();
+  const elapsed = totalMs - rem;
+  const frac = totalMs ? elapsed / totalMs : 0;
+  const seg = Math.min(STAGES.length - 1, Math.floor(frac * STAGES.length));
+  const tree = document.getElementById('tree');
+  tree.textContent = STAGES[seg];
+  tree.className = 'tree' + (seg > 0 ? ' grow' : '');
+  const m = Math.floor(rem / 60000), s = Math.floor((rem % 60000) / 1000);
+  document.getElementById('timer').textContent = pad(m) + ':' + pad(s);
+  document.getElementById('bar').style.width = (frac * 100) + '%';
+  document.getElementById('note').textContent = pausedBy ? (pausedBy === 'blur' ? '⏸ 走神暂停，回来继续哦' : '⏸ 已暂停') : '';
+}
+function pad(n) { return (n < 10 ? '0' : '') + n; }
+
+function togglePause() {
+  if (done) return;
+  if (pausedBy) { resume(); }
+  else { pause('manual'); }
+}
+function pause(by) {
+  focusedMs += Date.now() - runStart;
+  clearInterval(timerId);
+  pausedBy = by;
+  if (by === 'blur') focusCount++;
+  document.getElementById('pauseBtn').textContent = '▶ 继续';
+  render();
+}
+function resume() {
+  runStart = Date.now();
+  pausedBy = null;
+  document.getElementById('pauseBtn').textContent = '⏸ 暂停';
+  clearInterval(timerId);
+  timerId = setInterval(tick, 250);
+  render();
+}
+function giveUp() {
+  if (done) return;
+  done = true;
+  clearInterval(timerId);
+  document.getElementById('focusCard').classList.add('hid');
+  document.getElementById('doneCard').classList.remove('hid');
+  const focusMin = Math.round(focusedMs / 60000 * 10) / 10;
+  document.getElementById('doneBig').textContent = STAGES[0];
+  document.getElementById('doneBox').innerHTML =
+    '中途结束啦，下次做得更棒！<br>专注了 <b>' + focusMin + '</b> 分钟 · 走神 <b>' + focusCount + '</b> 次';
+}
+function finish() {
+  done = true;
+  focusedMs = totalMs;
+  clearInterval(timerId);
+  document.getElementById('focusCard').classList.add('hid');
+  document.getElementById('doneCard').classList.remove('hid');
+  document.getElementById('doneBig').textContent = '🌳';
+  const min = minutes;
+  let star = focusCount === 0 ? '🏅 零走神，超专注！' : focusCount <= 2 ? '🌟 很棒！' : '👍 不错，明天会更专心！';
+  document.getElementById('doneBox').innerHTML =
+    '专注了 <b>' + min + '</b> 分钟，种下一棵树！<br>走神 <b>' + focusCount + '</b> 次 · ' + star +
+    '<br><span style="font-size:14px;color:#6a6a6a;">继续加油，专注力会越来越强～</span>';
+}
+function restart() {
+  document.getElementById('doneCard').classList.add('hid');
+  document.getElementById('focusCard').classList.remove('hid');
+  startFocus();
+}
+function editSetting() {
+  document.getElementById('focusCard').classList.add('hid');
+  document.getElementById('doneCard').classList.add('hid');
+  document.getElementById('setupCard').classList.remove('hid');
+  clearInterval(timerId);
+  done = true;
+}
+
+// 走神检测：切走页面自动暂停
+window.addEventListener('blur', () => { if (!done && !pausedBy) pause('blur'); });
+window.addEventListener('focus', () => { if (!done && pausedBy === 'blur') resume(); });
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) { if (!done && !pausedBy) pause('blur'); }
+  else { if (!done && pausedBy === 'blur') resume(); }
+});
+</script>
+</body>
+</html>
