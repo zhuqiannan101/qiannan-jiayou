@@ -179,11 +179,15 @@
 // ---- 数据与状态 ----
 let words = [];            // [{en, zh}]
 let score = 0;
-let learned = new Set();    // 已答对的单词下标
+let todo = [];             // 待考的 {index, type} 组合，一个单词×4种题型
+let mastered = new Set();  // 4种题型都答对、已掌握的单词下标
 let streak = 0, bestStreak = 0;
 let current = null;         // {index, type}
+let wrongCount = 0;         // 当前题答错次数，满 3 次才给答案
 let audioCtx = null;
 let speechAudio = null;
+
+const TYPES = ['fill', 'listen', 'spellEnZh', 'spellZhEn'];
 
 const tiers = [
   [0,  '🐣', '小萌新'],
@@ -224,7 +228,10 @@ function start() {
   if (words.length < 2) { alert('请至少放 2 个单词哦～每个格式：英文 中文'); return; }
   try { localStorage.setItem('wcWords', text); } catch(e){}
   try { localStorage.setItem('wcReward', document.getElementById('rewardInput').value); } catch(e){}
-  score = 0; learned = new Set(); streak = 0; bestStreak = 0;
+  score = 0; streak = 0; bestStreak = 0;
+  todo = [];
+  words.forEach((w, i) => TYPES.forEach(t => todo.push({ index: i, type: t })));
+  mastered = new Set();
   document.getElementById('setupCard').classList.add('hid');
   document.getElementById('quizCard').classList.remove('hid');
   document.getElementById('doneArea').classList.add('hid');
@@ -243,6 +250,8 @@ function applyAdd() {
   const add = parseWords(document.getElementById('addInput').value);
   if (add.length === 0) { alert('请按格式输入：每行写「英文 中文」'); return; }
   words = words.concat(add);
+  const startIdx = words.length - add.length;
+  add.forEach((w, k) => TYPES.forEach(t => todo.push({ index: startIdx + k, type: t })));
   try { localStorage.setItem('wcWords', words.map(x => x.en + ' ' + x.zh).join('\n')); } catch(e){}
   document.getElementById('addInput').value = '';
   document.getElementById('addPanel').classList.add('hid');
@@ -252,16 +261,21 @@ function applyAdd() {
 
 // ---- 出题 ----
 function pickQuestion() {
-  const pool = words.map((w, i) => i).filter(i => !learned.has(i));
-  if (pool.length === 0) return null;
-  const idx = pool[Math.floor(Math.random() * pool.length)];
-  const types = ['listen', 'spellZhEn', 'mcEnZh', 'mcZhEn'];
-  const type = types[Math.floor(Math.random() * types.length)];
-  return { index: idx, type };
+  if (todo.length === 0) return null;
+  return todo[Math.floor(Math.random() * todo.length)];
+}
+// 缺一个字母：把英文单词随机挖掉一个字母，让小朋友补上
+function fillLetter(word) {
+  const chars = word.split('');
+  const pos = Math.floor(Math.random() * chars.length);
+  const missing = chars[pos].toLowerCase();
+  const pattern = chars.map((c, i) => i === pos ? '＿' : c).join('');
+  return { pattern, missing };
 }
 function render() {
   current = pickQuestion();
   if (!current) { showDone(); return; }
+  wrongCount = 0;
   const w = words[current.index];
   const qType = document.getElementById('qType');
   const qPrompt = document.getElementById('qPrompt');
@@ -274,73 +288,64 @@ function render() {
   optionsArea.innerHTML = ''; optionsArea.style.display = 'none';
   spellArea.style.display = 'none'; speakBtn.style.display = 'inline-flex';
 
-  if (current.type === 'listen') {
+  if (current.type === 'fill') {
+    // 补充字母：挖掉一个字母，补上它
+    const fp = fillLetter(w.en);
+    current.missing = fp.missing;
+    current.pattern = fp.pattern;
+    qType.textContent = '🔤 缺一个字母，补上它';
+    qPrompt.innerHTML = '<span class="en">' + esc(fp.pattern) + '</span>';
+    spellArea.style.display = 'block';
+    spellInput.placeholder = '在这里补上缺失的字母～';
+    setTimeout(() => spellInput.focus(), 50);
+  } else if (current.type === 'listen') {
     // 听写：听发音，写出英文单词（不给中文，避免透露答案）
-    qType.textContent = '🎧 听写单词';
+    qType.textContent = '🎧 听写英文';
     qPrompt.innerHTML = '听一听，写出你听到的英文单词';
     spellArea.style.display = 'block';
     spellInput.placeholder = '在这里写出你听到的英文单词～';
     setTimeout(() => { speakCurrent(); spellInput.focus(); }, 250);
   } else if (current.type === 'spellZhEn') {
-    qType.textContent = '✍️ 看中文，写英文单词';
+    qType.textContent = '✍️ 给中文写英文';
     qPrompt.innerHTML = w.zh;
     spellArea.style.display = 'block';
     spellInput.placeholder = '在这里写英文单词～';
     setTimeout(() => spellInput.focus(), 50);
-  } else if (current.type === 'mcEnZh') {
-    qType.textContent = '👀 看英文，选中文';
+  } else { // spellEnZh：给英文写中文
+    qType.textContent = '👀 给英文写中文';
     qPrompt.innerHTML = '<span class="en">' + esc(w.en) + '</span>';
-    buildOptions(w.index, 'zh', 'mcEnZh');
-  } else { // mcZhEn：看中文，选英文
-    qType.textContent = '🧩 看中文，选英文';
-    qPrompt.innerHTML = esc(w.zh);
-    buildOptions(w.index, 'en', 'mcZhEn');
+    spellArea.style.display = 'block';
+    spellInput.placeholder = '在这里写中文意思～';
+    setTimeout(() => spellInput.focus(), 50);
   }
 }
 function esc(s) { return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 
-function buildOptions(correctIndex, field, type) {
-  const correctVal = words[correctIndex][field];
-  const others = words.map((w, i) => i !== correctIndex ? w[field] : null).filter(Boolean);
-  const uniq = [...new Set(others)];
-  // 打乱
-  for (let i = uniq.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i+1)); [uniq[i], uniq[j]] = [uniq[j], uniq[i]]; }
-  const distractors = uniq.slice(0, 3);
-  const opts = [correctVal, ...distractors];
-  for (let i = opts.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i+1)); [opts[i], opts[j]] = [opts[j], opts[i]]; }
-  const area = document.getElementById('optionsArea');
-  area.style.display = 'grid';
-  opts.forEach(val => {
-    const b = document.createElement('div');
-    b.className = 'option';
-    b.textContent = val;
-    b.onclick = () => chooseOpt(b, val, correctVal, type);
-    area.appendChild(b);
-  });
-}
-function chooseOpt(el, val, correctVal, type) {
-  const area = document.getElementById('optionsArea');
-  const buttons = area.querySelectorAll('.option');
-  buttons.forEach(b => b.onclick = null);
-  if (val === correctVal) {
-    el.classList.add('correct');
-    correct(type);
-  } else {
-    el.classList.add('wrong');
-    // 高亮正确答案
-    buttons.forEach(b => { if (b.textContent === correctVal) b.classList.add('correct'); });
-    wrong();
-  }
-}
 function submitSpell() {
   const inp = document.getElementById('spellInput');
-  const val = inp.value.trim().toLowerCase();
+  const val = inp.value.trim();
   const w = words[current.index];
   const fb = document.getElementById('feedback');
   if (!val) { fb.textContent = '先写出来再提交哦～'; fb.className = 'feedback no'; return; }
-  if (val === w.en.toLowerCase()) { correct('spellZhEn'); }
+  let ok, correctVal;
+  if (current.type === 'spellEnZh') {            // 给英文写中文
+    ok = val === w.zh.trim(); correctVal = w.zh;
+  } else if (current.type === 'fill') {          // 补充字母：填缺的字母（也接受整词）
+    ok = (val.toLowerCase() === current.missing) || (val.toLowerCase() === w.en.toLowerCase());
+    correctVal = w.en;
+  } else {                                        // 听写 / 给中文写英文：写英文单词
+    ok = val.toLowerCase() === w.en.toLowerCase(); correctVal = w.en;
+  }
+  if (ok) { correct(current.type); }
   else {
-    fb.innerHTML = '差一点点！正确答案是 <b>' + esc(w.en) + '</b> 再试一次～';
+    wrongCount++;
+    if (wrongCount >= 3) {
+      fb.innerHTML = '答案：<b>' + esc(correctVal) + '</b>，别灰心，记住它再试一次～';
+    } else if (wrongCount === 2) {
+      fb.innerHTML = '差一点点，再想想～';
+    } else {
+      fb.innerHTML = '再试一次，你可以的～';
+    }
     fb.className = 'feedback no';
     inp.value = '';
   }
@@ -348,14 +353,24 @@ function submitSpell() {
 
 // ---- 对错处理 ----
 function correct(type) {
-  score += 10; learned.add(current.index); streak++; bestStreak = Math.max(bestStreak, streak);
+  score += 10; streak++; bestStreak = Math.max(bestStreak, streak);
+  todo = todo.filter(t => !(t.index === current.index && t.type === current.type));
+  const left = todo.filter(t => t.index === current.index).length;
+  const nowMastered = left === 0 && !mastered.has(current.index);
+  if (nowMastered) mastered.add(current.index);
   playDing(); confetti();
   const tier = tierFor(score);
   document.getElementById('petEmoji').textContent = tier[1];
   document.getElementById('petName').textContent = tier[2];
   const fb = document.getElementById('feedback');
   const isUpgrade = tier[0] > 0 && score === tier[0];
-  fb.innerHTML = isUpgrade ? ('🎊 升级啦！小动物变成 ' + tier[1] + ' ' + tier[2] + '！') : randomPraise();
+  if (isUpgrade) {
+    fb.innerHTML = '🎊 升级啦！小动物变成 ' + tier[1] + ' ' + tier[2] + '！';
+  } else if (nowMastered) {
+    fb.innerHTML = '🌟 ' + esc(words[current.index].en) + ' 四种题型都会啦，真棒！';
+  } else {
+    fb.innerHTML = randomPraise();
+  }
   fb.className = 'feedback ok';
   renderStats();
   setTimeout(next, 1100);
@@ -376,7 +391,7 @@ function next() {
 }
 function renderStats() {
   document.getElementById('pts').textContent = score;
-  document.getElementById('progress').textContent = learned.size + ' / ' + words.length;
+  document.getElementById('progress').textContent = '已掌握 ' + mastered.size + ' / ' + words.length;
   document.getElementById('streak').textContent = '🔥 连对 ' + streak;
 }
 function showDone() {
@@ -389,7 +404,10 @@ function showDone() {
   confetti();
 }
 function restart() {
-  learned = new Set(); score = 0; streak = 0; bestStreak = 0;
+  score = 0; streak = 0; bestStreak = 0;
+  todo = [];
+  words.forEach((w, i) => TYPES.forEach(t => todo.push({ index: i, type: t })));
+  mastered = new Set();
   document.getElementById('qArea').classList.remove('hid');
   document.getElementById('doneArea').classList.add('hid');
   document.getElementById('spellInput').value = '';
