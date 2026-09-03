@@ -142,7 +142,7 @@
   </div>
 
   <div class="row">
-    <button class="btn btn-primary" onclick="start()">▶ 开始学习</button>
+    <button class="btn btn-primary" onclick="qnNameGate('单词乐园', function(){ qnRecordStart('单词乐园'); start(); })">▶ 开始学习</button>
     <button class="btn btn-ghost" onclick="loadSample()">✨ 给我示例</button>
   </div>
 </div>
@@ -197,6 +197,7 @@
 
 <div class="footer">✨ 倩楠老师 · 把学习变有趣 ✨</div>
 
+<script src="record.js"></script>
 <script>
 // ---- 数据与状态 ----
 let words = [];            // [{en, zh}]
@@ -413,6 +414,7 @@ function showDone() {
   document.getElementById('doneRedeem').innerHTML =
     '💰 可兑换 <b>' + score + '</b> 金币，或 <b>' + Math.floor(score / 10) + '</b> 宠物积分<br>' +
     '<span class="tip">满 80 分 = 80 金币 或 8 宠物积分，找倩楠老师领取金币！</span>';
+  qnRecordFinish(score + '分 · 掌握' + mastered.size + '词');
   confetti();
 }
 function restart() {
