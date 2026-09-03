@@ -115,7 +115,7 @@
   function renderPanel() {
     var a = load().slice().reverse();
     // 只突出最需要的三项：谁 · 几月几号 · 玩了什么
-    var html = '<div class="qn-panel-title">📋 谁 · 几月几号 · 玩了什么</div>';
+    var html = '<div class="qn-panel-title">📋 挑战记录</div>';
     if (a.length === 0) {
       html += '<div class="qn-empty">还没有记录，先写下名字玩一局吧～</div>';
     } else {
