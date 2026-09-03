@@ -98,7 +98,7 @@
   <input type="text" id="taskInput" placeholder="例如：写数学作业 / 看课外书 / 背古诗" style="width:100%;font-family:inherit;font-size:15px;border:2px solid #b2f2bb;border-radius:14px;padding:11px 14px;background:#f8fff9;">
   <div class="hint">小树会跟着专注的时间慢慢长大，中途切走页面会暂停并算一次“走神”。</div>
   <div class="row">
-    <button class="btn btn-primary" onclick="startFocus()">▶ 开始专注</button>
+    <button class="btn btn-primary" onclick="qnNameGate('番茄专注种树', function(){ qnRecordStart('番茄专注种树'); startFocus(); })">▶ 开始专注</button>
   </div>
 </div>
 
@@ -134,6 +134,7 @@
 
 <div class="footer">✨ 倩楠老师 · 专注力训练 ✨</div>
 
+<script src="record.js"></script>
 <script>
 // ---- 状态 ----
 const STAGES = ['🌱', '🌿', '🪴', '🎍', '🌳'];
@@ -224,6 +225,7 @@ function giveUp() {
   document.getElementById('doneBig').textContent = STAGES[0];
   document.getElementById('doneBox').innerHTML =
     '中途结束啦，下次做得更棒！<br>专注了 <b>' + focusMin + '</b> 分钟 · 走神 <b>' + focusCount + '</b> 次';
+  qnRecordFinish('提前结束 · ' + focusMin + '分钟 · 走神' + focusCount + '次');
 }
 function finish() {
   done = true;
@@ -237,6 +239,7 @@ function finish() {
   document.getElementById('doneBox').innerHTML =
     '专注了 <b>' + min + '</b> 分钟，种下一棵树！<br>走神 <b>' + focusCount + '</b> 次 · ' + star +
     '<br><span style="font-size:14px;color:#6a6a6a;">继续加油，专注力会越来越强～</span>';
+  qnRecordFinish(minutes + '分钟 · 走神' + focusCount + '次');
 }
 function restart() {
   document.getElementById('doneCard').classList.add('hid');
