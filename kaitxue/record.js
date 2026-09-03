@@ -29,8 +29,8 @@
     '.qn-row{display:flex;flex-wrap:wrap;align-items:center;gap:6px;border-bottom:1px solid #f1f3f5;padding:10px 2px;font-size:14px;color:#343a40;}'+
     '.qn-row b{color:#e8590c;font-size:15px;}'+
     '.qn-game{background:#f3f0ff;color:#7048e8;border-radius:10px;padding:2px 8px;font-size:12px;font-weight:800;}'+
-    '.qn-detail{color:#495057;font-weight:700;flex:1;min-width:110px;}'+
-    '.qn-when{color:#adb5bd;font-size:12px;}'+
+    '.qn-detail{color:#adb5bd;font-size:12px;font-weight:600;}'+
+    '.qn-when{color:#5c6b8a;font-size:13px;font-weight:700;}'+
     '.qn-panel-btns{text-align:center;margin-top:10px;}';
   document.head.appendChild(css);
 
@@ -114,13 +114,17 @@
   }
   function renderPanel() {
     var a = load().slice().reverse();
-    var html = '<div class="qn-panel-title">📋 这台设备玩过的记录</div>';
+    // 只突出最需要的三项：谁 · 几月几号 · 玩了什么
+    var html = '<div class="qn-panel-title">📋 谁 · 几月几号 · 玩了什么</div>';
     if (a.length === 0) {
       html += '<div class="qn-empty">还没有记录，先写下名字玩一局吧～</div>';
     } else {
       html += '<div class="qn-list">';
       a.forEach(function (r) {
-        html += '<div class="qn-row"><b>' + esc(r.name) + '</b><span class="qn-game">' + esc(r.game) + '</span><span class="qn-detail">' + esc(r.detail) + '</span><span class="qn-when">' + esc(r.when) + '</span></div>';
+        html += '<div class="qn-row"><b>' + esc(r.name) + '</b>' +
+                '<span class="qn-when">' + esc(r.when) + '</span>' +
+                '<span class="qn-game">' + esc(r.game) + '</span>' +
+                '<span class="qn-detail">' + esc(r.detail) + '</span></div>';
       });
       html += '</div>';
     }
@@ -128,7 +132,7 @@
     _panel.innerHTML = html;
     _panel.querySelector('.qn-close').addEventListener('click', function () { _panel.classList.remove('show'); });
     _panel.querySelector('.qn-copy').addEventListener('click', function () {
-      var text = a.map(function (r) { return r.name + ' · ' + r.game + ' · ' + r.detail + ' · ' + r.when; }).join('\n');
+      var text = a.map(function (r) { return r.name + ' · ' + r.when + ' · ' + r.game + ' · ' + r.detail; }).join('\n');
       try { navigator.clipboard.writeText(text); } catch (e) {}
       var b = _panel.querySelector('.qn-copy'); b.textContent = '✅ 已复制';
     });
