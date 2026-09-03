@@ -87,6 +87,11 @@
   .done p { color: #6a6a6a; font-size: 15px; line-height: 1.8; }
   .done .reward { margin-top: 12px; background: #fff9db; border: 1px solid #ffe066; border-radius: 14px;
     padding: 12px 14px; color: #e8590c; font-weight: 800; }
+  .done .redeem { margin-top: 10px; background: #e6fcf5; border: 1px solid #96f2d7; border-radius: 14px;
+    padding: 12px 14px; color: #0b7285; font-weight: 800; font-size: 15px; line-height: 1.7; }
+  .done .redeem .tip { font-size: 12px; color: #5c7cfa; font-weight: 700; display: block; margin-top: 4px; }
+  .redeem-rule { margin-top: 12px; background: #fff0f6; border: 1px solid #fcc2d7; border-radius: 14px;
+    padding: 12px 14px; color: #c2255c; font-weight: 700; font-size: 13px; line-height: 1.7; }
 
   .hid { display: none; }
 
@@ -120,6 +125,11 @@
   <label class="label">🎁 答对全部的奖励（家长承诺，可选）</label>
   <input type="text" id="rewardInput" placeholder="例如：看动画 20 分钟 / 一个小贴纸 / 周末去公园">
 
+  <div class="redeem-rule">
+    💰 每答对一题得 <b>10 分</b>。分数能兑换：<b>1 分 = 1 金币</b>，<b>10 分 = 1 宠物积分</b>。<br>
+    攒到 <b>80 分</b> → 换 <b>80 金币</b> 或 <b>8 宠物积分</b>，找倩楠老师领取金币！
+  </div>
+
   <div class="row">
     <button class="btn btn-primary" onclick="start()">▶ 开始学习</button>
     <button class="btn btn-ghost" onclick="loadSample()">✨ 给我示例</button>
@@ -130,8 +140,8 @@
 <div class="card hid" id="quizCard">
   <div class="quiz-top">
     <div class="pet">
-      <span class="pet-emoji" id="petEmoji">🐣</span>
-      <span><span id="petName">小萌新</span><span class="pet-name">我的小动物</span></span>
+      <span class="pet-emoji" id="petEmoji">🥚</span>
+      <span><span id="petName">宠物蛋</span><span class="pet-name">我的宠物</span></span>
     </div>
     <div class="quiz-stats">
       <div><span class="pts" id="pts">0</span> 分</div>
@@ -164,8 +174,9 @@
   <div class="done hid" id="doneArea">
     <div class="big">🎉</div>
     <h3>全部通关啦！</h3>
-    <p>今天的 <b id="doneWords">0</b> 个单词你都学会啦！<br>你一共攒了 <b id="donePts">0</b> 分，你的小动物正为你骄傲～</p>
+    <p>今天的 <b id="doneWords">0</b> 个单词你都学会啦！<br>你一共攒了 <b id="donePts">0</b> 分，你的宠物正为你骄傲～</p>
     <div class="reward" id="doneReward"></div>
+    <div class="redeem" id="doneRedeem"></div>
     <div class="row" style="justify-content:center">
       <button class="btn btn-primary" onclick="restart()">🔁 再学一轮</button>
       <button class="btn btn-ghost" onclick="editWords()">📝 换单词</button>
@@ -190,12 +201,12 @@ let speechAudio = null;
 const TYPES = ['fill', 'listen', 'spellEnZh', 'spellZhEn'];
 
 const tiers = [
-  [0,  '🐣', '小萌新'],
-  [20, '🐥', '小雏'],
-  [40, '🐰', '小兔'],
-  [80, '🐱', '小猫'],
-  [120,'🐶', '小狗'],
-  [200,'🦁', '小狮子'],
+  [0,   '🥚', '宠物蛋'],
+  [20,  '🐣', '宠物宝宝'],
+  [40,  '🐾', '宠物幼崽'],
+  [80,  '🦄', '魔法宠物'],
+  [120, '🌠', '闪亮宠物'],
+  [200, '👑', '冠军宠物'],
 ];
 function tierFor(s) {
   let cur = tiers[0];
@@ -401,6 +412,9 @@ function showDone() {
   document.getElementById('donePts').textContent = score;
   const reward = document.getElementById('rewardInput').value.trim();
   document.getElementById('doneReward').textContent = reward ? ('🎁 爸爸妈妈的奖励：' + reward) : ('🌟 爸爸妈妈一定为你骄傲！');
+  document.getElementById('doneRedeem').innerHTML =
+    '💰 可兑换 <b>' + score + '</b> 金币，或 <b>' + Math.floor(score / 10) + '</b> 宠物积分<br>' +
+    '<span class="tip">满 80 分 = 80 金币 或 8 宠物积分，找倩楠老师领取金币！</span>';
   confetti();
 }
 function restart() {
