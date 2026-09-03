@@ -140,6 +140,15 @@
     </div>
   </div>
 
+  <div style="display:flex;justify-content:flex-end;margin-bottom:12px;">
+    <button class="btn btn-ghost" style="padding:8px 16px;font-size:13px;" onclick="toggleAdd()">➕ 补充单词</button>
+  </div>
+  <div id="addPanel" class="hid" style="margin-bottom:14px;">
+    <label class="label">再加几个单词（每行写「英文 中文」）</label>
+    <textarea id="addInput" placeholder="moon 月亮&#10;star 星星&#10;book 书"></textarea>
+    <div class="row"><button class="btn btn-secondary" onclick="applyAdd()">✓ 加入</button></div>
+  </div>
+
   <div id="qArea">
     <span class="q-type" id="qType">看中文写单词</span>
     <div class="q-prompt" id="qPrompt"></div>
@@ -226,13 +235,27 @@ function editWords() {
   document.getElementById('quizCard').classList.add('hid');
   document.getElementById('setupCard').classList.remove('hid');
 }
+function toggleAdd() {
+  document.getElementById('addPanel').classList.toggle('hid');
+  if (!document.getElementById('addPanel').classList.contains('hid')) document.getElementById('addInput').focus();
+}
+function applyAdd() {
+  const add = parseWords(document.getElementById('addInput').value);
+  if (add.length === 0) { alert('请按格式输入：每行写「英文 中文」'); return; }
+  words = words.concat(add);
+  try { localStorage.setItem('wcWords', words.map(x => x.en + ' ' + x.zh).join('\n')); } catch(e){}
+  document.getElementById('addInput').value = '';
+  document.getElementById('addPanel').classList.add('hid');
+  renderStats();
+  alert('已加入 ' + add.length + ' 个单词，继续闯关吧！');
+}
 
 // ---- 出题 ----
 function pickQuestion() {
   const pool = words.map((w, i) => i).filter(i => !learned.has(i));
   if (pool.length === 0) return null;
   const idx = pool[Math.floor(Math.random() * pool.length)];
-  const types = ['spellZhEn', 'mcEnZh', 'listen'];
+  const types = ['listen', 'spellZhEn', 'mcEnZh', 'mcZhEn'];
   const type = types[Math.floor(Math.random() * types.length)];
   return { index: idx, type };
 }
@@ -251,21 +274,27 @@ function render() {
   optionsArea.innerHTML = ''; optionsArea.style.display = 'none';
   spellArea.style.display = 'none'; speakBtn.style.display = 'inline-flex';
 
-  if (current.type === 'spellZhEn') {
+  if (current.type === 'listen') {
+    // 听写：听发音，写出英文单词（不给中文，避免透露答案）
+    qType.textContent = '🎧 听写单词';
+    qPrompt.innerHTML = '听一听，写出你听到的英文单词';
+    spellArea.style.display = 'block';
+    spellInput.placeholder = '在这里写出你听到的英文单词～';
+    setTimeout(() => { speakCurrent(); spellInput.focus(); }, 250);
+  } else if (current.type === 'spellZhEn') {
     qType.textContent = '✍️ 看中文，写英文单词';
     qPrompt.innerHTML = w.zh;
     spellArea.style.display = 'block';
+    spellInput.placeholder = '在这里写英文单词～';
     setTimeout(() => spellInput.focus(), 50);
   } else if (current.type === 'mcEnZh') {
     qType.textContent = '👀 看英文，选中文';
     qPrompt.innerHTML = '<span class="en">' + esc(w.en) + '</span>';
     buildOptions(w.index, 'zh', 'mcEnZh');
-  } else { // listen
-    qType.textContent = '🔊 听发音，选出对的单词';
-    qPrompt.innerHTML = '🎧 你听到的是哪个单词？';
-    speakBtn.style.display = 'inline-flex';
-    buildOptions(w.index, 'en', 'listen');
-    setTimeout(() => speakCurrent(), 150);
+  } else { // mcZhEn：看中文，选英文
+    qType.textContent = '🧩 看中文，选英文';
+    qPrompt.innerHTML = esc(w.zh);
+    buildOptions(w.index, 'en', 'mcZhEn');
   }
 }
 function esc(s) { return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
