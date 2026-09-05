@@ -338,6 +338,11 @@ button:active{transform:scale(.96);}
   button{font-size:15px;padding:11px 16px;}
   #sens{display:none;}
 }
+
+/* 孩子专属纯享版：开场和游玩界面只留最清爽的部分，隐掉老师专用控件 */
+#btnStartSys, #btnTeacherToggle, #teacherPanel, #btnHelpIntro,
+#btnMic, #btnSys, #devSel, #btnCal, #btnSim, #btnHelp,
+#sliders, #introDmTip, #srcChip { display:none !important; }
 </style>
 </head>
 <body>
@@ -418,7 +423,7 @@ button:active{transform:scale(.96);}
       <button class="durb durPlus" type="button">＋</button>
       <span class="durVal">40</span><span style="opacity:.75">秒</span>
     </div>
-    <button class="cta" id="btnStart">🎤 麦克风开始（老师开麦做演示）</button>
+    <button class="cta" id="btnStart">🎤 开麦，开始挑战！</button>
     <button class="cta" id="btnStartSys" style="background:linear-gradient(135deg,#ff5da2,#c9184a)">🔊 接直播声音开始（直播间开麦）</button>
     <!-- 老师用的设置说明：默认收起，避免共享屏幕时把后台说明投给全班看到 -->
     <button id="btnTeacherToggle" type="button">⚙️ 老师设置说明</button>
@@ -1504,14 +1509,9 @@ function pushDanmu(text, boost){
 }
 /* 屏幕上的弹幕提示语统一从 CONFIG 生成，改口令/表情不用两头对齐 */
 (function buildDanmuTips(){
-  const kw = CONFIG.DM_KEYWORDS.map(k => `【${k}】`).join('');
-  const em = CONFIG.DM_EMOJIS.join(' ');
   $('#dmTip').innerHTML =
-    `📢 开麦喊话让它跳！打字慢没关系 —— 弹幕刷 <b>${kw}</b>，` +
-    `或者直接点表情 <b>${em}</b>，一样能帮小魔星加分！`;
-  $('#introDmTip').innerHTML =
-    `没开麦的同学别急 —— 弹幕刷 <span class="hl">${kw}</span>，` +
-    `打字慢就直接点表情 <span class="hl">${em}</span>，一样能给它加油助力！`;
+    `🎤 开麦大声喊，小魔星就往前跳！喊得越响跳得越高，快！`;
+  $('#introDmTip').innerHTML = `开麦后大声喊「跳」，小魔星就往前跑啦！`;
 })();
 
 function danmuTick(){
