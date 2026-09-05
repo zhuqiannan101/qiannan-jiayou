@@ -1,0 +1,1916 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>喊出小魔星 · 倩楠老师</title>
+<style>
+/* ==========================================================
+   喊出小魔星 · 声音控制横版小游戏
+   核桃编程 L2-3 课前直播热身 · 单文件 H5（无外部依赖）
+   ========================================================== */
+:root{
+  --orange:#ff8a3d;
+  --orange-deep:#ff6a1a;
+  --pink:#ff4d94;
+  --purple:#9b5cf6;
+  --green:#2ee06a;
+  --yellow:#ffd93d;
+  --red:#ff4d4d;
+  --blue:#3ba9ff;
+  --ink:#fff6e9;
+  --panel:#2b1a46;
+  --panel-2:#3b2563;
+  --shadow:0 8px 24px rgba(0,0,0,.42);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;}
+body{
+  font-family:"PingFang SC","Microsoft YaHei","Hiragino Sans GB","Heiti SC",sans-serif;
+  font-weight:700;
+  color:var(--ink);
+  background:radial-gradient(ellipse 120% 80% at 50% -10%, #4a2a7a 0%, #2a1745 45%, #170c26 100%);
+  overflow:hidden;
+  -webkit-font-smoothing:antialiased;
+  user-select:none;
+  -webkit-tap-highlight-color:transparent;
+}
+
+/* ---------- 背景装饰：五线谱 + 飘落音符 ---------- */
+#bgdeco{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;}
+#staff{position:absolute;inset:0;
+  background-image:repeating-linear-gradient(180deg,
+    rgba(255,255,255,.055) 0px, rgba(255,255,255,.055) 2px,
+    transparent 2px, transparent 42px);}
+.fnote{position:absolute;bottom:-80px;opacity:0;
+  animation:floatUp linear infinite;
+  filter:drop-shadow(0 0 8px rgba(255,220,150,.5));}
+@keyframes floatUp{
+  0%{transform:translateY(0) rotate(0deg) scale(.9);opacity:0;}
+  12%{opacity:.45;}
+  88%{opacity:.35;}
+  100%{transform:translateY(-118vh) rotate(400deg) scale(1.1);opacity:0;}
+}
+
+/* ---------- 页面骨架：单屏，不滚动 ---------- */
+#app{
+  position:relative;z-index:1;
+  height:100dvh;
+  max-width:1180px;margin:0 auto;
+  padding:10px 14px 12px;
+  display:flex;flex-direction:column;gap:9px;
+}
+
+/* ---------- 顶部：虚拟 RGB 灯条 ---------- */
+#lightbox{
+  background:linear-gradient(180deg,var(--panel-2),var(--panel));
+  border-radius:20px;padding:9px 14px 11px;
+  box-shadow:var(--shadow), inset 0 0 0 2px rgba(255,255,255,.06);
+  flex:none;
+}
+#lightHead{
+  display:flex;justify-content:space-between;align-items:baseline;
+  font-size:14px;color:#e0cdff;letter-spacing:.5px;margin-bottom:7px;
+}
+#lightHead .lv{font-size:20px;color:var(--yellow);font-variant-numeric:tabular-nums;}
+#lightbar{display:flex;gap:5px;height:34px;align-items:flex-end;}
+.cell{
+  flex:1;height:100%;border-radius:7px;background:#413a5e;
+  transform:scaleY(.42);transform-origin:bottom;
+  transition:transform .11s ease-out, background-color .11s linear, box-shadow .11s linear;
+}
+.cell.on{transform:scaleY(1);}
+
+/* ---------- HUD ---------- */
+#hud{
+  flex:none;display:flex;align-items:center;gap:14px;
+  background:rgba(0,0,0,.28);border-radius:18px;padding:9px 18px;
+  font-size:19px;
+}
+#hud .item{display:flex;align-items:center;gap:6px;white-space:nowrap;font-variant-numeric:tabular-nums;}
+#hud .item b{font-size:24px;color:var(--yellow);}
+#bar{flex:1;height:14px;background:rgba(255,255,255,.13);border-radius:9px;overflow:hidden;min-width:60px;}
+#barFill{height:100%;width:0%;border-radius:9px;
+  background:linear-gradient(90deg,var(--orange),var(--yellow));transition:width .25s linear;}
+
+/* ---------- 主区：Canvas ---------- */
+#stage{
+  position:relative;flex:1 1 auto;min-height:300px;   /* 游戏区永远不被控件挤扁 */
+  border-radius:26px;overflow:hidden;background:#1a1030;
+  box-shadow:var(--shadow), inset 0 0 0 3px rgba(255,255,255,.07);
+  display:flex;
+}
+#game{display:block;width:100%;height:100%;object-fit:contain;}
+#danmuLayer{position:absolute;inset:0;overflow:hidden;pointer-events:none;}
+.dm{
+  position:absolute;white-space:nowrap;font-size:22px;font-weight:800;
+  padding:4px 14px;border-radius:22px;background:rgba(0,0,0,.34);
+  text-shadow:0 2px 4px rgba(0,0,0,.7);
+  animation:dmMove linear forwards;
+}
+/* 纯表情弹幕放大显示，低龄孩子一眼看清 */
+.dm.emoji{font-size:40px;padding:2px 12px;background:rgba(0,0,0,.18);}
+@keyframes dmMove{from{transform:translateX(100%);}to{transform:translateX(-1200px);}}
+
+.banner{
+  position:absolute;top:14px;left:50%;transform:translateX(-50%);
+  background:rgba(0,0,0,.5);border:3px solid var(--yellow);
+  padding:9px 26px;border-radius:24px;font-size:22px;
+  box-shadow:0 6px 18px rgba(0,0,0,.4);
+}
+.toast{
+  position:absolute;left:50%;top:16%;
+  background:linear-gradient(135deg,var(--orange),var(--pink));
+  padding:9px 22px;border-radius:24px;font-size:20px;
+  box-shadow:0 6px 18px rgba(0,0,0,.45);
+  animation:toastUp 1.5s ease forwards;
+}
+@keyframes toastUp{
+  0%{opacity:0;transform:translate(-50%,14px) scale(.8);}
+  14%{opacity:1;transform:translate(-50%,0) scale(1.06);}
+  24%{transform:translate(-50%,0) scale(1);}
+  76%{opacity:1;}
+  100%{opacity:0;transform:translate(-50%,-22px) scale(.94);}
+}
+
+/* ---------- 声源状态小标签 ---------- */
+.chip{
+  display:inline-block;padding:3px 12px;border-radius:999px;
+  font-size:13px;font-weight:800;vertical-align:middle;
+  background:rgba(255,255,255,.12);color:#e0cdff;
+  transition:background .2s, color .2s;
+}
+.chip.on{background:linear-gradient(135deg,#2ee06a,#0f9e45);color:#04220f;}
+.chip.off{background:rgba(255,255,255,.1);color:#bda9e0;}
+
+/* ---------- 底部控制条 ---------- */
+#bottom{flex:none;display:flex;flex-direction:column;gap:8px;}
+#ctrls{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+button{
+  font-family:inherit;font-weight:800;font-size:14px;
+  border:none;border-radius:999px;padding:10px 14px;cursor:pointer;
+  box-shadow:0 5px 14px rgba(0,0,0,.35);
+  transition:transform .09s ease, filter .15s ease;
+  color:#fff;white-space:nowrap;
+}
+button:hover{filter:brightness(1.08);}
+button:active{transform:scale(.96);}
+.b-mic{background:linear-gradient(135deg,#2ee06a,#0f9e45);color:#04220f;}
+.b-sys{background:linear-gradient(135deg,#ff5da2,#c9184a);}
+.b-mic.on,.b-sys.on{box-shadow:0 0 0 3px #fff, 0 5px 14px rgba(0,0,0,.35);}
+.b-cal{background:linear-gradient(135deg,var(--blue),#1d63c7);}
+.b-full{background:linear-gradient(135deg,var(--purple),#6b21d6);}
+.b-help{background:linear-gradient(135deg,#8b8ba7,#5a5a75);}
+.b-sfx{background:linear-gradient(135deg,#4bb8a9,#227f74);}
+.b-sfx.muted{background:linear-gradient(135deg,#6b6b80,#43434f);}
+.b-sim{background:linear-gradient(135deg,#ff9c3d,#e2650b);color:#2b1200;}
+
+#devSel{
+  font-family:inherit;font-weight:700;font-size:13px;color:var(--ink);
+  background:rgba(0,0,0,.35);border:2px solid rgba(255,255,255,.16);
+  border-radius:999px;padding:9px 11px;cursor:pointer;
+  max-width:165px;text-overflow:ellipsis;
+}
+#devSel option{background:#2b1a46;color:var(--ink);}
+#sliders{flex:1 0 100%;display:flex;align-items:center;justify-content:flex-start;gap:10px;flex-wrap:wrap;}
+.durBox{display:flex;align-items:center;gap:7px;font-size:14px;font-weight:800;color:#e0cdff;
+  background:rgba(0,0,0,.28);border-radius:999px;padding:5px 13px;white-space:nowrap;}
+.durBox .durR{width:104px;accent-color:#ffcc4d;cursor:pointer;}
+.durVal{min-width:26px;text-align:right;font-variant-numeric:tabular-nums;color:#ffcc4d;font-size:16px;}
+#introDur{justify-content:center;margin:14px auto 4px;font-size:16px;padding:7px 18px;
+  background:rgba(0,0,0,.32);border:2px solid rgba(255,255,255,.18);}
+#introDur .durR{width:150px;} #introDur .durVal{font-size:21px;min-width:34px;}
+#introDur .durb{width:28px;height:28px;font-size:17px;}
+.durb{font:inherit;font-size:15px;font-weight:900;line-height:1;width:24px;height:24px;flex:none;
+  border:none;border-radius:50%;background:rgba(255,255,255,.18);color:#fff;cursor:pointer;}
+.durb:active{transform:translateY(2px);}
+
+#sens{
+  display:flex;align-items:center;gap:7px;
+  background:rgba(0,0,0,.28);border-radius:999px;padding:5px 13px;font-size:13px;
+  white-space:nowrap;
+}
+#sens input{width:92px;accent-color:var(--orange);cursor:pointer;}
+#sensVal{color:var(--yellow);font-size:15px;min-width:30px;text-align:right;font-variant-numeric:tabular-nums;}
+
+/* ---------- 帮助页 ---------- */
+#helpBody{text-align:left;font-size:16px;line-height:1.75;font-weight:600;}
+#helpBody h3{
+  font-size:19px;margin:20px 0 8px;color:var(--yellow);font-weight:900;
+  padding-bottom:6px;border-bottom:2px solid rgba(255,217,61,.28);
+}
+#helpBody h3:first-child{margin-top:4px;}
+#helpBody code{
+  background:rgba(0,0,0,.4);padding:2px 8px;border-radius:7px;
+  font-family:"SF Mono",Menlo,Consolas,monospace;font-size:14px;color:#8ef7c0;
+}
+#helpBody .note{font-size:14px;opacity:.72;margin-top:6px;}
+#helpBody ol{margin:6px 0 0 22px;} #helpBody li{margin:5px 0;}
+#helpBody section[hidden]{display:none;}
+#osBadge{
+  display:inline-block;margin:0 auto 6px;padding:7px 18px;border-radius:999px;
+  background:rgba(255,217,61,.15);border:2px solid rgba(255,217,61,.4);
+  color:var(--yellow);font-size:14px;font-weight:800;
+}
+#osOther{margin-top:22px;padding-top:14px;border-top:2px dashed rgba(255,255,255,.14);}
+#osOther button{
+  background:rgba(255,255,255,.12);font-size:13px;padding:8px 16px;box-shadow:none;
+}
+
+/* 开场页里的「老师设置说明」折叠区：低调、不抢戏，投屏时几乎看不见 */
+#btnTeacherToggle{
+  display:block;margin:16px auto 0;         /* 独占一行，不跟开始按钮挤在一起 */
+  background:transparent;box-shadow:none;
+  color:rgba(255,255,255,.42);font-size:13px;font-weight:700;
+  padding:8px 14px;
+}
+#btnTeacherToggle:hover{color:rgba(255,255,255,.8);background:rgba(255,255,255,.08);}
+#teacherPanel[hidden]{display:none;}
+
+/* 口令和表情是给孩子看的重点，投屏时要比正文更抓眼 */
+#dmTip b{font-size:19px;letter-spacing:1px;white-space:nowrap;}
+#dmTip{
+  /* 注意：#bottom 是 column 布局，这里绝不能写 flex-basis，
+     否则会被当成"高度"，把游戏区挤掉一大块 */
+  flex:0 0 auto;display:flex;align-items:center;
+  background:linear-gradient(135deg,#ff4d94,#ff8a3d);
+  color:#2c0716;font-size:16px;line-height:1.35;
+  padding:10px 18px;border-radius:20px;
+  box-shadow:0 6px 16px rgba(0,0,0,.32);
+}
+
+/* ---------- 弹层 ---------- */
+.ov{
+  position:fixed;inset:0;z-index:30;
+  background:rgba(9,4,18,.86);backdrop-filter:blur(3px);
+  display:flex;align-items:center;justify-content:center;padding:22px;
+}
+.ov.hide{display:none;}
+.card{
+  background:linear-gradient(160deg,var(--panel-2),var(--panel));
+  border-radius:34px;padding:38px 34px;max-width:720px;width:100%;
+  text-align:center;max-height:92dvh;overflow:auto;
+  box-shadow:0 24px 70px rgba(0,0,0,.6), inset 0 0 0 2px rgba(255,255,255,.09);
+}
+.t-huge{
+  font-size:40px;font-weight:900;margin-bottom:20px;line-height:1.25;
+  background:linear-gradient(90deg,var(--yellow),var(--orange),var(--pink));
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.t-big{font-size:27px;line-height:1.65;margin-bottom:16px;}
+.t-sub{font-size:17px;opacity:.82;line-height:1.6;margin-bottom:24px;font-weight:600;}
+.t-tip{font-size:14px;opacity:.6;margin-top:16px;font-weight:600;line-height:1.6;}
+.cta{
+  background:linear-gradient(135deg,var(--orange),var(--pink));
+  font-size:22px;padding:18px 42px;margin-top:8px;
+}
+.hl{color:var(--yellow);}
+
+#cdNum{font-size:170px;font-weight:900;color:var(--yellow);line-height:1;
+  text-shadow:0 0 60px rgba(255,217,61,.85);animation:cdPop .8s ease;}
+@keyframes cdPop{0%{transform:scale(.5);opacity:0;}40%{transform:scale(1.15);opacity:1;}100%{transform:scale(1);}}
+
+.stats{display:flex;gap:22px;justify-content:center;margin:22px 0 8px;flex-wrap:wrap;}
+.stat{background:rgba(0,0,0,.3);border-radius:22px;padding:16px 30px;min-width:150px;}
+.stat .n{font-size:46px;font-weight:900;color:var(--yellow);line-height:1.1;font-variant-numeric:tabular-nums;}
+.stat .l{font-size:15px;opacity:.85;margin-top:6px;}
+
+#hook{margin:22px 0 6px;text-align:left;}
+#hook p{
+  font-size:23px;line-height:1.6;margin:11px 0;padding:12px 18px;border-radius:16px;
+  background:rgba(255,255,255,.07);outline:none;transition:background .15s;
+}
+#hook p:focus{background:rgba(255,255,255,.16);box-shadow:0 0 0 3px var(--orange);}
+#hook p.final{
+  text-align:center;font-size:32px;font-weight:900;color:var(--yellow);
+  background:rgba(255,217,61,.12);
+}
+
+/* 钩子文案里的重点词 —— 【声音】这类：暖黄加粗 */
+.hl-key{color:var(--yellow);font-weight:900;}
+
+/* 【炫彩灯】/【奇妙声控灯】：彩虹流动字。
+   这个词本身就是"会变色的灯"，让字也跟着变色，孩子一眼就懂今天要做什么。 */
+.hl-rainbow{
+  font-weight:900;
+  background:linear-gradient(90deg,
+    #ff4d6d,#ff9c3d,#ffd93d,#2ee06a,#3ba9ff,#c77dff,#ff4d6d);
+  background-size:300% 100%;
+  -webkit-background-clip:text;background-clip:text;
+  color:transparent;-webkit-text-fill-color:transparent;
+  filter:drop-shadow(0 0 9px rgba(255,255,255,.28));
+  animation:rainbowFlow 3.2s linear infinite;
+}
+@keyframes rainbowFlow{ from{background-position:0 0;} to{background-position:-300% 0;} }
+/* 有些老师会开系统的"减弱动态效果"，那就退化成静态彩虹，不闪 */
+@media (prefers-reduced-motion:reduce){
+  .hl-rainbow{animation:none;background-size:100% 100%;}
+}
+#confetti{position:fixed;inset:0;z-index:31;pointer-events:none;}
+
+/* 矮屏（1280x720 投影仪等）：压缩四周，把高度让给游戏区 */
+@media (max-height:800px){
+  #app{padding:6px 10px 8px;gap:6px;}
+  #lightbox{padding:6px 12px 8px;}
+  #lightHead{font-size:12px;margin-bottom:5px;}
+  #lightbar{height:24px;gap:4px;}
+  #hud{font-size:16px;padding:6px 14px;}
+  #hud .item b{font-size:20px;}
+  #stage{min-height:240px;}
+  button{font-size:13px;padding:8px 12px;}
+  #dmTip{font-size:14px;padding:7px 14px;}
+}
+@media (max-height:640px){
+  #lightbar{height:18px;}
+  #stage{min-height:190px;}
+  #dmTip{font-size:13px;padding:5px 12px;}
+}
+
+@media (max-width:820px){
+  #hud{font-size:16px;gap:9px;padding:8px 12px;}
+  #hud .item b{font-size:20px;}
+  .t-huge{font-size:29px;}
+  .t-big{font-size:21px;}
+  #cdNum{font-size:120px;}
+  #hook p{font-size:19px;}
+  #hook p.final{font-size:25px;}
+  .stat .n{font-size:34px;}
+  button{font-size:15px;padding:11px 16px;}
+  #sens{display:none;}
+}
+</style>
+</head>
+<body>
+
+<div id="bgdeco"><div id="staff"></div></div>
+
+<div id="app">
+
+  <!-- 顶部：24 格虚拟 RGB 灯条 -->
+  <div id="lightbox">
+    <div id="lightHead">
+      <span>🎛️ 虚拟声控灯条 · 你的声音就是灯光</span>
+      <span><span id="srcChip" class="chip off">声源：未开启</span>　音量 <span class="lv" id="lvTxt">0%</span></span>
+    </div>
+    <div id="lightbar"></div>
+  </div>
+
+  <!-- HUD -->
+  <div id="hud">
+    <div class="item">🎵 音符 <b id="hScore">0</b></div>
+    <div class="item">📏 <b id="hDist">0</b> m</div>
+    <div id="bar"><div id="barFill"></div></div>
+    <div class="item">⏱️ <b id="hTime">40</b> s</div>
+  </div>
+
+  <!-- 主区：横版游戏 -->
+  <div id="stage">
+    <canvas id="game" width="1080" height="600"></canvas>
+    <div id="danmuLayer"></div>
+    <div class="banner" id="banner" style="display:none"></div>
+  </div>
+
+  <!-- 底部：声源控制 + 弹幕提示 -->
+  <div id="bottom">
+    <div id="ctrls">
+      <button class="b-mic"  id="btnMic" title="切到麦克风（会自动关掉「直播声音」）；已亮起时再点一次 = 关闭声源">🎤 麦克风</button>
+      <button class="b-sys"  id="btnSys" title="切到直播声音（会自动关掉「麦克风」）；已亮起时再点一次 = 关闭声源">🔊 直播声音</button>
+      <select id="devSel" title="选择输入设备（用 BlackHole 等虚拟声卡可直接抓系统声音）">
+        <option value="">输入设备：默认</option>
+      </select>
+      <button class="b-cal"  id="btnCal">🔧 校准</button>
+      <button class="b-sim"  id="btnSim">🗣️ 模拟</button>
+      <button class="b-sfx"  id="btnSfx">🔊 音效</button>
+      <button class="b-full" id="btnFull">⛶ 全屏</button>
+      <button class="b-help" id="btnHelp">❓ 帮助</button>
+      <div id="sliders">
+      <div id="sens">
+        <span>灵敏度</span>
+        <input type="range" id="sensR" min="1" max="12" step="0.5" value="4">
+        <span id="sensVal">4.0</span>
+      </div>
+      <div class="durBox" title="这一关跑多久。比赛中也能改：往右拖当场加时间，往左拖提前收">
+        <span>⏱️ 时长</span>
+        <button class="durb durMinus" type="button">−</button>
+        <input type="range" class="durR" min="15" max="180" step="5" value="40">
+        <button class="durb durPlus" type="button">＋</button>
+        <span class="durVal">40</span><span style="opacity:.7">秒</span>
+      </div>
+      </div>
+    </div>
+    <div id="dmTip"><!-- 由 CONFIG.DM_KEYWORDS / DM_EMOJIS 自动生成 --></div>
+  </div>
+</div>
+
+<!-- 开场引导 -->
+<div class="ov" id="ovIntro">
+  <div class="card">
+    <div class="t-huge">⭐ 喊 出 小 魔 星 ⭐</div>
+    <div class="t-big">星星想往前跑，<br>但它要靠<span class="hl">【声音】</span>才能跳起来！<br><span class="hl">开麦大声喊！</span></div>
+    <div class="t-sub">
+      喊得越响，它跳得越高 🚀　吃到的音符越多越好 🎵<br>
+      <span id="introDmTip"></span>
+    </div>
+    <div class="durBox" id="introDur" title="这一关跑多久，开始前先定好；比赛中在底部还能随时改">
+      <span>⏱️ 这一关跑</span>
+      <button class="durb durMinus" type="button">−</button>
+      <input type="range" class="durR" min="15" max="180" step="5" value="40">
+      <button class="durb durPlus" type="button">＋</button>
+      <span class="durVal">40</span><span style="opacity:.75">秒</span>
+    </div>
+    <button class="cta" id="btnStart">🎤 麦克风开始（老师开麦做演示）</button>
+    <button class="cta" id="btnStartSys" style="background:linear-gradient(135deg,#ff5da2,#c9184a)">🔊 接直播声音开始（直播间开麦）</button>
+    <!-- 老师用的设置说明：默认收起，避免共享屏幕时把后台说明投给全班看到 -->
+    <button id="btnTeacherToggle" type="button">⚙️ 老师设置说明</button>
+    <div id="teacherPanel" hidden>
+      <div class="t-tip" style="margin-top:10px">
+        点第一个按钮会弹出麦克风授权，选「允许」即可。<br>
+        <span id="introSysTip"></span><br>
+        两路声源<b>同一时间只开一路</b>：点哪个就切到哪个，另一个自动关掉，不会串音。<br>
+        进游戏后随时可在底部两个按钮之间切换。
+      </div>
+      <button id="btnHelpIntro" type="button"
+              style="background:rgba(255,255,255,.14);font-size:15px;padding:10px 20px;margin-top:12px">
+        ❓ 直播声音接不进来？点这里看三种接法
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- 倒计时 -->
+<div class="ov hide" id="ovCd">
+  <div class="card">
+    <div class="t-big" id="cdHint">准备好了吗？一起大声喊，让星星跳起来！</div>
+    <div id="cdNum">3</div>
+  </div>
+</div>
+
+<!-- 结算 + 过渡钩子页 -->
+<div class="ov hide" id="ovEnd">
+  <div class="card">
+    <div class="t-huge" id="endTitle">🎉 挑战完成！ 🎉</div>
+    <div class="stats">
+      <div class="stat"><div class="n" id="fScore">0</div><div class="l">吃到音符 🎵</div></div>
+      <div class="stat"><div class="n" id="fDist">0</div><div class="l">跑动距离 (m)</div></div>
+    </div>
+    <div class="t-sub" style="margin:6px 0 0">大家的声音太有力量了，给自己鼓个掌 👏 弹幕刷起来！</div>
+    <!-- 说明：这三句钩子文案仍然可以直接点击修改（也可在代码顶部 CONFIG.HOOK_LINES 里预设）。
+         原先这里有一行操作提示，因为结算页要投屏给全班看，已移除，避免孩子看到后台说明文字。 -->
+    <div id="hook"></div>
+    <button class="cta" id="btnAgain">🔁 再玩一次</button>
+  </div>
+</div>
+
+<!-- 帮助：怎么把直播间孩子的声音接进来 -->
+<div class="ov hide" id="ovHelp">
+  <div class="card">
+    <div class="t-huge" style="font-size:30px">🔊 怎么让直播间的孩子控制小魔星</div>
+    <div id="osBadge">正在检测你的系统…</div>
+    <div id="helpBody">
+
+      <!-- ============ Windows ============ -->
+      <section data-os="win">
+        <h3>🪟 方式 A：直接抓整个系统的声音 —— Windows 专属，最省事</h3>
+        <div class="note" style="opacity:.9;margin-bottom:6px">
+          Windows 的 Chrome 支持抓<b>整个系统</b>的声音，所以<b>不管直播平台是网页还是客户端软件
+          （钉钉 / 腾讯会议 / CCtalk / 抖音直播伴侣…）都能直接抓到</b>，不用装任何东西。
+        </div>
+        <ol>
+          <li>让直播平台正常播放孩子的声音（能从音箱听见就行）。</li>
+          <li>回到本页，点 <b>「🔊 直播声音」</b>。</li>
+          <li>在弹窗顶部选 <b>「整个屏幕 / Entire Screen」</b> 这一栏，点中那个屏幕缩略图。</li>
+          <li>⚠️ 关键：把左下角的 <b>「共享系统音频 / Share system audio」</b> 开关打开，再点「分享」。</li>
+        </ol>
+        <div class="note">
+          关于音效：抓整个屏幕时，<b>游戏自己的音效一定会被一起抓进去</b>（系统混音没法排除单个程序）。
+          <b>这个游戏已经自动处理了</b> —— 检测到你抓的是「整个屏幕」会自动静音游戏音效；
+          即使你手动把音效开回来，游戏也知道自己什么时候在响，那一瞬间不会把音量算成孩子的喊声。
+          所以你不用管这件事。
+        </div>
+        <div class="note">
+          💡 想<b>保留游戏音效</b>的话：如果你的直播平台是网页，改用下面的<b>方式 C（抓标签页）</b>，
+          只抓直播那一个标签页的声音，游戏音效根本不会进来。
+        </div>
+        <div class="note">
+          注意：选「窗口 / Window」是<b>抓不到声音</b>的（Windows 的 Chrome 只有「整个屏幕」和
+          「标签页」两种能带音频），一定要选「整个屏幕」。
+        </div>
+
+        <h3>🪟 方式 B：立体声混音（Stereo Mix）</h3>
+        <div class="note" style="opacity:.9;margin-bottom:6px">
+          不想每次都弹共享窗口的话，可以用声卡自带的回环通道，一次设置长期有效：
+        </div>
+        <ol>
+          <li>右键任务栏喇叭图标 → <b>「声音设置」</b> → 拉到底点 <b>「更多声音设置」</b> → 切到 <b>「录制」</b> 选项卡。</li>
+          <li>在空白处右键，勾选 <b>「显示禁用的设备」</b>，找到 <b>「立体声混音 / Stereo Mix」</b>，右键 → <b>启用</b>。</li>
+          <li>回到本页，把 <b>「输入设备」</b> 下拉框选成 <b>「立体声混音」</b>，再点 <b>「🎤 麦克风」</b>。</li>
+          <li>同样建议把 <b>「🔊 音效」</b> 关掉。</li>
+        </ol>
+        <div class="note">部分笔记本声卡（尤其是新款）没有这个选项，找不到就用方式 A。</div>
+
+        <h3>🪟 方式 C：只抓 Chrome 标签页 —— 想保留游戏音效就用这个</h3>
+        <div class="note" style="opacity:.9">
+          如果直播平台就是个网页，点「🔊 直播声音」→ 选 <b>「Chrome 标签页」</b> →
+          选中直播那个标签页 → 打开 <b>「分享标签页音频」</b>。<br>
+          好处是<b>只抓直播那一个标签页的声音，游戏音效完全不会进来</b>，
+          「叮」的加分反馈可以照常开着，孩子玩起来更带劲。
+        </div>
+      </section>
+
+      <!-- ============ macOS ============ -->
+      <section data-os="mac">
+        <h3>🍎 方式 A：直播平台在 Chrome 网页里 —— 最推荐</h3>
+        <ol>
+          <li>先在 Chrome 里打开你的直播平台网页，让孩子的声音正常播放出来。</li>
+          <li>回到本页，点 <b>「🔊 直播声音」</b>。</li>
+          <li>在弹出的窗口里选 <b>「Chrome 标签页」</b> → 选中直播平台那个标签页。</li>
+          <li>⚠️ 关键：左下角的 <b>「分享标签页音频」</b> 开关一定要打开，再点「分享」。</li>
+        </ol>
+        <div class="note">选好后顶部「声源」标签会变绿显示"直播声音"，孩子一开麦灯条就会跳。</div>
+
+        <h3>🍎 方式 B：直播平台是客户端软件（钉钉 / 腾讯会议 / CCtalk 等）</h3>
+        <div class="note" style="opacity:.9;margin-bottom:6px">
+          <b>macOS 的 Chrome 不能抓整个系统的声音</b>（这是苹果系统的限制，Windows 才可以），
+          需要装一个免费虚拟声卡把声音"绕"回来：
+        </div>
+        <ol>
+          <li>安装免费开源的 <b>BlackHole 2ch</b>（搜索 BlackHole audio macOS 即可）。</li>
+          <li>打开系统自带的「音频 MIDI 设置」，新建一个 <b>「多输出设备」</b>，同时勾选你的<b>扬声器</b>和 <b>BlackHole 2ch</b>。</li>
+          <li>把 macOS 的声音输出设为这个「多输出设备」——这样你自己能听见，声音同时也进了 BlackHole。</li>
+          <li>回到本页，把上面的 <b>「输入设备」</b> 下拉框选成 <b>BlackHole 2ch</b>，再点「🎤 麦克风」。</li>
+          <li>建议同时点一下 <b>「🔊 音效」</b> 把游戏音效关掉，防止游戏自己的音效也被当成孩子的喊声。</li>
+        </ol>
+      </section>
+
+      <!-- ============ 通用 ============ -->
+      <section data-os="all">
+        <h3>😌 懒人方案 —— 直接用麦克风收音箱</h3>
+        <div class="note" style="opacity:.9">
+          什么都不用装：把电脑音量开大，让孩子的声音从音箱放出来，用 <b>「🎤 麦克风」</b> 直接收。<br>
+          缺点是会连教室环境音一起收进来，建议先点「🔧 校准」扣掉底噪，再用「灵敏度」微调。
+        </div>
+
+        <h3>🔀 两路声源是「二选一」，切换不用手动关</h3>
+        <div class="note" style="opacity:.9">
+          「🎤 麦克风」和「🔊 直播声音」<b>同一时间只会开一路</b>。<br>
+          你自己开麦做完演示，直接点「🔊 直播声音」就行 —— 麦克风会<b>自动关掉</b>，
+          顶部会提示一句，不用担心忘记关麦导致两路声音一起进来互相干扰。<br>
+          想彻底关掉声源，再点一次当前那个亮着的按钮即可。
+        </div>
+
+        <h3>✅ 上课前 30 秒自检</h3>
+        <div class="note" style="opacity:.9">
+          让一个孩子在直播间喊一声，看顶部灯条有没有亮：<br>
+          亮得太少 → 把「灵敏度」往右拖；<br>
+          没喊也一直亮 → 点「🔧 校准」（保持安静 2 秒）。
+        </div>
+      </section>
+
+      <div id="osOther"></div>
+    </div>
+    <button class="cta" id="btnHelpClose">知道啦，返回</button>
+  </div>
+</div>
+
+<canvas id="confetti"></canvas>
+
+<script src="record.js"></script>
+<script>
+"use strict";
+/* ============================================================================
+   喊出小魔星 · 声音控制横版小游戏
+   核桃编程 L2-3 课前直播热身环节 · 单文件 H5
+   ----------------------------------------------------------------------------
+   【老师可调参数】全部集中在 CONFIG 里，改完保存刷新即可生效。
+   ============================================================================ */
+const CONFIG = {
+  CONFETTI_MS: 4500,   // 结算彩带持续多久（毫秒），到点自动淡出收掉
+  /* --- 时长 --- */
+  DURATION:        40,   // 正式挑战时长（秒）—— 界面上「时长」滑杆可以随时改，15~180 秒
+  DUR_MIN:         15,   // 时长滑杆的下限
+  DUR_MAX:        180,   // 时长滑杆的上限
+  DUR_STEP:         5,   // 时长滑杆每格几秒
+  PRACTICE_SEC:    6,    // 老师示范/孩子试跳时间（秒）
+
+  /* --- 声源 --- */
+  EXCLUSIVE_SRC:  true,  // 麦克风 / 直播声音 只能开一路：开新的自动关掉旧的，
+                         // 免得老师演示完忘了关麦，两路声音一起进来互相干扰。
+                         // 真要两路混着用，把这里改成 false。
+
+  /* --- 声音 → 跳跃 --- */
+  FFT_SIZE:        512,  // AnalyserNode fftSize
+  VOICE_BINS:      42,   // 只取人声频段的前 N 个频点求均值（全频段均值会被大量近零高频拉低）
+  THRESHOLD:       0.30, // 触发跳跃的音量阈值（0~1，作用在处理后的音量上）
+  GAIN_DEFAULT:    4.0,  // 默认灵敏度倍率，界面滑杆可实时调整
+  SMOOTH_UP:       0.55, // 音量上升平滑（大 = 更灵敏）
+  SMOOTH_DOWN:     0.18, // 音量下降平滑（小 = 灯条余辉更好看）
+
+  /* --- 物理 ---
+     起跳速度定得比原来高一点：原来「刚过阈值的小声喊」峰值只有 114px，
+     跳起来还够不到最高的高台，落下来正好砸进障碍里。 */
+  GRAVITY:         0.92,
+  JUMP_BASE:      -15.5, // 刚过阈值时的起跳速度（原 -14.5）
+  JUMP_EXTRA:     -8.0,  // 音量越大额外叠加（喊得越响跳越高）
+  SUSTAIN_FORCE:  -0.42, // 持续大声时上升期的额外托举（喊得越久跳越高）
+  SUSTAIN_FRAMES:  16,   // 托举最多持续帧数
+
+  /* --- 世界 ---
+     SPEED 决定「一次跳跃能跨过多宽的障碍」：滞空帧数是固定的，跑得快，
+     障碍就能在这段滞空时间里从脚下溜过去。原来 4.6 太慢，小声喊那一跳
+     跨不过最宽的音坑，落地时障碍还压在身下 —— 提到 6.0 后每种障碍
+     「最轻的一嗓子」都有可行的起跳窗口了（详见文件末尾的手感表）。 */
+  SPEED:           6.0,  // 自动向右移动速度（px/帧，原 4.6）
+  GROUND_Y:        472,  // 地面顶部 y（画布高 600）
+  CHAR_X:          210,  // 角色固定屏幕 x
+  CHAR_R:          32,   // 角色半径
+  STUN_FRAMES:     46,   // 绊住后的停顿帧数
+
+  /* --- 关卡节奏 --- */
+  OBST_GAP_MIN:    540,  // 障碍之间最小间距（px）—— 跟着 SPEED 一起放大，
+  OBST_GAP_MAX:    860,  //    保证「两个障碍之间隔多少秒」和原来差不多（1.5~2.4 秒）
+  NOTE_GAP_MIN:    270,  // 音符之间最小间距（px）
+  NOTE_GAP_MAX:    490,
+
+  /* --- 灯条 --- */
+  SEGMENTS:        24,
+
+  /* --- 弹幕兜底 ---
+     面向 6-8 岁：口令必须"按键越少越好"。
+       跳  = 一个字，扣题好懂
+       6   = 一个数字键，孩子都懂 666 是厉害
+       GO  = 两个字母，不用打拼音，最快
+     表情则连字都不用打，直接点直播平台的表情面板，打字最慢的孩子也能参与。
+     ↓ 改这两行即可，屏幕提示语和飘过的弹幕会自动同步 ↓ */
+  DM_KEYWORDS:  ['跳', '6', 'GO'],
+  DM_EMOJIS:    ['🔥', '⭐', '👏', '💪'],
+
+  /* --- 自噪声闸门 ---
+     Windows 抓「整个屏幕」的声音时，游戏自己的音效必然会被一起抓进来
+     （系统回环抓的是整个混音，没法排除单个程序）；用麦克风收音箱时同理。
+     游戏知道自己什么时候在发声，所以在这段时间里"只许音量下降、不许上冲"，
+     自己的「叮」声就顶不动小魔星了，孩子已经在喊的声音也不会被切断。 */
+  SFX_SELF_GATE:  true,
+  SFX_GUARD_MS:   90,    // 扬声器→回环/麦克风 的延迟余量（毫秒）
+
+  DM_GAP_MIN:      1000, // 弹幕间隔（毫秒）
+  DM_GAP_MAX:      2600,
+  DM_BONUS_RATE:   0.28, // 热情弹幕给音符 +1 的概率
+
+  /* --- 过渡钩子页文案（可改） ---
+     排版规则（自动生效，不用写 HTML）：
+       · 【xxx】      → 暖黄加粗高亮
+       · 下面 HOOK_RAINBOW 里列出的词 → 彩虹流动字（本身就是"会变色的灯"，字也跟着变色）
+     所以想让某个词变彩虹，把它加进 HOOK_RAINBOW 即可。 */
+  HOOK_LINES: [
+    "你们刚才用【声音】让星星跳、让灯亮起来了对不对？",
+    "今天这节课，我们要用自己的编程代码，让一盏【炫彩灯】真的跟着声音变！",
+    "这就是——奇妙声控灯！"
+  ],
+  HOOK_RAINBOW: ['炫彩灯', '奇妙声控灯']
+};
+
+/* ---- 待补美术素材：角色"小魔星"目前为矢量占位（五角星+表情），
+       后续可替换为美术给的 PNG/SVG，只需改 drawStar() 为 drawImage()。
+   ---- 待换真实音效：跳跃/吃音符/庆祝目前均为 Web Audio 合成占位音。 ---- */
+
+const $ = s => document.querySelector(s);
+const clamp = (v,a,b) => v<a?a:(v>b?b:v);
+const rnd  = (a,b) => a + Math.random()*(b-a);
+const rndi = (a,b) => Math.floor(rnd(a,b+1));
+const pick = arr => arr[rndi(0,arr.length-1)];
+
+/* ========================= 背景飘落音符 ========================= */
+(function initBgNotes(){
+  const box = $('#bgdeco'), glyphs = ['♪','♫','♬','🎵','🎶','🎼'];
+  for(let i=0;i<18;i++){
+    const el = document.createElement('div');
+    el.className = 'fnote';
+    el.textContent = pick(glyphs);
+    el.style.left = rnd(0,100)+'vw';
+    el.style.fontSize = rnd(18,40)+'px';
+    el.style.animationDuration = rnd(10,22)+'s';
+    el.style.animationDelay = rnd(0,16)+'s';
+    box.appendChild(el);
+  }
+})();
+
+/* ========================= 虚拟 RGB 灯条 ========================= */
+const cells = [];
+(function initBar(){
+  const bar = $('#lightbar');
+  for(let i=0;i<CONFIG.SEGMENTS;i++){
+    const c = document.createElement('div');
+    c.className = 'cell';
+    bar.appendChild(c); cells.push(c);
+  }
+})();
+
+// 蓝 → 绿 → 黄 → 红 线性渐变
+const STOPS = [[59,169,255],[46,224,106],[255,217,61],[255,77,77]];
+function volColor(t){
+  const s = clamp(t,0,1) * (STOPS.length-1);
+  const i = clamp(Math.floor(s),0,STOPS.length-2);
+  const f = s - i, a = STOPS[i], b = STOPS[i+1];
+  return `rgb(${Math.round(a[0]+(b[0]-a[0])*f)},${Math.round(a[1]+(b[1]-a[1])*f)},${Math.round(a[2]+(b[2]-a[2])*f)})`;
+}
+let lastLit = -1;
+function paintBar(vol){
+  const lit = Math.round(clamp(vol,0,1) * CONFIG.SEGMENTS);
+  if(lit !== lastLit){
+    for(let i=0;i<CONFIG.SEGMENTS;i++){
+      const c = cells[i];
+      if(i < lit){
+        const col = volColor(i/(CONFIG.SEGMENTS-1));
+        c.classList.add('on');
+        c.style.background = col;
+        c.style.boxShadow = `0 0 14px ${col}, 0 0 3px #fff inset`;
+      }else{
+        c.classList.remove('on');
+        c.style.background = '#413a5e';
+        c.style.boxShadow = 'none';
+      }
+    }
+    lastLit = lit;
+  }
+  $('#lvTxt').textContent = Math.round(clamp(vol,0,1)*100) + '%';
+}
+
+/* ========================= 音频总线 =========================
+   两路声源【同一时间只开一路】（CONFIG.EXCLUSIVE_SRC）：
+     · mic  = 麦克风（老师自己的声音 / 教室里的声音）
+     · sys  = 直播/系统声音（直播间里孩子开麦的声音）
+   接上新的一路时会自动 detach 掉旧的那路 —— 老师演示完忘了关麦是最常见的翻车点。
+   两者都只连到 analyser，不连 destination，避免回授啸叫。
+   ============================================================ */
+let actx = null, analyser = null, freqData = null, mixBus = null;
+const SRC = {
+  mic: { stream:null, node:null, name:'麦克风' },
+  sys: { stream:null, node:null, name:'直播声音' }
+};
+let gainMul = CONFIG.GAIN_DEFAULT;
+let noiseFloor = 0.0;          // 环境底噪，校准后自动扣除
+let simOn = false, simVol = 0; // 模拟喊话（空格键 / 按住按钮），开启时完全接管音量
+let testRaw = null;            // 仅供自动化测试注入"真实声音读数"，正常运行恒为 null
+let calibrating = false, calSamples = [];
+let sfxMuted = false;          // 抓整个屏幕时会自动打开，避免游戏音效自激
+let sfxQuietUntil = 0;         // 自噪声闸门：游戏自己发声到这个时刻为止
+
+function ensureCtx(){
+  if(!actx){
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if(AC) actx = new AC();
+  }
+  if(actx && actx.state === 'suspended') actx.resume();
+  return actx;
+}
+
+// 建立 analyser + 混音总线（只建一次）
+function ensureGraph(){
+  const ctx = ensureCtx();
+  if(!ctx) return null;
+  if(!analyser){
+    analyser = ctx.createAnalyser();
+    analyser.fftSize = CONFIG.FFT_SIZE;
+    analyser.smoothingTimeConstant = 0.55;
+    freqData = new Uint8Array(analyser.frequencyBinCount);
+    mixBus = ctx.createGain();
+    mixBus.gain.value = 1;
+    mixBus.connect(analyser);
+  }
+  return ctx;
+}
+
+function attachStream(key, stream){
+  const ctx = ensureGraph();
+  if(!ctx) return false;
+  detachSource(key);
+  const node = ctx.createMediaStreamSource(stream);
+  node.connect(mixBus);
+  SRC[key].stream = stream;
+  SRC[key].node   = node;
+  // 老师在浏览器顶部点「停止共享」或拔掉设备时，自动清理并更新界面
+  stream.getAudioTracks().forEach(t => {
+    t.onended = () => { detachSource(key); updateSrcUI(); toast(SRC[key].name + ' 已断开'); };
+  });
+  // 独占模式：接上一路，就自动把另一路关掉
+  if(CONFIG.EXCLUSIVE_SRC){
+    const other = key === 'mic' ? 'sys' : 'mic';
+    if(SRC[other].node){
+      detachSource(other);
+      toast('已自动关闭「' + SRC[other].name + '」—— 同时开两路会互相干扰');
+    }
+  }
+  updateSrcUI();
+  return true;
+}
+
+function detachSource(key){
+  const s = SRC[key];
+  if(s.node){ try{ s.node.disconnect(); }catch(e){} s.node = null; }
+  if(s.stream){ s.stream.getTracks().forEach(t => { t.onended = null; t.stop(); }); s.stream = null; }
+}
+const anySource = () => !!(SRC.mic.node || SRC.sys.node);
+
+/* ---- 麦克风（可指定输入设备，例如 BlackHole 这类虚拟声卡）---- */
+async function startMic(deviceId){
+  ensureGraph();
+  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+    return {ok:false, why:'insecure'};
+  }
+  const audio = { echoCancellation:false, noiseSuppression:false, autoGainControl:false };
+  if(deviceId) audio.deviceId = { exact: deviceId };
+  try{
+    const stream = await navigator.mediaDevices.getUserMedia({ audio });
+    attachStream('mic', stream);
+    refreshDeviceList();
+    return {ok:true};
+  }catch(e){
+    console.warn('[mic] 获取失败:', e && e.name);
+    return {ok:false, why: (e && e.name === 'NotAllowedError') ? 'denied' : 'fail'};
+  }
+}
+
+/* ---- 直播 / 系统声音（共享标签页或窗口时勾选「分享音频」）---- */
+async function startSys(){
+  ensureGraph();
+  if(!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia){
+    return {ok:false, why:'unsupported'};
+  }
+  try{
+    const stream = await navigator.mediaDevices.getDisplayMedia({
+      video: true,   // 必须带 video，浏览器才允许弹出选择器；拿到后立刻停掉
+      audio: { echoCancellation:false, noiseSuppression:false, autoGainControl:false }
+    });
+    if(stream.getAudioTracks().length === 0){
+      stream.getTracks().forEach(t => t.stop());
+      return {ok:false, why:'noaudio'};
+    }
+    // 抓的是「整个屏幕」还是「某个标签页」？必须在停掉视频轨之前读。
+    //   monitor = 整个屏幕 → 系统混音，游戏音效一定会被抓进来
+    //   browser = Chrome 标签页 → 只有那个标签页的声音，游戏音效不会进来
+    let surface = null;
+    try{
+      const vt = stream.getVideoTracks()[0];
+      if(vt && vt.getSettings) surface = vt.getSettings().displaySurface || null;
+    }catch(e){ /* 部分浏览器不给这个字段，忽略 */ }
+
+    stream.getVideoTracks().forEach(t => t.stop());  // 画面用不到，省 CPU；音频轨继续
+    attachStream('sys', stream);
+    return {ok:true, surface};
+  }catch(e){
+    console.warn('[sys] 获取失败:', e && e.name);
+    return {ok:false, why: (e && e.name === 'NotAllowedError') ? 'denied' : 'fail'};
+  }
+}
+
+/* 读取原始音量：getByteFrequencyData 取人声频段均值，归一到 0~1
+   （全频段均值会被大量近零的高频点拉低到 0.05 以下，阈值 0.3 将永远打不到，
+     所以这里只取前 VOICE_BINS 个频点 —— 覆盖约 0~4kHz 的人声能量区） */
+function readRaw(){
+  if(simOn) return simVol;
+  if(testRaw !== null) return testRaw;   // 仅自动化测试用，正常使用时恒为 null
+  if(!anySource() || !analyser) return 0;
+  analyser.getByteFrequencyData(freqData);
+  const n = Math.min(CONFIG.VOICE_BINS, freqData.length);
+  let sum = 0;
+  for(let i=1;i<n;i++) sum += freqData[i];
+  return (sum/(n-1))/255;
+}
+function processVol(raw){
+  if(simOn) return clamp(simVol, 0, 1);     // 模拟喊话直通，不受灵敏度/底噪影响
+  return clamp((raw - noiseFloor) * gainMul, 0, 1);
+}
+
+/* ---- Web Audio 合成音效（占位，待换真实音效素材） ---- */
+function tone({f=800, d=.15, type='sine', g=.2, to=null, delay=0}){
+  if(!actx || sfxMuted) return;
+  // 记下"游戏自己正在发声"的时间窗，供自噪声闸门使用
+  sfxQuietUntil = Math.max(
+    sfxQuietUntil,
+    performance.now() + (delay + d + 0.05) * 1000 + CONFIG.SFX_GUARD_MS
+  );
+  const t0 = actx.currentTime + delay;
+  const o = actx.createOscillator(), gn = actx.createGain();
+  o.type = type;
+  o.frequency.setValueAtTime(f, t0);
+  if(to) o.frequency.exponentialRampToValueAtTime(Math.max(to,20), t0+d);
+  gn.gain.setValueAtTime(.0001, t0);
+  gn.gain.exponentialRampToValueAtTime(g, t0+.015);
+  gn.gain.exponentialRampToValueAtTime(.0001, t0+d);
+  o.connect(gn).connect(actx.destination);
+  o.start(t0); o.stop(t0+d+.03);
+}
+const sfx = {
+  jump : v => tone({f:340+v*220, to:700+v*320, d:.15, type:'square',   g:.13}),
+  coin : () => { tone({f:1180,d:.09,g:.18}); tone({f:1760,d:.13,g:.15,delay:.055}); },
+  hit  : () => tone({f:200,to:70,d:.26,type:'sawtooth',g:.17}),
+  win  : () => [523,659,784,1047,1319].forEach((f,i)=>tone({f,d:.26,type:'triangle',g:.17,delay:i*.13}))
+};
+
+/* ========================= 游戏状态 ========================= */
+const canvas = $('#game'), ctx = canvas.getContext('2d');
+const W = canvas.width, H = canvas.height;
+const FLOOR = CONFIG.GROUND_Y;
+
+let phase = 'intro';           // intro → practice → countdown → playing → ended
+let vol = 0;                   // 处理后的当前音量 0~1
+let frame = 0, scrollX = 0, score = 0;
+let timeLeft = CONFIG.DURATION, practiceLeft = CONFIG.PRACTICE_SEC;
+
+const hero = { y:FLOOR-CONFIG.CHAR_R*2, vy:0, ground:true, stun:0, squash:1, sustain:0, tilt:0 };
+
+let obstacles = [], notes = [], pops = [], sparks = [];
+let nextObstAt = 900, nextNoteAt = 520;
+let spawnFrozen = false;      // 自动化测试用：冻结关卡生成，手动摆单个障碍
+
+function resetWorld(){
+  frame = 0; scrollX = 0; score = 0;
+  timeLeft = CONFIG.DURATION; practiceLeft = CONFIG.PRACTICE_SEC;
+  hero.y = FLOOR - CONFIG.CHAR_R*2; hero.vy = 0; hero.ground = true;
+  hero.stun = 0; hero.squash = 1; hero.sustain = 0; hero.tilt = 0;
+  obstacles = []; notes = []; pops = []; sparks = [];
+  nextObstAt = 900; nextNoteAt = 520; stumbleCount = 0;
+  $('#hScore').textContent = '0';
+  $('#hDist').textContent  = '0';
+  $('#hTime').textContent  = String(CONFIG.DURATION);
+  $('#barFill').style.width = '0%';
+}
+
+/* ------------- 跳跃 -------------
+   跳跃力度取「平滑值」与「瞬时值」中较大的那个：
+   平滑值负责稳定地判定"有没有过阈值"，瞬时值才真实反映"这一嗓子有多响"，
+   否则起跳瞬间平滑值往往还在爬坡，大喊和小喊会被压成差不多的高度。 */
+function tryJump(v, instant){
+  if(!hero.ground || hero.stun > 0) return;
+  v = Math.max(v, instant || 0);
+  const over = clamp((v - CONFIG.THRESHOLD)/(1 - CONFIG.THRESHOLD), 0, 1);
+  hero.vy = CONFIG.JUMP_BASE + CONFIG.JUMP_EXTRA * over;
+  hero.ground = false;
+  hero.squash = 1.3;
+  hero.sustain = CONFIG.SUSTAIN_FRAMES;
+  sfx.jump(v);
+  for(let i=0;i<8;i++) sparks.push({
+    x:CONFIG.CHAR_X+rnd(-18,18), y:FLOOR-2, vx:rnd(-2.4,2.4), vy:rnd(-1,-3.4),
+    life:1, col:volColor(v)
+  });
+}
+
+/* ------------- 关卡生成 ------------- */
+function spawnObstacle(){
+  const r = Math.random();
+  let o;
+  // 尺寸按「最轻的一嗓子也要有起跳窗口」反推过：坑最宽 100、块最高 56、台最高 88
+  if(r < .34)      o = {type:'pit',  w:rndi(70,100), h:0};                 // 音坑
+  else if(r < .70) o = {type:'block',w:56,           h:rndi(38,56)};       // 音符块
+  else             o = {type:'tower',w:64,           h:rndi(68,88)};       // 高台
+  o.x = scrollX + W + 60; o.hit = false;
+  obstacles.push(o);
+  // 在障碍上方铺一段音符弧线，奖励"喊得响一点"
+  if(Math.random() < .72){
+    const arcN = rndi(3,5), topY = FLOOR - rndi(130,290);
+    for(let i=0;i<arcN;i++){
+      const t = i/(arcN-1);
+      notes.push({
+        x: o.x - 40 + t*(o.w+90),
+        y: topY + Math.sin(t*Math.PI)* -46,
+        got:false, bob:rnd(0,6.28)
+      });
+    }
+  }
+  nextObstAt = o.x + o.w + rnd(CONFIG.OBST_GAP_MIN, CONFIG.OBST_GAP_MAX);
+}
+function spawnNote(){
+  // 高度覆盖整个跳跃区间（小声跳 ~180px，大声跳 ~400px），
+  // 保证"一直大声喊"的孩子在高空也有音符可吃，不会白飞一趟
+  notes.push({
+    x: scrollX + W + 40,
+    y: FLOOR - rnd(44, 330),
+    got:false, bob:rnd(0,6.28)
+  });
+  nextNoteAt = scrollX + W + rnd(CONFIG.NOTE_GAP_MIN, CONFIG.NOTE_GAP_MAX);
+}
+
+/* ------------- 更新 -------------
+   所有运动都乘以 k（k = 本帧相当于多少个"标准 60fps 帧"），
+   这样在 60Hz / 120Hz / 144Hz 屏幕上速度完全一致。 */
+function physics(k){
+  // 持续大声 → 上升期额外托举（喊得越久跳得越高）
+  if(!hero.ground && hero.sustain > 0 && hero.vy < 0 && vol > CONFIG.THRESHOLD){
+    hero.vy += CONFIG.SUSTAIN_FORCE * k;
+    hero.sustain -= k;
+  }
+  hero.vy += CONFIG.GRAVITY * k;
+  hero.y  += hero.vy * k;
+
+  const floorTop = FLOOR - CONFIG.CHAR_R*2;
+  if(hero.y >= floorTop){
+    if(!hero.ground) hero.squash = 0.74;
+    hero.y = floorTop; hero.vy = 0; hero.ground = true; hero.sustain = 0;
+  }
+  hero.squash += (1 - hero.squash) * (1 - Math.pow(1-.18, k));
+  hero.tilt = hero.ground ? hero.tilt*Math.pow(.85,k) : clamp(hero.vy*.02, -.32, .32);
+  if(hero.stun > 0) hero.stun = Math.max(0, hero.stun - k);
+}
+
+function world(running, k){
+  if(running && hero.stun === 0) scrollX += CONFIG.SPEED * k;
+
+  if(running && !spawnFrozen){
+    while(scrollX + W + 60 >= nextObstAt) spawnObstacle();
+    while(scrollX + W + 40 >= nextNoteAt) spawnNote();
+  }
+
+  const L = CONFIG.CHAR_X - CONFIG.CHAR_R + 8;
+  const R = CONFIG.CHAR_X + CONFIG.CHAR_R - 8;
+  const T = hero.y + 8;
+  const B = hero.y + CONFIG.CHAR_R*2 - 4;
+
+  // 吃音符
+  for(const n of notes){
+    if(n.got) continue;
+    const sx = n.x - scrollX;
+    const sy = n.y + Math.sin(frame*.08 + n.bob)*7;
+    if(sx > L-27 && sx < R+27 && sy+25 > T && sy-25 < B){   // 判定放宽，孩子更容易有正反馈
+      n.got = true; score++;
+      $('#hScore').textContent = String(score);
+      pops.push({x:CONFIG.CHAR_X, y:hero.y-6, a:1, txt:'+1', col:'#ffd93d'});
+      for(let i=0;i<10;i++) sparks.push({
+        x:sx, y:sy, vx:rnd(-3,3), vy:rnd(-3,1), life:1, col:'#ffd93d'
+      });
+      sfx.coin();
+    }
+  }
+  notes = notes.filter(n => n.x - scrollX > -80);
+
+  // 撞障碍
+  for(const o of obstacles){
+    if(o.hit) continue;
+    const sx = o.x - scrollX;
+    if(sx + o.w < L || sx > R) continue;
+    if(o.type === 'pit'){
+      if(hero.ground){ o.hit = true; stumble('掉进音坑啦！再喊一次！'); }
+    }else{
+      if(B > FLOOR - o.h + 5){ o.hit = true; stumble('挡住了！再喊一次！'); }
+    }
+  }
+  obstacles = obstacles.filter(o => o.x - scrollX > -160);
+
+  for(const p of pops){ p.y -= 1.3*k; p.a -= .019*k; }
+  pops = pops.filter(p => p.a > 0);
+  for(const s of sparks){ s.x += s.vx*k; s.y += s.vy*k; s.vy += .16*k; s.life -= .028*k; }
+  sparks = sparks.filter(s => s.life > 0);
+}
+
+let stumbleCount = 0;          // 统计这一局绊了几次（老师可在结算看难度是否合适）
+function stumble(msg){
+  stumbleCount++;
+  hero.stun = CONFIG.STUN_FRAMES;
+  hero.squash = .68;
+  pops.push({x:CONFIG.CHAR_X, y:hero.y-8, a:1.5, txt:msg, col:'#ff6b6b'});
+  sfx.hit();
+}
+
+/* ========================= 绘制 ========================= */
+function drawSky(){
+  const g = ctx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,'#4a2a7a'); g.addColorStop(.55,'#2a1745'); g.addColorStop(1,'#1b0f2e');
+  ctx.fillStyle = g; ctx.fillRect(0,0,W,H);
+
+  // 远景五线谱
+  ctx.strokeStyle = 'rgba(255,255,255,.05)'; ctx.lineWidth = 2;
+  for(let i=0;i<5;i++){
+    const y = 54 + i*22;
+    ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke();
+  }
+  // 远景音符（视差）
+  ctx.font = '30px sans-serif'; ctx.fillStyle = 'rgba(255,255,255,.10)';
+  for(let i=0;i<9;i++){
+    const x = W - ((scrollX*.28 + i*190) % (W+240));
+    ctx.fillText('♪', x, 92 + (i%3)*46);
+  }
+  // 音量光晕：喊得越大，天空越亮
+  if(vol > .05){
+    const rg = ctx.createRadialGradient(W/2, FLOOR, 40, W/2, FLOOR, 560);
+    const c = volColor(vol);
+    rg.addColorStop(0, c.replace('rgb','rgba').replace(')', `,${(vol*.22).toFixed(3)})`));
+    rg.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = rg; ctx.fillRect(0,0,W,H);
+  }
+}
+
+function drawGround(){
+  // 地面主体
+  const g = ctx.createLinearGradient(0,FLOOR,0,H);
+  g.addColorStop(0,'#6a42a8'); g.addColorStop(1,'#2b1a46');
+  ctx.fillStyle = g; ctx.fillRect(0, FLOOR, W, H-FLOOR);
+
+  // 音坑：把地面挖空
+  ctx.fillStyle = '#100821';
+  for(const o of obstacles){
+    if(o.type !== 'pit') continue;
+    ctx.fillRect(o.x - scrollX, FLOOR, o.w, H-FLOOR);
+  }
+
+  // "音浪"蜿蜒地面线，随音量起伏
+  const amp = 7 + vol*26;
+  const draw = (off, phase2, color, lw) => {
+    ctx.strokeStyle = color; ctx.lineWidth = lw;
+    ctx.beginPath();
+    for(let x=0;x<=W;x+=5){
+      const y = FLOOR + off + Math.sin((x + scrollX*1.5)*.028 + phase2) * amp * (off===9?1:.62);
+      x===0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
+    }
+    ctx.stroke();
+  };
+  ctx.save();
+  ctx.beginPath(); ctx.rect(0, FLOOR, W, H-FLOOR); ctx.clip();
+  draw(9,  0,   volColor(clamp(vol*1.2,0,1)), 4);
+  draw(26, 1.6, 'rgba(255,217,61,.32)', 3);
+  draw(42, 3.1, 'rgba(255,255,255,.16)', 2);
+  ctx.restore();
+
+  // 地面顶边高亮
+  ctx.strokeStyle = 'rgba(255,255,255,.28)'; ctx.lineWidth = 3;
+  ctx.beginPath();
+  let pen = false;
+  for(let x=0;x<=W;x+=4){
+    let inPit = false;
+    for(const o of obstacles){
+      if(o.type !== 'pit') continue;
+      const sx = o.x - scrollX;
+      if(x >= sx && x <= sx+o.w){ inPit = true; break; }
+    }
+    if(inPit){ pen = false; continue; }
+    if(!pen){ ctx.moveTo(x, FLOOR); pen = true; } else ctx.lineTo(x, FLOOR);
+  }
+  ctx.stroke();
+}
+
+function roundRect(x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);
+  ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r);     ctx.arcTo(x,y,x+w,y,r);
+  ctx.closePath();
+}
+
+function drawObstacles(){
+  for(const o of obstacles){
+    const sx = o.x - scrollX;
+    if(sx > W+40 || sx + o.w < -40) continue;
+    if(o.type === 'pit'){
+      ctx.strokeStyle = '#ffd93d'; ctx.lineWidth = 4;
+      ctx.beginPath(); ctx.moveTo(sx, FLOOR); ctx.lineTo(sx, FLOOR+16); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(sx+o.w, FLOOR); ctx.lineTo(sx+o.w, FLOOR+16); ctx.stroke();
+      ctx.font = 'bold 20px sans-serif'; ctx.fillStyle = '#ffd93d'; ctx.textAlign = 'center';
+      ctx.fillText('⚠ 音坑', sx + o.w/2, FLOOR - 12);
+      ctx.textAlign = 'left';
+    }else{
+      const top = FLOOR - o.h, tall = o.type === 'tower';
+      const g = ctx.createLinearGradient(sx, top, sx, FLOOR);
+      g.addColorStop(0, tall ? '#ff6fae' : '#a97bff');
+      g.addColorStop(1, tall ? '#c9184a' : '#5b21b6');
+      ctx.fillStyle = g; roundRect(sx, top, o.w, o.h, 12); ctx.fill();
+      ctx.strokeStyle = 'rgba(255,255,255,.35)'; ctx.lineWidth = 2.5; ctx.stroke();
+      ctx.font = 'bold 26px sans-serif'; ctx.fillStyle = 'rgba(255,255,255,.9)';
+      ctx.textAlign = 'center';
+      ctx.fillText(tall ? '♬' : '♪', sx + o.w/2, top + o.h/2 + 9);
+      ctx.textAlign = 'left';
+    }
+  }
+}
+
+function drawNotes(){
+  for(const n of notes){
+    if(n.got) continue;
+    const sx = n.x - scrollX;
+    if(sx > W+30 || sx < -30) continue;
+    const sy = n.y + Math.sin(frame*.08 + n.bob)*7;
+    ctx.save(); ctx.translate(sx, sy);
+    ctx.shadowColor = 'rgba(255,217,61,.85)'; ctx.shadowBlur = 16;
+    ctx.fillStyle = '#ffd93d';
+    ctx.beginPath(); ctx.arc(0,0,17,0,6.2832); ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = '#5b3a0a'; ctx.font = 'bold 20px sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText('♪', 0, 7); ctx.textAlign = 'left';
+    ctx.restore();
+  }
+}
+
+/* 小魔星角色 —— 矢量占位（待补美术素材：替换为 drawImage 即可） */
+function drawHero(){
+  const R = CONFIG.CHAR_R;
+  const sq = hero.squash;                       // 压扁/拉伸
+  const cx = CONFIG.CHAR_X;
+  const cy = hero.y + R*2 - R*sq;               // 底部贴地
+  const stunned = hero.stun > 0;
+
+  // 影子
+  const shadowScale = clamp(1 - (FLOOR - (hero.y + R*2))/260, .3, 1);
+  ctx.save();
+  ctx.globalAlpha = .3*shadowScale;
+  ctx.fillStyle = '#000';
+  ctx.beginPath(); ctx.ellipse(cx, FLOOR+4, R*.95*shadowScale, 7*shadowScale, 0,0,6.2832); ctx.fill();
+  ctx.restore();
+
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate(hero.tilt);
+  ctx.scale(1/Math.sqrt(sq), sq);
+  if(stunned && Math.floor(frame/4)%2===0) ctx.globalAlpha = .55;
+
+  // 五角星身体
+  const outer = R, inner = R*.46;
+  ctx.beginPath();
+  for(let i=0;i<10;i++){
+    const rr = i%2 ? inner : outer;
+    const a = -Math.PI/2 + i*Math.PI/5;
+    const px = Math.cos(a)*rr, py = Math.sin(a)*rr;
+    i===0 ? ctx.moveTo(px,py) : ctx.lineTo(px,py);
+  }
+  ctx.closePath();
+  const g = ctx.createRadialGradient(0,-4,3, 0,0, outer);
+  g.addColorStop(0,'#fff6c2');
+  g.addColorStop(1, stunned ? '#ff6b6b' : '#ff9a3d');
+  ctx.fillStyle = g;
+  ctx.shadowColor = stunned ? 'rgba(255,90,90,.8)' : 'rgba(255,180,60,.85)';
+  ctx.shadowBlur = 20 + vol*24;
+  ctx.fill();
+  ctx.shadowBlur = 0;
+  ctx.strokeStyle = 'rgba(120,50,0,.35)'; ctx.lineWidth = 2; ctx.stroke();
+
+  // 表情
+  ctx.fillStyle = '#3a1d08';
+  if(stunned){
+    ctx.lineWidth = 3; ctx.strokeStyle = '#3a1d08';
+    [[-9,-2],[9,-2]].forEach(([ex,ey])=>{
+      ctx.beginPath(); ctx.moveTo(ex-4,ey-4); ctx.lineTo(ex+4,ey+4);
+      ctx.moveTo(ex+4,ey-4); ctx.lineTo(ex-4,ey+4); ctx.stroke();
+    });
+  }else{
+    const blink = (frame % 190) < 8;
+    if(blink){
+      ctx.lineWidth = 3; ctx.strokeStyle = '#3a1d08';
+      ctx.beginPath(); ctx.moveTo(-13,-2); ctx.lineTo(-5,-2);
+      ctx.moveTo(5,-2); ctx.lineTo(13,-2); ctx.stroke();
+    }else{
+      ctx.beginPath(); ctx.arc(-9,-2,3.6,0,6.2832); ctx.fill();
+      ctx.beginPath(); ctx.arc( 9,-2,3.6,0,6.2832); ctx.fill();
+      ctx.fillStyle = '#fff';
+      ctx.beginPath(); ctx.arc(-7.8,-3.4,1.3,0,6.2832); ctx.fill();
+      ctx.beginPath(); ctx.arc(10.2,-3.4,1.3,0,6.2832); ctx.fill();
+    }
+  }
+  // 嘴：音量越大张得越开
+  const open = 2.5 + vol*8;
+  ctx.fillStyle = '#7a2410';
+  ctx.beginPath(); ctx.ellipse(0, 8, 5.5 + vol*3, open, 0, 0, 6.2832); ctx.fill();
+  // 腮红
+  ctx.fillStyle = 'rgba(255,90,120,.5)';
+  ctx.beginPath(); ctx.arc(-17,5,4.2,0,6.2832); ctx.fill();
+  ctx.beginPath(); ctx.arc( 17,5,4.2,0,6.2832); ctx.fill();
+  ctx.restore();
+
+  // 大声时头顶冒音符
+  if(vol > CONFIG.THRESHOLD && !hero.ground){
+    ctx.save();
+    ctx.globalAlpha = clamp(vol,0,1)*.9;
+    ctx.font = 'bold 24px sans-serif'; ctx.fillStyle = volColor(vol);
+    ctx.fillText('♪', cx + 24 + Math.sin(frame*.3)*5, hero.y - 10);
+    ctx.restore();
+  }
+}
+
+function drawFx(){
+  for(const s of sparks){
+    ctx.globalAlpha = clamp(s.life,0,1);
+    ctx.fillStyle = s.col;
+    ctx.beginPath(); ctx.arc(s.x, s.y, 3.4*s.life+1, 0, 6.2832); ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+  ctx.textAlign = 'center';
+  for(const p of pops){
+    ctx.globalAlpha = clamp(p.a,0,1);
+    ctx.fillStyle = p.col;
+    ctx.font = 'bold ' + (p.txt.length>3 ? 26 : 34) + 'px "PingFang SC","Microsoft YaHei",sans-serif';
+    ctx.strokeStyle = 'rgba(0,0,0,.5)'; ctx.lineWidth = 5;
+    ctx.strokeText(p.txt, p.x, p.y); ctx.fillText(p.txt, p.x, p.y);
+  }
+  ctx.globalAlpha = 1; ctx.textAlign = 'left';
+}
+
+// 画面内的提示（示范阶段/被绊住时）
+function drawHints(){
+  if(phase === 'practice'){
+    ctx.textAlign = 'center';
+    ctx.font = 'bold 30px "PingFang SC","Microsoft YaHei",sans-serif';
+    ctx.fillStyle = 'rgba(255,255,255,.9)';
+    ctx.strokeStyle = 'rgba(0,0,0,.55)'; ctx.lineWidth = 6;
+    const txt = '🎤 试一试：大声喊「跳」！';
+    ctx.strokeText(txt, W/2, 150); ctx.fillText(txt, W/2, 150);
+    ctx.textAlign = 'left';
+  }
+  if(hero.stun > 0 && phase === 'playing'){
+    ctx.textAlign = 'center';
+    ctx.font = 'bold 30px "PingFang SC","Microsoft YaHei",sans-serif';
+    ctx.fillStyle = '#ffd93d';
+    ctx.strokeStyle = 'rgba(0,0,0,.6)'; ctx.lineWidth = 6;
+    ctx.strokeText('大家一起再喊一次！', W/2, 120);
+    ctx.fillText('大家一起再喊一次！', W/2, 120);
+    ctx.textAlign = 'left';
+  }
+  // 阈值提示条（画面左下角小标尺，让孩子知道要喊多大）
+  const bw = 220, bx = 26, by = H - 34;
+  ctx.fillStyle = 'rgba(0,0,0,.32)'; roundRect(bx-8, by-16, bw+16, 26, 13); ctx.fill();
+  ctx.fillStyle = volColor(vol);
+  roundRect(bx, by-10, Math.max(4, bw*clamp(vol,0,1)), 14, 7); ctx.fill();
+  ctx.strokeStyle = '#fff'; ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  ctx.moveTo(bx + bw*CONFIG.THRESHOLD, by-14);
+  ctx.lineTo(bx + bw*CONFIG.THRESHOLD, by+6); ctx.stroke();
+  ctx.font = 'bold 15px "PingFang SC",sans-serif'; ctx.fillStyle = '#fff';
+  ctx.fillText('喊到这条线就能跳 →', bx, by - 22);
+}
+
+function render(){
+  drawSky();
+  drawGround();
+  drawObstacles();
+  drawNotes();
+  drawHero();
+  drawFx();
+  drawHints();
+}
+
+/* ========================= 主循环 =========================
+   使用真实时间步长（delta time），保证在 60Hz 笔记本屏和 120Hz/144Hz
+   外接投影或 ProMotion 屏上，跑速与倒计时完全一致。 */
+let lastT = 0;
+function loop(now){
+  if(!lastT) lastT = now;
+  let dt = (now - lastT) / 1000;      // 本帧真实耗时（秒）
+  lastT = now;
+  if(!(dt > 0)) dt = 1/60;
+  if(dt > 1/20) dt = 1/20;            // 切标签页/卡顿后不要一次跳太远
+  const k = dt * 60;                  // 相当于多少个标准 60fps 帧
+  frame += k;
+
+  // 音量采样 + 非对称平滑（升快降慢，灯条有余辉）
+  const raw = readRaw();
+  if(calibrating){ calSamples.push(raw); }
+  let target = processVol(raw);
+
+  // 自噪声闸门：游戏自己在响的这一小段时间里，只允许音量下降、不允许上冲。
+  // 这样"叮"声顶不动小魔星，而孩子原本就在喊的声音不会被打断。
+  if(CONFIG.SFX_SELF_GATE && !simOn && !sfxMuted && now < sfxQuietUntil && target > vol){
+    target = vol;
+  }
+
+  const base = target > vol ? CONFIG.SMOOTH_UP : CONFIG.SMOOTH_DOWN;
+  vol += (target - vol) * (1 - Math.pow(1 - base, k));
+  if(vol < .002) vol = 0;
+  paintBar(vol);
+
+  if(phase === 'practice' || phase === 'countdown' || phase === 'playing'){
+    if(vol > CONFIG.THRESHOLD) tryJump(vol, target);
+    physics(k);
+    world(phase === 'playing', k);
+    render();
+
+    if(phase === 'playing'){
+      $('#hDist').textContent = String(Math.round(scrollX/10));
+    }
+  }
+
+  if(phase === 'practice'){
+    practiceLeft -= dt;
+    if(practiceLeft <= 0) startCountdown();
+  }else if(phase === 'playing'){
+    timeLeft -= dt;
+    if(timeLeft < 0) timeLeft = 0;
+    $('#hTime').textContent = String(Math.ceil(timeLeft));
+    $('#barFill').style.width = (100 - timeLeft/CONFIG.DURATION*100).toFixed(1) + '%';
+    if(timeLeft <= 0) endGame();
+  }
+
+  requestAnimationFrame(loop);
+}
+
+/* ========================= 流程控制 ========================= */
+function showBanner(text, ms){
+  const b = $('#banner');
+  b.textContent = text; b.style.display = 'block';
+  if(ms) setTimeout(()=>{ b.style.display = 'none'; }, ms);
+}
+function toast(text){
+  const t = document.createElement('div');
+  t.className = 'toast'; t.textContent = text;
+  $('#stage').appendChild(t);
+  setTimeout(()=>t.remove(), 1550);
+}
+
+function startPractice(){
+  resetWorld();
+  phase = 'practice';
+  showBanner('🎤 老师先喊一声做示范，同学们跟着一起喊！');
+}
+function startCountdown(){
+  $('#banner').style.display = 'none';
+  phase = 'countdown';
+  let n = 3;
+  const cd = $('#ovCd'), num = $('#cdNum');
+  cd.classList.remove('hide');
+  num.textContent = String(n);
+  const iv = setInterval(()=>{
+    n--;
+    if(n <= 0){
+      clearInterval(iv);
+      cd.classList.add('hide');
+      beginPlay();
+    }else{
+      num.textContent = String(n);
+      num.style.animation = 'none'; void num.offsetWidth; num.style.animation = '';
+    }
+  }, 850);
+}
+function beginPlay(){
+  resetWorld();
+  phase = 'playing';
+  showBanner('🔥 开始啦！大声喊，冲鸭！', 2200);
+}
+function endGame(){
+  phase = 'ended';
+  $('#fScore').textContent = String(score);
+  $('#fDist').textContent  = String(Math.round(scrollX/10));
+  $('#endTitle').textContent = score >= 50 ? '🎉 超厉害！挑战完成！ 🎉' : '🎉 挑战完成！ 🎉';
+  $('#ovEnd').classList.remove('hide');
+  sfx.win();
+  confettiStart();
+  // 弹幕鼓掌
+  const cheers = ['👏👏👏','🔥🔥🔥','⭐⭐⭐','💪💪','太棒啦','我们做到了','6666','好好玩'];
+  for(let i=0;i<12;i++) setTimeout(()=>pushDanmu(pick(cheers)), i*200);
+  qnRecordFinish(score + '音符 · ' + Math.round(scrollX/10) + '米');
+}
+
+/* ========================= 弹幕兜底 ========================= */
+/* 模拟弹幕：刻意做成"6-8 岁小朋友真的会打出来的样子" ——
+   短、重复、大量表情和数字，而不是完整通顺的句子。 */
+const DM_POOL = [
+  // 口令类（会触发音符 +1）
+  {t:'跳',        boost:true },
+  {t:'跳跳跳',    boost:true },
+  {t:'跳！',      boost:true },
+  {t:'6',         boost:true },
+  {t:'666',       boost:true },
+  {t:'GO',        boost:true },
+  {t:'GOGOGO',    boost:true },
+  // 表情类（打字慢的孩子的主力，也算助力）
+  {t:'🔥🔥🔥',    boost:true },
+  {t:'⭐⭐⭐',     boost:true },
+  {t:'💪💪',      boost:true },
+  {t:'🔥',        boost:true },
+  {t:'⭐',        boost:true },
+  {t:'👏👏👏',    boost:false},
+  {t:'💪',        boost:false},
+  // 气氛类
+  {t:'加油',      boost:false},
+  {t:'哇',        boost:false},
+  {t:'好厉害',    boost:false},
+  {t:'太好玩了',  boost:false},
+  {t:'灯全亮了',  boost:false},
+  {t:'我也要玩',  boost:false}
+];
+// 纯表情/纯符号的弹幕在画面上放大显示，低龄孩子看得更清楚
+const isEmojiOnly = s => !/[一-龥A-Za-z0-9]/.test(s);
+const DM_COLORS = ['#ffd93d','#2ee06a','#ff6fae','#3ba9ff','#ffb4a2','#c77dff','#fff'];
+
+function pushDanmu(text, boost){
+  const layer = $('#danmuLayer');
+  const el = document.createElement('div');
+  el.className = 'dm' + (isEmojiOnly(text) ? ' emoji' : '');
+  el.textContent = isEmojiOnly(text) ? text : ('💬 ' + text);
+  el.style.top = rnd(5,74) + '%';
+  el.style.color = pick(DM_COLORS);
+  const dur = rnd(5.5, 8.5);
+  el.style.animationDuration = dur + 's';
+  layer.appendChild(el);
+  setTimeout(()=>el.remove(), dur*1000 + 300);
+
+  if(boost && phase === 'playing' && Math.random() < CONFIG.DM_BONUS_RATE){
+    score++;
+    $('#hScore').textContent = String(score);
+    toast('弹幕助力 +1 🎵');
+  }
+}
+/* 屏幕上的弹幕提示语统一从 CONFIG 生成，改口令/表情不用两头对齐 */
+(function buildDanmuTips(){
+  const kw = CONFIG.DM_KEYWORDS.map(k => `【${k}】`).join('');
+  const em = CONFIG.DM_EMOJIS.join(' ');
+  $('#dmTip').innerHTML =
+    `📢 开麦喊话让它跳！打字慢没关系 —— 弹幕刷 <b>${kw}</b>，` +
+    `或者直接点表情 <b>${em}</b>，一样能帮小魔星加分！`;
+  $('#introDmTip').innerHTML =
+    `没开麦的同学别急 —— 弹幕刷 <span class="hl">${kw}</span>，` +
+    `打字慢就直接点表情 <span class="hl">${em}</span>，一样能给它加油助力！`;
+})();
+
+function danmuTick(){
+  if(phase !== 'intro'){
+    const d = pick(DM_POOL);
+    pushDanmu(d.t, d.boost);
+  }
+  setTimeout(danmuTick, rnd(CONFIG.DM_GAP_MIN, CONFIG.DM_GAP_MAX));
+}
+
+/* ========================= 结算彩带 ========================= */
+const cc = $('#confetti'), cctx = cc.getContext('2d');
+let confetti = [], confettiOn = false, confettiUntil = 0;
+function sizeConfetti(){ cc.width = innerWidth; cc.height = innerHeight; }
+addEventListener('resize', sizeConfetti); sizeConfetti();
+
+/* 彩带只撒一阵子就收 —— 纸片落到屏幕外不再回收利用，
+   再加一个总时长上限兜底，最后 0.8 秒淡出，不会一直飘着分散注意力 */
+function confettiStart(ms){
+  const cols = ['#ff8a3d','#ffd93d','#2ee06a','#9b5cf6','#ff4d94','#3ba9ff'];
+  confetti = [];
+  for(let i=0;i<170;i++) confetti.push({
+    x:rnd(0,cc.width), y:rnd(-cc.height*0.8,0),
+    vx:rnd(-1.6,1.6), vy:rnd(2.6,7),
+    w:rnd(7,14), h:rnd(4,9),
+    col:pick(cols), rot:rnd(0,6.28), vr:rnd(-.22,.22)
+  });
+  confettiUntil = performance.now() + (ms || CONFIG.CONFETTI_MS || 3600);
+  if(!confettiOn){ confettiOn = true; confettiLoop(); }
+}
+function confettiStop(){ confettiOn=false; confettiUntil=0; cctx.clearRect(0,0,cc.width,cc.height); }
+function confettiLoop(){
+  cctx.clearRect(0,0,cc.width,cc.height);
+  if(phase !== 'ended'){ confettiOn = false; return; }
+  const left = confettiUntil - performance.now();
+  if(left <= 0){ confettiStop(); return; }
+  cctx.globalAlpha = Math.min(1, left/800);
+  let alive = 0;
+  for(const p of confetti){
+    p.x += p.vx; p.y += p.vy; p.rot += p.vr;
+    if(p.y > cc.height + 24) continue;          // 落出画面就不管了
+    alive++;
+    cctx.save(); cctx.translate(p.x,p.y); cctx.rotate(p.rot);
+    cctx.fillStyle = p.col; cctx.fillRect(-p.w/2,-p.h/2,p.w,p.h);
+    cctx.restore();
+  }
+  cctx.globalAlpha = 1;
+  if(alive === 0){ confettiStop(); return; }
+  requestAnimationFrame(confettiLoop);
+}
+
+/* ========================= 过渡钩子页 ========================= */
+(function buildHook(){
+  const box = $('#hook');
+  const esc  = s => s.replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+  const reEsc = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+  // 长词优先，避免"奇妙声控灯"被更短的词先截断
+  const rainbow = [...CONFIG.HOOK_RAINBOW].sort((a,b) => b.length - a.length);
+  const alt = rainbow.map(reEsc).join('|');
+  // 依次匹配：带书名号的彩虹词 → 裸的彩虹词 → 其它【…】
+  const re = new RegExp(
+    (alt ? `【(?:${alt})】|(?:${alt})|` : '') + '【[^】]*】', 'g');
+
+  const markup = line => esc(line).replace(re, m => {
+    const isRainbow = rainbow.some(w => m.includes(w));
+    return `<span class="${isRainbow ? 'hl-rainbow' : 'hl-key'}">${m}</span>`;
+  });
+
+  CONFIG.HOOK_LINES.forEach((line, i) => {
+    const p = document.createElement('p');
+    p.contentEditable = 'true';
+    p.spellcheck = false;
+    p.innerHTML = markup(line);
+    // 鼠标悬停才出现的提示，不会投屏给孩子看到
+    p.title = '老师可直接点击这里修改这句话';
+    if(i === CONFIG.HOOK_LINES.length - 1) p.className = 'final';
+    box.appendChild(p);
+  });
+})();
+
+/* ========================= 交互绑定 ========================= */
+function micFailMsg(why){
+  return why === 'insecure'
+    ? '当前页面不是通过 http(s) 打开的，浏览器禁用了麦克风。\n\n解决办法（任选其一）：\n1) 用 Chrome / Edge 直接双击打开本文件通常可用；若不行，\n2) 在文件所在目录运行  python3 -m http.server  然后访问 http://localhost:8000\n\n现在也可以先用「🗣️ 按住模拟喊话」按钮或键盘空格键体验玩法。'
+    : '麦克风授权被拒绝或获取失败。\n\n请点击浏览器地址栏左侧的图标，把麦克风权限改为「允许」后刷新页面。\n\n现在可以先用「🗣️ 按住模拟喊话」按钮或键盘空格键体验玩法。';
+}
+/* ---- 系统判定：Windows 的 Chrome 能抓整个系统的声音，macOS 只能抓标签页 ---- */
+const UA = navigator.userAgent;
+const IS_WIN = /Windows|Win32|Win64/i.test(UA);
+const IS_MAC = /Mac OS X|Macintosh/i.test(UA) && !/iPhone|iPad/i.test(UA);
+const OS_KEY = IS_WIN ? 'win' : (IS_MAC ? 'mac' : 'all');
+
+function sysFailMsg(why){
+  if(why === 'unsupported')
+    return '当前浏览器不支持抓取标签页/系统声音。\n\n请改用 Chrome 或 Edge，再点「❓ 帮助」查看对应的接法。';
+  if(why === 'noaudio'){
+    return IS_WIN
+      ? '共享成功了，但没有拿到声音轨道。\n\n多半是没勾选「共享系统音频」这个开关。\n\n请再点一次「🔊 直播声音」，这次记得：\n1) 选「整个屏幕 / Entire Screen」这一栏\n2) 把左下角的「共享系统音频 / Share system audio」打开\n\n注意：选「窗口」是抓不到声音的，Windows 只有「整个屏幕」和「Chrome 标签页」能带音频。\n\n（抓整个屏幕会连游戏音效一起抓进去，建议点一下「🔊 音效」关掉。）'
+      : '共享成功了，但没有拿到声音轨道。\n\n多半是没勾选「分享标签页音频」这个开关。\n\n请再点一次「🔊 直播声音」，这次记得：\n1) 选「Chrome 标签页」而不是「整个屏幕」\n2) 把左下角的「分享标签页音频」打开\n\n（macOS 的 Chrome 只支持抓「标签页」的声音，抓不了整个系统 —— 这是苹果系统的限制。\n 如果直播平台是客户端软件，请点「❓ 帮助」看 BlackHole 虚拟声卡方案。）';
+  }
+  if(why === 'denied')
+    return '你取消了共享。需要时再点一次「🔊 直播声音」即可。';
+  return '获取直播声音失败，请重试，或点「❓ 帮助」查看其他方案。';
+}
+
+/* 帮助页按当前系统显示对应章节，另一套折叠起来备查（换电脑上课也能看） */
+(function initHelpOS(){
+  const badge = $('#osBadge');
+  const secs  = [...document.querySelectorAll('#helpBody section[data-os]')];
+  const label = IS_WIN ? 'Windows' : (IS_MAC ? 'macOS' : '未知系统');
+  const other = IS_WIN ? 'mac' : 'win';
+  const otherLabel = IS_WIN ? 'macOS' : 'Windows';
+
+  const apply = showOther => {
+    secs.forEach(s => {
+      const os = s.dataset.os;
+      s.hidden = !(os === 'all' || os === OS_KEY || (showOther && os === other));
+    });
+  };
+
+  if(OS_KEY === 'all'){
+    badge.textContent = '⚠️ 没认出你的系统，下面两套方法都列出来了';
+    secs.forEach(s => s.hidden = false);
+    $('#introSysTip').innerHTML =
+      '想让<b>直播间里开麦的孩子</b>直接控制小魔星，请点第二个按钮，' +
+      '在弹窗里打开<b>「共享系统音频 / 分享标签页音频」</b>开关（具体见「❓ 帮助」）。';
+    return;
+  }
+
+  badge.textContent = IS_WIN
+    ? '🪟 检测到 Windows —— 你可以直接抓整个系统的声音，最省事'
+    : '🍎 检测到 macOS —— 系统限制只能抓「标签页」的声音，客户端软件需用虚拟声卡';
+  apply(false);
+
+  $('#introSysTip').innerHTML = IS_WIN
+    ? '想让<b>直播间里开麦的孩子</b>直接控制小魔星，请点第二个按钮，在弹窗里选 ' +
+      '<b>「整个屏幕」</b>，并打开左下角的 <b>「共享系统音频」</b> 开关 —— ' +
+      'Windows 下这样<b>连客户端软件（钉钉/腾讯会议等）的声音也能抓到</b>。'
+    : '想让<b>直播间里开麦的孩子</b>直接控制小魔星，请点第二个按钮，在弹窗里选中直播平台所在的 ' +
+      '<b>Chrome 标签页</b>，并打开左下角的 <b>「分享标签页音频」</b> 开关。';
+
+  const box = $('#osOther');
+  const btn = document.createElement('button');
+  btn.textContent = `＋ 我用的是 ${otherLabel}，展开 ${otherLabel} 的接法`;
+  let open = false;
+  btn.addEventListener('click', () => {
+    open = !open;
+    apply(open);
+    btn.textContent = (open ? '－ 收起 ' : '＋ 我用的是 ') + otherLabel + (open ? ' 的接法' : `，展开 ${otherLabel} 的接法`);
+  });
+  box.appendChild(btn);
+})();
+
+// 顶部「声源」标签 + 按钮高亮，随时反映当前接了哪几路声音
+function updateSrcUI(){
+  const on = [];
+  if(SRC.mic.node) on.push(SRC.mic.name);
+  if(SRC.sys.node) on.push(SRC.sys.name);
+  const chip = $('#srcChip');
+  chip.textContent = on.length ? '声源：' + on.join(' + ') : '声源：未开启';
+  chip.className = 'chip ' + (on.length ? 'on' : 'off');
+
+  const bm = $('#btnMic'), bs = $('#btnSys');
+  bm.classList.toggle('on', !!SRC.mic.node);
+  bm.textContent = SRC.mic.node ? '🎤 麦克风 ✓' : '🎤 麦克风';
+  bs.classList.toggle('on', !!SRC.sys.node);
+  bs.textContent = SRC.sys.node ? '🔊 直播声音 ✓' : '🔊 直播声音';
+}
+
+// 输入设备列表（授权后才拿得到设备名，所以每次授权成功都刷新一次）
+async function refreshDeviceList(){
+  if(!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) return;
+  try{
+    const devs = (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === 'audioinput');
+    const sel = $('#devSel'), keep = sel.value;
+    sel.innerHTML = '<option value="">输入设备：默认</option>';
+    devs.forEach((d, i) => {
+      const o = document.createElement('option');
+      o.value = d.deviceId;
+      o.textContent = d.label || ('输入设备 ' + (i+1));
+      sel.appendChild(o);
+    });
+    if(keep && [...sel.options].some(o => o.value === keep)) sel.value = keep;
+  }catch(e){ /* 忽略 */ }
+}
+
+// 先填名字再开始，和口算/舒尔特/专注一致；用本页自带的「开始」按钮触发名字门
+function gateStart(fn){
+  qnNameGate('喊出小魔星', function(){
+    qnRecordStart('喊出小魔星');
+    (async () => { await fn(); })();
+  });
+}
+
+$('#btnStart').addEventListener('click', () => gateStart(async () => {
+  ensureCtx();
+  const r = await startMic();
+  $('#ovIntro').classList.add('hide');
+  if(!r.ok) setTimeout(()=>alert(micFailMsg(r.why)), 60);
+  startPractice();
+}));
+
+$('#btnStartSys').addEventListener('click', () => gateStart(async () => {
+  ensureCtx();
+  const r = await startSys();
+  $('#ovIntro').classList.add('hide');
+  if(r.ok) afterSysConnected(r);
+  else setTimeout(()=>alert(sysFailMsg(r.why)), 60);
+  startPractice();
+}));
+
+$('#btnMic').addEventListener('click', async () => {
+  ensureCtx();
+  if(SRC.mic.node){                       // 再点一次 = 关掉这一路
+    detachSource('mic'); updateSrcUI(); toast('已关闭麦克风');
+    return;
+  }
+  const r = await startMic($('#devSel').value || undefined);
+  if(!r.ok) alert(micFailMsg(r.why));
+});
+
+// 直播 / 系统声音
+$('#btnSys').addEventListener('click', async () => {
+  ensureCtx();
+  if(SRC.sys.node){
+    detachSource('sys'); updateSrcUI(); toast('已关闭直播声音');
+    return;
+  }
+  const r = await startSys();
+  if(r.ok) afterSysConnected(r);
+  else alert(sysFailMsg(r.why));
+});
+
+/* 抓「整个屏幕」时游戏音效必然被一起抓进来，会自己顶起小魔星。
+   这里自动静音并说明原因，老师不用记住这个坑；抓标签页则不受影响，音效照常开。 */
+function afterSysConnected(r){
+  if(r.surface === 'monitor'){
+    if(!sfxMuted){
+      setSfxMuted(true);
+      toast('已接入整个屏幕的声音，自动静音了游戏音效 🔇');
+    }else{
+      toast('直播声音已接入 🔊');
+    }
+  }else if(r.surface === 'browser'){
+    toast('已接入该标签页的声音 🔊 游戏音效不受影响');
+  }else{
+    toast('直播声音已接入 🔊');
+  }
+}
+
+// 切换输入设备（选 BlackHole 之类的虚拟声卡即可抓系统声音）
+$('#devSel').addEventListener('change', async e => {
+  ensureCtx();
+  const r = await startMic(e.target.value || undefined);
+  if(r.ok) toast('已切换输入设备');
+  else alert(micFailMsg(r.why));
+});
+
+// 游戏音效开关
+function setSfxMuted(v){
+  sfxMuted = v;
+  const b = $('#btnSfx');
+  b.textContent = sfxMuted ? '🔇 音效关' : '🔊 音效';
+  b.classList.toggle('muted', sfxMuted);
+}
+$('#btnSfx').addEventListener('click', () => {
+  setSfxMuted(!sfxMuted);
+  toast(sfxMuted ? '游戏音效已静音' : '游戏音效已开启');
+});
+
+// 帮助页
+$('#btnHelp').addEventListener('click', () => $('#ovHelp').classList.remove('hide'));
+$('#btnHelpIntro').addEventListener('click', () => $('#ovHelp').classList.remove('hide'));
+
+// 开场页「老师设置说明」折叠/展开（默认收起，投屏不会露出后台文字）
+$('#btnTeacherToggle').addEventListener('click', e => {
+  const panel = $('#teacherPanel');
+  panel.hidden = !panel.hidden;
+  e.currentTarget.textContent = panel.hidden ? '⚙️ 老师设置说明' : '⚙️ 收起说明';
+  e.currentTarget.blur();          // 避免之后按空格键误触这个按钮
+});
+$('#btnHelpClose').addEventListener('click', () => $('#ovHelp').classList.add('hide'));
+
+// 环境校准：采样 2 秒安静时的底噪并扣除
+$('#btnCal').addEventListener('click', () => {
+  if(!anySource()){ alert('请先开启「🎤 麦克风」或「🔊 直播声音」，再做环境校准。'); return; }
+  if(calibrating) return;
+  calibrating = true; calSamples = [];
+  noiseFloor = 0;
+  showBanner('🤫 环境校准中…请全场安静 2 秒');
+  setTimeout(() => {
+    calibrating = false;
+    if(calSamples.length){
+      calSamples.sort((a,b)=>a-b);
+      const p80 = calSamples[Math.floor(calSamples.length*.8)];
+      noiseFloor = clamp(p80 * 1.15, 0, 0.4);
+    }
+    $('#banner').style.display = 'none';
+    toast('校准完成！底噪 ' + (noiseFloor*100).toFixed(1) + '%');
+  }, 2000);
+});
+
+// 灵敏度
+$('#sensR').addEventListener('input', e => {
+  gainMul = parseFloat(e.target.value);
+  $('#sensVal').textContent = gainMul.toFixed(1);
+});
+$('#sensVal').textContent = CONFIG.GAIN_DEFAULT.toFixed(1);
+$('#sensR').value = CONFIG.GAIN_DEFAULT;
+
+/* ------------- 关卡时长（随时可调） -------------
+   没开始时：直接改成新时长。
+   比赛进行中：按「改了多少」加减剩余时间 —— 往右拖当场加时间，往左拖提前收，
+   已经跑掉的那部分不会被抹掉。改完进度条和倒计时立刻跟上。 */
+function setDuration(v){
+  v = clamp(Math.round(v / CONFIG.DUR_STEP) * CONFIG.DUR_STEP, CONFIG.DUR_MIN, CONFIG.DUR_MAX);
+  const delta = v - CONFIG.DURATION;
+  CONFIG.DURATION = v;
+  if(phase === 'playing') timeLeft = clamp(timeLeft + delta, 0.05, v);
+  else timeLeft = v;
+  document.querySelectorAll('.durR').forEach(el => { if(+el.value !== v) el.value = v; });
+  document.querySelectorAll('.durVal').forEach(el => el.textContent = String(v));
+  $('#hTime').textContent = String(Math.ceil(timeLeft));
+  $('#barFill').style.width = (100 - timeLeft / CONFIG.DURATION * 100).toFixed(1) + '%';
+}
+document.querySelectorAll('.durR').forEach(el => {
+  el.min = CONFIG.DUR_MIN; el.max = CONFIG.DUR_MAX; el.step = CONFIG.DUR_STEP;
+  el.addEventListener('input', e => setDuration(parseFloat(e.target.value)));
+});
+document.querySelectorAll('.durMinus').forEach(el =>
+  el.addEventListener('click', () => setDuration(CONFIG.DURATION - CONFIG.DUR_STEP)));
+document.querySelectorAll('.durPlus').forEach(el =>
+  el.addEventListener('click', () => setDuration(CONFIG.DURATION + CONFIG.DUR_STEP)));
+setDuration(CONFIG.DURATION);
+
+// 全屏
+$('#btnFull').addEventListener('click', () => {
+  if(!document.fullscreenElement) document.documentElement.requestFullscreen().catch(()=>{});
+  else document.exitFullscreen().catch(()=>{});
+});
+
+// 模拟喊话（按住按钮 / 长按 / 空格键）—— 麦克风不可用时的兜底
+function simDown(){ ensureCtx(); simOn = true; simVol = .88; }
+function simUp(){ simOn = false; simVol = 0; }
+const sim = $('#btnSim');
+sim.addEventListener('mousedown', simDown);
+sim.addEventListener('mouseup', simUp);
+sim.addEventListener('mouseleave', simUp);
+sim.addEventListener('touchstart', e => { e.preventDefault(); simDown(); }, {passive:false});
+sim.addEventListener('touchend', simUp);
+sim.addEventListener('touchcancel', simUp);
+addEventListener('keydown', e => {
+  if(e.code === 'Space' && !e.repeat){ e.preventDefault(); simDown(); }
+});
+addEventListener('keyup', e => { if(e.code === 'Space'){ e.preventDefault(); simUp(); } });
+
+$('#btnAgain').addEventListener('click', () => {
+  $('#ovEnd').classList.add('hide');
+  startPractice();
+});
+
+/* ========================= 自动化测试钩子（不影响正常使用） ========================= */
+window.__GAME__ = {
+  setVol:  v => { simOn = true; simVol = clamp(v,0,1); },
+  clearVol:() => { simOn = false; simVol = 0; },
+  state:  () => ({phase, score, stumbles:stumbleCount, dist:Math.round(scrollX/10), vol:+vol.toFixed(3),
+                  obstacles:obstacles.length, notes:notes.length,
+                  grounded:hero.ground, stun:hero.stun, y:Math.round(hero.y)}),
+  fastForward: s => { if(phase==='playing') timeLeft = Math.max(0.05, timeLeft - s); },
+  duration: () => ({set:CONFIG.DURATION, left:+timeLeft.toFixed(2)}),
+  setDuration: v => setDuration(v),
+  fireSfx: () => sfx.coin(),          // 测试自噪声闸门用：让游戏发一次声
+  sfxWindow: () => Math.max(0, sfxQuietUntil - performance.now()),
+  setRaw:  v => { testRaw = v; },     // 注入"真实音频读数"（会走灵敏度/闸门，和真麦克风同路径）
+  clearRaw:() => { testRaw = null; },
+  skipPractice: () => { if(phase==='practice') practiceLeft = 0; },
+  srcState:() => ({mic:!!SRC.mic.node, sys:!!SRC.sys.node}),
+  noSpawn: b => { spawnFrozen = !!b; if(b){ obstacles.length=0; notes.length=0; } },
+  putObst: (type,w,hh,sx) => { obstacles.length=0;
+    obstacles.push({type,w,h:hh,x:scrollX+sx,hit:false}); },
+  obstAhead:() => obstacles.filter(o=>!o.hit).map(o=>({t:o.type,w:o.w,h:o.h,
+                    sx:+(o.x-scrollX).toFixed(1)})).sort((a,b)=>a.sx-b.sx),
+  attach:  (k, st) => attachStream(k, st),
+  detach:  k => { detachSource(k); updateSrcUI(); },
+  cfg: CONFIG
+};
+
+/* ========================= 启动 ========================= */
+updateSrcUI();
+refreshDeviceList();
+// 插拔耳机/虚拟声卡时自动更新设备列表
+if(navigator.mediaDevices && 'ondevicechange' in navigator.mediaDevices){
+  navigator.mediaDevices.ondevicechange = refreshDeviceList;
+}
+resetWorld();
+render();
+danmuTick();
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
