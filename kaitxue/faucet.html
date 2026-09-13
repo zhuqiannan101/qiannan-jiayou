@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<title>哪个杯子先装满 · 倩楠老师</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@700;900&family=ZCOOL+KuaiLe&display=swap">
+<style>
+  :root{--ink:#333;--orange:#F26A1B;--water:#2BD4E8;--water2:#18B8D6;--green:#3FBF6F;--outline:#1B2740;--yellow:#FFD53D}
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%}
+  body{font-family:"Noto Sans SC",system-ui,"Microsoft YaHei",sans-serif;overflow:hidden;height:100vh;
+    background:linear-gradient(180deg,#CFE6FF 0%,#DDEEFF 100%);color:var(--ink);
+    display:flex;flex-direction:column;align-items:center;gap:1vh;padding:1.6vh 2.5vw}
+  .kx{font-family:"ZCOOL KuaiLe","Noto Sans SC",sans-serif;font-weight:400}
+  .top{width:min(1120px,96vw);display:flex;align-items:flex-end;gap:14px}
+  .logo{background:#fff;border-radius:10px;padding:.35em .9em;font-weight:900;font-size:clamp(14px,1.8vw,22px);color:#333;box-shadow:0 2px 8px rgba(0,0,0,.08);display:flex;align-items:center;gap:6px;white-space:nowrap}
+  .logo i{display:inline-block;width:1.1em;height:1.1em;border-radius:50%;border:3px solid var(--orange);position:relative}
+  .logo i::after{content:"";position:absolute;inset:3px;border-radius:50%;border:2px solid var(--orange)}
+  .head{display:flex;align-items:center;flex:1;justify-content:flex-end}
+  .h-left{white-space:nowrap;background:#fff;border-radius:22px 0 0 22px;padding:.4em 1.4em;font-weight:900;font-size:clamp(18px,2.6vw,32px);box-shadow:0 3px 10px rgba(0,0,0,.08)}
+  .h-q{white-space:nowrap;position:relative;background:var(--orange);color:#fff;border-radius:0 22px 22px 0;padding:.4em 1.6em .4em 2.2em;font-weight:900;font-size:clamp(18px,2.6vw,32px);clip-path:polygon(28px 0,100% 0,100% 100%,0 100%);box-shadow:0 3px 10px rgba(242,106,27,.3)}
+  .h-mark{position:absolute;top:-1.15em;left:-.35em;width:1.9em;height:1.9em;background:var(--orange);color:#fff;border-radius:50% 50% 50% 6px;display:flex;align-items:center;justify-content:center;font-size:.95em;font-weight:900;box-shadow:0 3px 8px rgba(242,106,27,.4)}
+  .stage{background:#fff;border-radius:22px;box-shadow:0 6px 20px rgba(30,60,110,.12);width:min(1120px,96vw);aspect-ratio:1800/720;max-height:64vh;position:relative;overflow:hidden}
+  .stage svg{width:100%;height:100%;display:block}
+  .e{fill:none;stroke:var(--ink);stroke-width:9;stroke-linecap:butt;stroke-linejoin:miter}
+  .w{fill:none;stroke:var(--water);stroke-linecap:butt;stroke-linejoin:miter;visibility:hidden}
+  .wf{fill:var(--water)}
+  .num circle{fill:#fff;stroke:var(--orange);stroke-width:5}
+  .num text{fill:var(--orange);font-family:"ZCOOL KuaiLe";font-weight:900;font-size:40px}
+  .ring{fill:none;stroke:var(--green);stroke-width:7;opacity:0}
+  .drip{animation:drip 1.1s ease-in infinite}
+  @keyframes drip{0%{transform:translateY(0);opacity:0}15%{opacity:1}85%{opacity:1}100%{transform:translateY(44px);opacity:0}}
+  .leak{animation:leak .7s linear infinite}
+  @keyframes leak{to{stroke-dashoffset:-40}}
+  .bar{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;align-items:center}
+  .btn{font-family:"ZCOOL KuaiLe","Noto Sans SC";font-size:clamp(16px,2.2vw,25px);color:#fff;cursor:pointer;padding:.38em 1.5em;border:3px solid var(--outline);border-radius:999px;background:linear-gradient(180deg,#5CC6FF,#0E7FD6);box-shadow:0 6px 0 var(--outline);text-shadow:1px 2px 0 rgba(0,0,0,.25);transition:transform .1s}
+  .btn:hover{transform:translateY(-2px)} .btn:active{transform:translateY(4px);box-shadow:0 2px 0 var(--outline)}
+  .btn.gn{background:linear-gradient(180deg,#7CE0A0,var(--green));color:#0B3D20;text-shadow:none}
+  .btn.pu{background:linear-gradient(180deg,#C79CFF,#8A4DFF)}
+  .btn.gy{background:linear-gradient(180deg,#FFD27A,#F29A1B)}
+  .hint{font-weight:900;font-size:clamp(13px,1.8vw,18px);text-align:center;min-height:1.4em}
+  .hint b{color:var(--orange)}
+  .guess{display:flex;gap:7px;flex-wrap:wrap;justify-content:center}
+  .gb{font-family:"ZCOOL KuaiLe";font-size:clamp(15px,1.9vw,21px);width:2em;height:2em;cursor:pointer;border:3px solid var(--orange);border-radius:50%;background:#fff;color:var(--orange);box-shadow:0 3px 0 rgba(242,106,27,.4)}
+  .gb:hover{background:var(--yellow);border-color:var(--outline)} .gb.sel{background:var(--orange);color:#fff}
+  .confetti{position:fixed;font-size:30px;z-index:20;animation:fall 1.6s ease-in forwards;pointer-events:none}
+  @keyframes fall{0%{transform:translateY(-10vh)}100%{transform:translateY(110vh) rotate(540deg);opacity:.2}}
+  .back-link{position:fixed;top:16px;left:16px;z-index:100;font-size:13px;font-weight:700;text-decoration:none;color:#3a2e24;background:rgba(255,255,255,0.85);padding:8px 16px;border-radius:20px;box-shadow:0 4px 12px rgba(0,0,0,0.08)}
+  .back-link:hover{background:#fff}
+</style>
+
+<a href="index.html" class="back-link">← 返回入口</a>
+
+<div class="top">
+  <div class="logo"><i></i>核桃编程</div>
+  <div class="head">
+    <div class="h-left kx">和老师玩个游戏吧~</div>
+    <div class="h-q kx"><span class="h-mark">?</span>看看哪个杯子先装满？</div>
+  </div>
+</div>
+<div class="stage"><svg id="svg" viewBox="60 290 1800 720" xmlns="http://www.w3.org/2000/svg"></svg></div>
+<div class="guess" id="guess"></div>
+<div class="hint" id="hint">先猜一个你觉得会先满的杯子，再点「开始放水」💦</div>
+<div class="bar" id="bar"></div>
+
+<script src="record.js"></script>
+<script>
+const svg=document.getElementById('svg');
+/* ================= 按原图坐标逐线复刻（1920×1040 坐标系）=================
+   题目由 5 个开关组成，同一套图形，只换"哪里封了 / 哪个杯底有洞"：
+   cap4  ③→④ 水管尽头封死      seal6 ②→⑥ 接口封住
+   leak4/leak5/leak6/leak7 对应杯底有洞（漏光）
+   原题 = {cap4:1,seal6:1,leak7:1} → 答案 ⑤ */
+const ORIGINAL={cap4:1,seal6:1,leak4:0,leak5:0,leak6:0,leak7:1};
+let V={...ORIGINAL};
+
+const CUPS={4:{x:355,y:870,w:150,h:115},5:{x:720,y:750,w:145,h:125},6:{x:975,y:765,w:145,h:110},7:{x:1410,y:705,w:140,h:125}};
+const NUMS={1:[915,545],2:[1190,642],3:[640,668],4:[430,940],5:[792,815],6:[1047,822],7:[1480,770]};
+const FILL_MS={4:2000,5:2200,6:1900,7:2300};   // 杯子装满耗时（按容量）
+
+function edges(v){
+  const E=[
+    'M860 490 L860 545','M860 575 L860 610 L970 610 L970 545','M970 520 L970 490',      // ①（两侧出水口）
+    'M860 545 L625 545 L625 610','M860 575 L660 575 L660 610',                         // ①→③
+    'M970 520 L1200 520 L1200 575','M970 545 L1170 545 L1170 575',                     // ①→②
+    'M580 620 L580 690','M580 710 L580 730 L700 730 L700 690','M700 650 L700 620',      // ③
+    'M580 690 L415 690 L415 890','M580 710 L440 710 L440 890',                         // ③→④
+    'M700 650 L810 650 L810 750','M700 690 L780 690 L780 750',                         // ③→⑤
+    'M1260 630 L1260 580','M1260 710 L1260 655',                                       // ② 右墙（出水口）
+    'M1120 690 L1035 690 L1035 770','M1260 710 L1070 710 L1070 770',                   // ②→⑥
+    'M1260 630 L1495 630 L1495 700','M1260 655 L1460 655 L1460 700'                    // ②→⑦
+  ];
+  if(v.cap4)E.push('M415 890 L440 890');                                                  // ④ 管口封死
+  E.push(v.seal6?'M1120 580 L1120 710':'M1120 580 L1120 690');                            // ② 左墙：画满=封住⑥口
+  for(const n in CUPS){const c=CUPS[n],f=c.y+c.h,m=c.x+c.w/2;
+    E.push(v['leak'+n]?`M${c.x} ${c.y} L${c.x} ${f} L${m-17} ${f}`:`M${c.x} ${c.y} L${c.x} ${f} L${c.x+c.w} ${f} L${c.x+c.w} ${c.y}`);
+    if(v['leak'+n])E.push(`M${m+17} ${f} L${c.x+c.w} ${f} L${c.x+c.w} ${c.y}`);}
+  return E.filter(Boolean);
+}
+/* 水流中心线 */
+const FLOWS={
+  f0:{d:'M915 418 L915 505',w:12},
+  f1:{d:'M858 560 L642 560 L642 618',w:26},
+  f2:{d:'M972 532 L1185 532 L1185 580',w:22},
+  f3cap:{d:'M578 700 L428 700 L428 886',w:20}, f3:{d:'M578 700 L428 700 L428 905',w:20},
+  f4:{d:'M702 670 L795 670 L795 754',w:28},
+  f5:{d:'M1122 700 L1052 700 L1052 800',w:20},
+  f6:{d:'M1262 642 L1478 642 L1478 704',w:22},
+  lk4:{d:'M430 987 L430 1060',w:14},lk5:{d:'M792 877 L792 950',w:14},lk6:{d:'M1047 877 L1047 950',w:14},lk7:{d:'M1480 832 L1480 905',w:14}
+};
+const POOLS={
+  c1:{x:865,w:100,b:606,h:60}, c3:{x:585,w:110,b:726,h:74}, c2:{x:1125,w:130,b:706,h:52},
+  4:{x:360,w:140,b:981,h:108},5:{x:725,w:135,b:871,h:118},6:{x:980,w:135,b:871,h:104},7:{x:1415,w:130,b:826,h:120}
+};
+
+function draw(){
+  let g=`<g>
+    <rect x="905" y="308" width="110" height="18" rx="9" fill="#fff" stroke="#333" stroke-width="8"/>
+    <rect x="952" y="322" width="16" height="32" fill="#fff" stroke="#333" stroke-width="8"/>
+    <rect x="893" y="352" width="44" height="66" rx="8" fill="#fff" stroke="#333" stroke-width="8"/>
+    <rect x="930" y="352" width="100" height="44" rx="10" fill="#fff" stroke="#333" stroke-width="8"/>
+    <rect x="1010" y="360" width="38" height="28" rx="6" fill="#fff" stroke="#333" stroke-width="8"/>
+    <rect x="899" y="400" width="32" height="14" fill="var(--water)"/>
+    <path class="drip" d="M915 428 q9 12 0 22 q-9 -10 0 -22z" fill="#fff" stroke="#333" stroke-width="5"/>
+  </g>`;
+  for(const k in POOLS){const p=POOLS[k]; g+=`<rect class="wf" id="p${k}" x="${p.x}" y="${p.b}" width="${p.w}" height="0"/>`;}
+  for(const id in FLOWS){const f=FLOWS[id]; g+=`<path class="w" id="${id}" d="${f.d}" stroke-width="${f.w}"/>`;}
+  edges(V).forEach(d=> g+=`<path class="e" d="${d}"/>`);
+  for(const n in CUPS){const c=CUPS[n]; g+=`<rect class="ring" id="ring${n}" x="${c.x-10}" y="${c.y-10}" width="${c.w+20}" height="${c.h+20}" rx="12"/>`;}
+  for(const n in NUMS){const[x,y]=NUMS[n]; g+=`<g class="num"><circle cx="${x}" cy="${y}" r="30"/><text x="${x}" y="${y+14}" text-anchor="middle">${n}</text></g>`;}
+  svg.innerHTML=g;
+}
+
+/* ===== 按开关推演时间线（同一套物理规则：低口先出水，杯满水位才继续涨） ===== */
+function plan(v){
+  const ev=[],done={};                                   // ev:[type,args,t]
+  const flow=(id,dur,t)=>ev.push(['flow',id,dur,t]);
+  const fill=(k,h,dur,t)=>ev.push(['fill',k,h,dur,t]);
+  const leak=(n,t)=>ev.push(['leak','lk'+n,t]);
+  const cup=(n,t)=>{ if(v['leak'+n]){fill(n,8,300,t);leak(n,t+200);return null;} fill(n,POOLS[n].h,FILL_MS[n],t); done[n]=t+FILL_MS[n]; return done[n]; };
+  flow('f0',400,0); fill('c1',60,1200,400);
+  /* 左支：①→③ */
+  flow('f1',700,1020); fill('c3',74,1100,1720);
+  /* 规则（官方题口径）：口子通就出水，两个口一起流；漏洞只影响自己那只杯 */
+  if(v.cap4){ flow('f3cap',800,1960); } else { flow('f3',900,1960); cup(4,2860); }
+  flow('f4',600,2260); cup(5,2860);
+  /* 右支：①→② */
+  flow('f2',700,1600); fill('c2',52,1000,2300);
+  if(!v.seal6){ flow('f5',500,2600); cup(6,3100); }
+  flow('f6',700,3300); cup(7,4000);
+  const order=Object.entries(done).sort((a,b)=>a[1]-b[1]);
+  return {ev,done,win:order.length?+order[0][0]:null,gap:order.length>1?order[1][1]-order[0][1]:1e9};
+}
+/* 可出题的开关组合：有且只有一个明显先满的杯子 */
+const KEYS=['cap4','seal6','leak4','leak5','leak6','leak7'];
+const VARIANTS=[];
+for(let m=0;m<64;m++){const v={};KEYS.forEach((k,i)=>v[k]=(m>>i)&1);const p=plan(v);if(p.win!=null&&p.gap>=400)VARIANTS.push(v);}
+
+let guess=null,running=false,answered=false,timers=[],P=null;
+const guessEl=document.getElementById('guess'),bar=document.getElementById('bar'),hint=document.getElementById('hint');
+[1,2,3,4,5,6,7].forEach(n=>{const b=document.createElement('button');b.className='gb';b.textContent=n;
+  b.onclick=()=>{if(running||answered)return;guess=n;[...guessEl.children].forEach(x=>x.classList.remove('sel'));b.classList.add('sel');
+    hint.innerHTML='你猜 <b>'+n+'</b> 号——点「开始放水」看看对不对！💦';};
+  guessEl.appendChild(b);});
+function mkBtn(t,c,fn){const b=document.createElement('button');b.className='btn '+(c||'');b.textContent=t;b.onclick=fn;return b;}
+function setBar(){bar.innerHTML='';
+  if(!running&&!answered)bar.appendChild(mkBtn('💦 开始放水','',()=>qnNameGate('哪个杯子先装满', function(){ qnRecordStart('哪个杯子先装满'); run(); })));
+  bar.appendChild(mkBtn('🔄 重置','gn',()=>reset(V)));
+  bar.appendChild(mkBtn('🎲 随机换题','pu',random));}
+
+/* 水沿槽"流进去"：先摆好起点并强制重排，再启动过渡 → 有从槽口一路推进的过程 */
+function flow(id,dur,delay){timers.push(setTimeout(()=>{
+  const f=document.getElementById(id);const L=f.getTotalLength();
+  f.style.transition='none';
+  f.style.strokeDasharray=L;f.style.strokeDashoffset=L;f.style.visibility='visible';
+  void f.getBoundingClientRect();
+  f.style.transition=`stroke-dashoffset ${dur}ms linear`;
+  f.style.strokeDashoffset=0;
+},delay));}
+/* 容器/杯 水位一点点涨 */
+function fill(k,h,dur,delay){timers.push(setTimeout(()=>{
+  const p=POOLS[k],r=document.getElementById('p'+k);
+  void r.getBoundingClientRect();
+  r.style.transition=`height ${dur}ms linear, y ${dur}ms linear`;
+  r.setAttribute('height',h);r.setAttribute('y',p.b-h);
+},delay));}
+function leakOn(id,delay){timers.push(setTimeout(()=>{const f=document.getElementById(id);f.style.visibility='visible';f.style.strokeDasharray='18 22';f.classList.add('leak');},delay));}
+
+function run(){
+  if(running||answered)return;running=true;setBar();
+  hint.textContent='水流下来啦……顺着水槽看：哪些口子被封住了？哪个杯底有洞？';
+  P=plan(V);
+  P.ev.forEach(e=>{ if(e[0]==='flow')flow(e[1],e[2],e[3]); else if(e[0]==='fill')fill(e[1],e[2],e[3],e[4]); else leakOn(e[1],e[2]); });
+  timers.push(setTimeout(()=>finish(P.win),P.done[P.win]+400));
+}
+function why(v){const r=[];
+  r.push(v.cap4?'④的水管尽头<b>封死</b>':'③的两个口都<b>通</b>，④⑤一起进水');
+  r.push(v.seal6?'②通往⑥的口<b>封住</b>':'②的两个口都<b>通</b>，⑥⑦一起进水');
+  [4,5,6,7].filter(n=>v['leak'+n]).forEach(n=>r.push(`${'①②③④⑤⑥⑦'[n-1]}杯底<b>有洞</b>漏光`));
+  return r.join('，');}
+function finish(win){
+  running=false;answered=true;setBar();
+  const ring=document.getElementById('ring'+win);ring.style.opacity='1';ring.style.animation='pulse 1s infinite';
+  const ok=guess===win;
+  qnRecordFinish((ok?'猜对 · ':'未猜中 · ')+'答案'+win+'号杯');
+  hint.innerHTML=(ok?'🎉 猜对啦！<b>'+win+'</b> 号最先满——':'答案是 <b>'+win+'</b> 号～ 顺着水槽走一遍：')+why(V)+'，所以 <b>'+win+'</b> 号最先装满！';
+  if(ok)burst();
+}
+function reset(v){timers.forEach(clearTimeout);timers=[];guess=null;running=false;answered=false;V={...v};draw();
+  guessEl.querySelectorAll('.gb').forEach(x=>x.classList.remove('sel'));
+  hint.innerHTML='先猜一个你觉得会先满的杯子，再点「开始放水」💦';setBar();}
+function random(){const pool=VARIANTS.filter(v=>KEYS.some(k=>v[k]!==V[k]));reset(pool[Math.floor(Math.random()*pool.length)]);
+  hint.innerHTML='🎲 新题来了！哪里封住了？哪个杯底有洞？先猜再点「开始放水」💦';}
+reset(ORIGINAL);
+const st=document.createElement('style');st.textContent='@keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}';document.head.appendChild(st);
+function burst(){const em=['🎉','💧','⭐','✨','🎊'];for(let i=0;i<22;i++){const d=document.createElement('div');d.className='confetti';d.textContent=em[i%5];d.style.left=Math.random()*100+'vw';d.style.animationDelay=Math.random()*.5+'s';document.body.appendChild(d);setTimeout(()=>d.remove(),2200);}}
+</script>
