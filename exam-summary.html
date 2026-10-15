@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>考试成绩汇总 · 培训老师专用</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif; background:linear-gradient(135deg,#1e3c72 0%,#2a5298 100%); min-height:100vh; color:#1f2937; padding:20px 12px 60px; }
+  .wrap { max-width:760px; margin:0 auto; }
+  .head { color:#fff; text-align:center; padding:8px 0 16px; }
+  .head h1 { font-size:22px; }
+  .head p { opacity:.85; font-size:13px; margin-top:6px; }
+  .card { background:#fff; border-radius:16px; padding:20px 16px; box-shadow:0 8px 24px rgba(0,0,0,.18); margin-bottom:16px; }
+  .card h3 { font-size:15px; margin-bottom:8px; color:#333; }
+  .card .d { font-size:12.5px; color:#888; line-height:1.7; margin-bottom:10px; }
+  #raw { width:100%; height:130px; border:2px solid #dfe6f2; border-radius:10px; padding:10px 12px; font-size:13px; outline:none; resize:vertical; }
+  .btns { display:flex; gap:10px; margin-top:10px; }
+  .btns button { flex:1; padding:11px; border:none; border-radius:10px; font-size:14px; font-weight:bold; cursor:pointer; }
+  .b-p { background:#2a5298; color:#fff; } .b-g { background:#eef1f6; color:#555; }
+  .sum { display:flex; gap:14px; justify-content:center; margin-bottom:12px; }
+  .sum .it { text-align:center; background:#f6f8fc; border-radius:10px; padding:8px 14px; }
+  .sum .it .v { font-size:20px; font-weight:bold; color:#2a5298; }
+  .sum .it .k { font-size:11px; color:#999; }
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  th, td { border-bottom:1px solid #eef1f6; padding:8px 6px; text-align:left; }
+  th { color:#999; font-size:12px; background:#fafbfd; }
+  td.num { text-align:right; }
+  .pass { color:#2eaf64; font-weight:bold; } .fail { color:#e05252; font-weight:bold; }
+  .empty { text-align:center; color:#bbb; font-size:13px; padding:18px 0; }
+  .exam-tag { display:inline-block; font-size:11px; border-radius:5px; padding:1px 7px; background:#eef3ff; color:#2a5298; margin-left:6px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="head">
+    <h1>考试成绩汇总</h1>
+    <p>把答题人发来的成绩文本粘进来 → 解析入库 → 导出 Excel</p>
+  </div>
+
+  <div class="card">
+    <h3>① 粘贴成绩</h3>
+    <div class="d">答题人交卷后点「复制成绩，发给培训老师」，把发来的文本粘贴到下面，可一次粘多条（每人一条）。</div>
+    <textarea id="raw" placeholder="例：&#10;【赛考体系小测】张三 96.7分 97% 通过 10-15 14:30&#10;【通识类小测】李四 73.3分 73% 未通过 10-15 15:02"></textarea>
+    <div class="btns">
+      <button class="b-p" id="parse">解析并加入汇总</button>
+      <button class="b-g" id="export">导出 Excel（CSV）</button>
+      <button class="b-g" id="clear">清空汇总</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>② 汇总结果</h3>
+    <div class="sum">
+      <div class="it"><div class="v" id="s-n">0</div><div class="k">人次</div></div>
+      <div class="it"><div class="v" id="s-p">0</div><div class="k">通过(≥80)</div></div>
+      <div class="it"><div class="v" id="s-f">0</div><div class="k">未通过</div></div>
+      <div class="it"><div class="v" id="s-a">--</div><div class="k">平均分</div></div>
+    </div>
+    <div id="table-wrap"><div class="empty">还没有数据，先粘贴解析一条成绩</div></div>
+  </div>
+</div>
+<script>
+const KEY = 'qc_exam_summary';
+function loadAll(){ try { return JSON.parse(localStorage.getItem(KEY) || '[]'); } catch(e){ return []; } }
+function saveAll(list){ localStorage.setItem(KEY, JSON.stringify(list)); }
+
+// 解析一行：【考试名】姓名 X分 Y% (不)通过 M-D HH:MM
+const RE = /【(.+?)】\s*([^【】\s]+)\s+([\d.]+)分\s+([\d.]+)%\s+(通过|未通过)(?:\s+(\d{1,2}-\d{1,2}\s+\d{1,2}:\d{2}))?/;
+function parseText(text){
+  const rows = [];
+  for (const line of text.split(/\n+/)){
+    const m = line.match(RE);
+    if (m) rows.push({ exam: m[1], name: m[2], score: parseFloat(m[3]), acc: parseFloat(m[4]), pass: m[5]==='通过', time: m[6] || '' });
+  }
+  return rows;
+}
+
+function render(){
+  const list = loadAll();
+  document.getElementById('s-n').textContent = list.length;
+  document.getElementById('s-p').textContent = list.filter(r=>r.pass).length;
+  document.getElementById('s-f').textContent = list.filter(r=>!r.pass).length;
+  document.getElementById('s-a').textContent = list.length ? (list.reduce((s,r)=>s+r.score,0)/list.length).toFixed(1) : '--';
+  const wrap = document.getElementById('table-wrap');
+  if (!list.length){ wrap.innerHTML = '<div class="empty">还没有数据，先粘贴解析一条成绩</div>'; return; }
+  wrap.innerHTML = '<table><thead><tr><th>姓名</th><th>考试</th><th style="text-align:right;">分数</th><th style="text-align:right;">正确率</th><th style="text-align:right;">结果</th><th style="text-align:right;">时间</th></tr></thead><tbody>'
+    + list.map(r=>'<tr><td>'+esc(r.name)+'</td><td>'+esc(r.exam)+'</td><td class="num">'+r.score+'</td><td class="num">'+r.acc+'%</td><td class="num '+(r.pass?'pass':'fail')+'">'+(r.pass?'通过':'未通过')+'</td><td class="num">'+esc(r.time)+'</td></tr>').join('')
+    + '</tbody></table>';
+}
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+document.getElementById('parse').onclick = function(){
+  const text = document.getElementById('raw').value;
+  const rows = parseText(text);
+  if (!rows.length){ alert('没有识别到成绩行。确认格式如：【赛考体系小测】张三 96.7分 97% 通过 10-15 14:30'); return; }
+  const list = loadAll();
+  list.unshift(...rows);
+  saveAll(list);
+  document.getElementById('raw').value = '';
+  render();
+};
+document.getElementById('clear').onclick = function(){
+  if (confirm('确定清空全部汇总数据？')) { saveAll([]); render(); }
+};
+document.getElementById('export').onclick = function(){
+  const list = loadAll();
+  if (!list.length){ alert('暂无数据'); return; }
+  let csv = '\ufeff姓名,考试,分数,正确率,结果,时间\n';
+  list.forEach(r=>{ csv += r.name + ',' + r.exam + ',' + r.score + ',' + r.acc + '%,' + (r.pass?'通过':'未通过') + ',' + r.time + '\n'; });
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = '考试成绩汇总.csv';
+  a.click();
+};
+
+render();
+</script>
+</body>
+</html>
