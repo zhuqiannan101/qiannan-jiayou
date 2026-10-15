@@ -433,13 +433,19 @@ function quitQuiz() {
   if (confirm('确定退出本次刷题吗？当前进度不会保存。')) showPage('page-home');
 }
 
-fetch('quiz_data.json').then(r => r.json()).then(d => {
-  TOPICS = d;
-  renderTopics();
-}).catch(e => {
-  document.getElementById('topic-list').innerHTML =
-    '<div style="color:#e05252;padding:20px;">题库数据加载失败：' + e.message + '</div>';
-});
+(function(){
+  var el = document.getElementById('topic-list');
+  el.innerHTML = '<div style="color:#666;padding:20px;font-size:15px;">⏳ 正在加载题库（约 14MB，视网速需几秒到一分钟，请勿关闭页面）…</div>';
+  fetch('quiz_data.json').then(function(r){
+    if (!r.ok) throw new Error('数据文件 HTTP ' + r.status + '（若为404说明 quiz_data.json 未上传成功）');
+    return r.json();
+  }).then(function(d){
+    TOPICS = d;
+    renderTopics();
+  }).catch(function(e){
+    el.innerHTML = '<div style="color:#e05252;padding:20px;font-size:15px;">❌ 题库加载失败：' + e.message + '<br>请确认仓库里已上传 quiz_data.json，或稍后刷新重试。</div>';
+  });
+})();
 </script>
 </body>
 </html>
