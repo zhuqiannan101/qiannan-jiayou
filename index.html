@@ -116,14 +116,14 @@
 <div class="container">
   <div class="header">
     <h1>趣C刷题</h1>
-    <p>C++ 培训知识点 · 每次随机 20 题 · 答错即时讲解 · 最后出分</p>
+    <p>C++ 培训知识点 · 每次随机 25 题 · 答错即时讲解 · 最后出分</p>
   </div>
 
   <!-- 页面1：选择知识点 -->
   <div id="page-home" class="page active">
     <div class="card">
       <div style="font-size:16px;font-weight:bold;margin-bottom:4px;">今天想刷哪个知识点？</div>
-      <div style="font-size:13px;color:#999;margin-bottom:14px;">点击卡片开始，每次从该知识点的题库中随机抽取 20 题</div>
+      <div style="font-size:13px;color:#999;margin-bottom:14px;">点击卡片开始，每次从该知识点的题库中随机抽取 25 题</div>
       <div id="topic-list" class="topic-list"></div>
     </div>
   </div>
@@ -674,7 +674,7 @@ function renderTopics() {
       <div class="t-id">${String(t.id).padStart(2, '0')}</div>
       <div class="t-body">
         <div class="t-name">${t.name}</div>
-        <div class="t-meta">${t.questions.length} 题 · 每次抽 20 题</div>
+        <div class="t-meta">${t.questions.length} 题 · 每次抽 25 题</div>
       </div>
     </div>`).join('');
 }
@@ -715,7 +715,7 @@ function fmtDuration(sec) {
 function startQuiz(topicId) {
   const topic = TOPICS.find(t => t.id === topicId);
   currentTopicId = topicId;
-  quizList = shuffle(topic.questions).slice(0, 20);
+  quizList = shuffle(topic.questions).slice(0, 25);
   current = 0; rightCnt = 0; wrongList = [];
   startTime = new Date();
   endTime = null;
@@ -783,7 +783,7 @@ function showResult() {
   document.getElementById('stat-total').textContent = total;
   document.getElementById('stat-right').textContent = rightCnt;
   document.getElementById('stat-wrong').textContent = total - rightCnt;
-  const points = rightCnt * 5;
+  const points = rightCnt * 4;
   document.getElementById('stat-points').textContent = points;
   document.getElementById('stat-time-start').textContent = fmtTime(startTime);
   document.getElementById('stat-time-end').textContent = fmtTime(endTime);
