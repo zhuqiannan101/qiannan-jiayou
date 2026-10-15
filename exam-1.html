@@ -66,7 +66,7 @@
 <div class="wrap">
   <div class="head">
     <h1>赛考体系小测</h1>
-    <p>范围：QC核桃编程赛考体系必知必会 · 交卷自动记录成绩 · 90 分及格</p>
+    <p>范围：QC核桃编程赛考体系必知必会 · 交卷自动记录成绩 · 80 分及格</p>
     <div class="meta"><span>共 <b>30</b> 题</span><span>满分 <b>100</b> 分</span><span>建议 <b>40</b> 分钟</span></div>
   </div>
 
@@ -94,6 +94,10 @@
     <div class="msg" id="rmsg"></div>
     <div class="review" id="review"></div>
     <div class="btns"><button class="b1" onclick="location.reload()">重考一次</button><button class="b2" onclick="reviewAll()">查看整卷</button></div>
+    <div style="margin-top:14px;text-align:center;">
+      <button id="copy-score" style="width:100%;padding:13px;border:none;border-radius:10px;background:#e6a23c;color:#fff;font-size:15px;font-weight:bold;cursor:pointer;">📋 复制成绩，发给培训老师</button>
+      <div id="copy-tip" style="font-size:12px;color:#2eaf64;margin-top:6px;display:none;">✔ 已复制，去微信/飞书粘贴发送即可</div>
+    </div>
   </div>
 
   <!-- 成绩单页 -->
@@ -553,7 +557,7 @@ function renderRecords(){
   const el = document.getElementById('rec-list');
   if (!list.length){ el.innerHTML = '<div style="text-align:center;color:#999;font-size:13px;padding:16px 0;">暂无考试记录，考完第一份成绩就会出现在这里</div>'; return; }
   el.innerHTML = list.map((r,i)=>{
-    const pass = r.score >= 90;
+    const pass = r.score >= 80;
     return '<div class="rec-item"><div class="rn">'+esc(r.name)+'<div class="'+(pass?'rec-pass':'rec-fail')+'">'+(pass?'✔ 通过':'✘ 未通过')+'</div></div>'
       + '<div class="rp">'+r.acc+'%</div>'
       + '<div class="rs">'+r.score+'分</div>'
@@ -641,12 +645,13 @@ function submit(){
   const timer = setInterval(()=>{ cur += Math.max(1, Math.round(score/30)); if (cur>=score){cur=score;clearInterval(timer);} document.getElementById('rv').textContent = cur; }, 30);
   let msg;
   if (acc===100) msg='满分！完全掌握。';
-  else if (acc>=90) msg='通过！非常优秀，只差一点点。';
-  else if (acc>=80) msg='接近通过线（90），重点巩固下面的错题。';
-  else if (acc>=60) msg='未通过（及格线 90），请认真复习错题后重考。';
+  else if (acc>=90) msg='通过！非常优秀。';
+  else if (acc>=80) msg='通过！基础扎实，巩固错题再冲高分。';
+  else if (acc>=60) msg='未通过（及格线 80），请认真复习错题后重考。';
   else msg='未通过，请回课件复训后再考。';
   document.getElementById('rmsg').textContent = msg;
   saveRecord({ name: studentName, score, acc, time: fmtNow() });
+  _lastResult = { exam: document.querySelector('.head h1').textContent, name: studentName, score, acc, pass: acc>=80, time: fmtNow() };
   window._review = review;
   renderReview(review.filter(r=>!r.ok));
   showPage('result');
@@ -676,6 +681,25 @@ function reviewAll(){
   }).join('');
 }
 
+/* ---------- 成绩复制 ---------- */
+let _lastResult = null;
+function copyScore(){
+  if (!_lastResult) return;
+  const line = '【' + _lastResult.exam + '】' + _lastResult.name + ' ' + _lastResult.score + '分 '
+    + _lastResult.acc + '% ' + (_lastResult.pass ? '通过' : '未通过') + ' ' + _lastResult.time;
+  const done = () => { const t = document.getElementById('copy-tip'); t.style.display='block'; setTimeout(()=>t.style.display='none', 3000); };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(line).then(done).catch(()=>fallbackCopy(line, done));
+  } else fallbackCopy(line, done);
+}
+function fallbackCopy(text, done){
+  const ta = document.createElement('textarea');
+  ta.value = text; ta.style.position='fixed'; ta.style.opacity='0';
+  document.body.appendChild(ta); ta.select();
+  try { document.execCommand('copy'); done(); } catch(e){ window.prompt('请手动复制：', text); }
+  document.body.removeChild(ta);
+}
+
 /* ---------- 启动 ---------- */
 document.getElementById('name-btn').onclick = function(){
   const v = document.getElementById('stu-name').value.trim();
@@ -685,6 +709,7 @@ document.getElementById('name-btn').onclick = function(){
 };
 document.getElementById('stu-name').addEventListener('keydown', e=>{ if (e.key==='Enter') document.getElementById('name-btn').click(); });
 document.getElementById('view-rec').onclick = function(){ renderRecords(); showPage('records'); };
+document.getElementById('copy-score').onclick = copyScore;
 document.getElementById('rec-clear').onclick = function(){
   if (confirm('确定清空本机的全部考试记录？')) { localStorage.removeItem(EXAM_KEY); renderRecords(); }
 };
