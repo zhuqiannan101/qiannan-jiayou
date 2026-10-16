@@ -18,7 +18,7 @@
   .name-wrap { text-align:center; }
   .name-wrap .t { font-size:18px; font-weight:bold; margin-bottom:6px; }
   .name-wrap .d { font-size:13px; color:#999; margin-bottom:16px; }
-  #stu-name { width:70%; padding:12px 16px; font-size:16px; border:2px solid #2a5298; border-radius:10px; outline:none; text-align:center; }
+  #stu-name { padding:12px 16px; font-size:16px; border:2px solid #2a5298; border-radius:10px; outline:none; text-align:center; }
   .name-btn { margin-top:16px; padding:12px 40px; border:none; border-radius:10px; font-size:16px; font-weight:bold; background:#2a5298; color:#fff; cursor:pointer; }
   .sec { font-size:15px; font-weight:bold; color:#2a5298; border-left:4px solid #2a5298; padding-left:10px; margin:20px 0 10px; }
   .q { margin-bottom:16px; }
@@ -66,15 +66,23 @@
 <div class="wrap">
   <div class="head">
     <h1>赛考体系小测</h1>
-    <p>范围：QC核桃编程赛考体系必知必会 · 交卷自动记录成绩 · 80 分及格</p>
-    <div class="meta"><span>共 <b>30</b> 题</span><span>满分 <b>100</b> 分</span><span>建议 <b>40</b> 分钟</span></div>
+    <div class="meta"><span>共 <b>30</b> 题</span><span>满分 <b>100</b> 分</span><span><b>80</b> 分及格</span><span>建议 <b>40</b> 分钟</span></div>
   </div>
 
   <!-- 姓名页 -->
   <div class="card name-wrap" id="page-name">
-    <div class="t">考试前，请输入你的姓名</div>
-    <div class="d">姓名会记录在成绩单里，交卷后自动保存</div>
-    <input id="stu-name" type="text" placeholder="请输入姓名" maxlength="20">
+    <div class="t">考试前，请填写你的信息</div>
+    <div class="d">姓名与职场会记录在成绩单里，交卷后自动保存</div>
+    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+      <input id="stu-name" type="text" placeholder="请输入姓名" maxlength="20" style="width:210px;">
+      <select id="stu-site" style="padding:12px 14px;font-size:16px;border:2px solid #2a5298;border-radius:10px;outline:none;background:#fff;">
+        <option value="">选择职场</option>
+        <option value="汇诚">汇诚</option>
+        <option value="国润">国润</option>
+        <option value="武汉">武汉</option>
+        <option value="长春">长春</option>
+      </select>
+    </div>
     <div><button class="name-btn" id="name-btn">确认，开始考试</button></div>
   </div>
 
@@ -537,6 +545,7 @@ const LETTERS = ['A','B','C','D','E','F'];
 const answers = {};
 let submitted = false;
 let studentName = '';
+let studentSite = '';
 
 function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function ansOf(q){ return Array.isArray(q.a) ? q.a : [q.a]; }
@@ -562,7 +571,7 @@ function renderRecords(){
   if (!list.length){ el.innerHTML = '<div style="text-align:center;color:#999;font-size:13px;padding:16px 0;">暂无考试记录，考完第一份成绩就会出现在这里</div>'; return; }
   el.innerHTML = list.map((r,i)=>{
     const pass = r.score >= 80;
-    return '<div class="rec-item"><div class="rn">'+esc(r.name)+'<div class="'+(pass?'rec-pass':'rec-fail')+'">'+(pass?'✔ 通过':'✘ 未通过')+'</div></div>'
+    return '<div class="rec-item"><div class="rn">'+esc(r.name)+'（'+esc(r.site||'-')+'）<div class="'+(pass?'rec-pass':'rec-fail')+'">'+(pass?'✔ 通过':'✘ 未通过')+'</div></div>'
       + '<div class="rp">'+r.acc+'%</div>'
       + '<div class="rs">'+r.score+'分</div>'
       + '<div class="rt">'+esc(r.time)+'</div></div>';
@@ -642,7 +651,7 @@ function submit(){
   document.getElementById('st-r').textContent = right;
   document.getElementById('st-w').textContent = total-right;
   document.getElementById('st-a').textContent = acc+'%';
-  document.getElementById('rwho').innerHTML = '答题人：<b>'+esc(studentName)+'</b> · 成绩已记录';
+  document.getElementById('rwho').innerHTML = '答题人：<b>'+esc(studentName)+'</b>（'+esc(studentSite)+'） · 成绩已记录';
   const ring = document.querySelector('#result .ring');
   ring.style.setProperty('--p', acc+'%');
   let cur = 0;
@@ -654,8 +663,8 @@ function submit(){
   else if (acc>=60) msg='未通过（及格线 80），请认真复习错题后重考。';
   else msg='未通过，请回课件复训后再考。';
   document.getElementById('rmsg').textContent = msg;
-  saveRecord({ name: studentName, score, acc, time: fmtNow() });
-  _lastResult = { exam: document.querySelector('.head h1').textContent, name: studentName, score, acc, pass: acc>=80, time: fmtNow() };
+  saveRecord({ name: studentName, site: studentSite, score, acc, time: fmtNow() });
+  _lastResult = { exam: document.querySelector('.head h1').textContent, name: studentName, site: studentSite, score, acc, pass: acc>=80, time: fmtNow() };
   pushToGitHub(_lastResult);
   window._review = review;
   renderReview(review.filter(r=>!r.ok));
@@ -720,7 +729,7 @@ function pushToGitHub(rec){
 let _lastResult = null;
 function copyScore(){
   if (!_lastResult) return;
-  const line = '【' + _lastResult.exam + '】' + _lastResult.name + ' ' + _lastResult.score + '分 '
+  const line = '【' + _lastResult.exam + '】' + _lastResult.name + '（' + _lastResult.site + '） ' + _lastResult.score + '分 '
     + _lastResult.acc + '% ' + (_lastResult.pass ? '通过' : '未通过') + ' ' + _lastResult.time;
   const done = () => { const t = document.getElementById('copy-tip'); t.textContent='✔ 已复制，去微信/飞书粘贴发送即可'; t.style.color='#2eaf64'; t.style.display='block'; setTimeout(()=>t.style.display='none', 3000); };
   if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -738,8 +747,11 @@ function fallbackCopy(text, done){
 /* ---------- 启动 ---------- */
 document.getElementById('name-btn').onclick = function(){
   const v = document.getElementById('stu-name').value.trim();
+  const site = document.getElementById('stu-site').value;
   if (!v){ alert('请输入你的姓名哦～'); return; }
+  if (!site){ alert('请选择你的职场哦～'); return; }
   studentName = v;
+  studentSite = site;
   showPage('paper');
 };
 document.getElementById('stu-name').addEventListener('keydown', e=>{ if (e.key==='Enter') document.getElementById('name-btn').click(); });
