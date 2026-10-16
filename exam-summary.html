@@ -101,14 +101,26 @@ function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').rep
 document.getElementById('fetch').onclick = function(){
   const btn = document.getElementById('fetch');
   btn.textContent = '⏳ 拉取中…'; btn.disabled = true;
-  fetch('https://api.github.com/repos/' + GH_REPO + '/contents/' + GH_PATH + '?ref=main&t=' + Date.now(), {
+  fetch('https://api.github.com/repos/' + GH_REPO + '/contents/results?ref=main&t=' + Date.now(), {
     headers: { 'Authorization': 'Bearer ' + GH_TOKEN, 'Accept': 'application/vnd.github+json' }
   })
-  .then(r => r.ok ? r.json() : (r.status === 404 ? {content: null} : Promise.reject(r.status)))
-  .then(data => {
-    let list = [];
-    try { list = JSON.parse(decodeURIComponent(escape(atob((data.content || '').replace(/\n/g, '')))) || '[]'); } catch(e) { list = []; }
-    if (!Array.isArray(list)) list = [];
+  .then(r => r.ok ? r.json() : Promise.reject(r.status))
+  .then(async files => {
+    const entries = (Array.isArray(files) ? files : []).filter(x => /^r-.*\.json$/.test(x.name) || x.name === 'scores.json');
+    const list = [];
+    for (const file of entries) {
+      try {
+        const r = await fetch(file.url + '&t=' + Date.now(), { headers: { 'Authorization': 'Bearer ' + GH_TOKEN, 'Accept': 'application/vnd.github+json' } });
+        if (!r.ok) continue;
+        const d = await r.json();
+        let rec = null;
+        try { rec = JSON.parse(decodeURIComponent(escape(atob((d.content || '').replace(/\n/g, '')))) || 'null'); } catch(e) { rec = null; }
+        if (Array.isArray(rec)) { rec.forEach(x => { if (x && x.name) list.push(x); }); }
+        else if (rec && rec.name) list.push(rec);
+      } catch(e) { /* skip bad file */ }
+    }
+    // 按时间倒序：serverTime 新的在前
+    list.sort((a, b) => (b.serverTime || '').localeCompare(a.serverTime || ''));
     localStorage.setItem('qc_exam_server', JSON.stringify(list));
     mergeAndRender(list);
     btn.textContent = '🔄 从线上拉取最新成绩'; btn.disabled = false;
