@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
 <title>考试成绩汇总 · 培训老师专用</title>
 <style>
   * { margin:0; padding:0; box-sizing:border-box; }
@@ -107,23 +108,28 @@ document.getElementById('fetch').onclick = function(){
   .then(r => r.ok ? r.json() : Promise.reject(r.status))
   .then(async files => {
     const entries = (Array.isArray(files) ? files : []).filter(x => /^r-.*\.json$/.test(x.name) || x.name === 'scores.json');
-    const list = [];
-    for (const file of entries) {
+    let failed = 0;
+    const results = await Promise.all(entries.map(async file => {
       try {
         const r = await fetch(file.url + '&t=' + Date.now(), { headers: { 'Authorization': 'Bearer ' + GH_TOKEN, 'Accept': 'application/vnd.github+json' } });
-        if (!r.ok) continue;
+        if (!r.ok) { failed++; return null; }
         const d = await r.json();
         let rec = null;
         try { rec = JSON.parse(decodeURIComponent(escape(atob((d.content || '').replace(/\n/g, '')))) || 'null'); } catch(e) { rec = null; }
-        if (Array.isArray(rec)) { rec.forEach(x => { if (x && x.name) list.push(x); }); }
-        else if (rec && rec.name) list.push(rec);
-      } catch(e) { /* skip bad file */ }
+        return rec;
+      } catch(e) { failed++; return null; }
+    }));
+    const list = [];
+    for (const rec of results) {
+      if (Array.isArray(rec)) { rec.forEach(x => { if (x && x.name) list.push(x); }); }
+      else if (rec && rec.name) list.push(rec);
     }
     // 按时间倒序：serverTime 新的在前
     list.sort((a, b) => (b.serverTime || '').localeCompare(a.serverTime || ''));
     localStorage.setItem('qc_exam_server', JSON.stringify(list));
     mergeAndRender(list);
-    btn.textContent = '🔄 从线上拉取最新成绩'; btn.disabled = false;
+    btn.textContent = failed ? ('⚠ 拉取完成，' + failed + '条失败，请再点一次') : ('🔄 已更新 ' + new Date().toLocaleTimeString('zh-CN', {hour12:false}) + ' · 共' + list.length + '条');
+    btn.disabled = false;
   })
   .catch(err => { alert('拉取失败：' + err); btn.textContent = '🔄 从线上拉取最新成绩'; btn.disabled = false; });
 };
