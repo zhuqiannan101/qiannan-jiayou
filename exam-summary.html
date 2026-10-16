@@ -41,7 +41,7 @@
   <div class="card">
     <h3>① 粘贴成绩</h3>
     <div class="d">答题人交卷后点「复制成绩，发给培训老师」，把发来的文本粘贴到下面，可一次粘多条（每人一条）。</div>
-    <textarea id="raw" placeholder="例：&#10;【赛考体系小测】张三 96.7分 97% 通过 10-15 14:30&#10;【通识类小测】李四 73.3分 73% 未通过 10-15 15:02"></textarea>
+    <textarea id="raw" placeholder="例：&#10;【赛考体系小测】张三（汇诚） 96.7分 97% 通过 10-15 14:30&#10;【通识类小测】李四（武汉） 73.3分 73% 未通过 10-15 15:02"></textarea>
     <div class="btns">
       <button class="b-p" id="fetch">🔄 从线上拉取最新成绩</button>
       <button class="b-p" id="parse">粘贴解析（备用）</button>
@@ -71,12 +71,12 @@ function loadAll(){ try { return JSON.parse(localStorage.getItem(KEY) || '[]'); 
 function saveAll(list){ localStorage.setItem(KEY, JSON.stringify(list)); }
 
 // 解析一行：【考试名】姓名 X分 Y% (不)通过 M-D HH:MM
-const RE = /【(.+?)】\s*([^【】\s]+)\s+([\d.]+)分\s+([\d.]+)%\s+(通过|未通过)(?:\s+(\d{1,2}-\d{1,2}\s+\d{1,2}:\d{2}))?/;
+const RE = /【(.+?)】\s*([^【】\s（]+)(?:（(.+?)）)?\s+([\d.]+)分\s+([\d.]+)%\s+(通过|未通过)(?:\s+(\d{1,2}-\d{1,2}\s+\d{1,2}:\d{2}))?/;
 function parseText(text){
   const rows = [];
   for (const line of text.split(/\n+/)){
     const m = line.match(RE);
-    if (m) rows.push({ exam: m[1], name: m[2], score: parseFloat(m[3]), acc: parseFloat(m[4]), pass: m[5]==='通过', time: m[6] || '' });
+    if (m) rows.push({ exam: m[1], name: m[2], site: m[3] || '', score: parseFloat(m[4]), acc: parseFloat(m[5]), pass: m[6]==='通过', time: m[7] || '' });
   }
   return rows;
 }
@@ -89,8 +89,11 @@ function render(){
   document.getElementById('s-a').textContent = list.length ? (list.reduce((s,r)=>s+r.score,0)/list.length).toFixed(1) : '--';
   const wrap = document.getElementById('table-wrap');
   if (!list.length){ wrap.innerHTML = '<div class="empty">还没有数据，先粘贴解析一条成绩</div>'; return; }
-  wrap.innerHTML = '<table><thead><tr><th>姓名</th><th>考试</th><th style="text-align:right;">分数</th><th style="text-align:right;">正确率</th><th style="text-align:right;">结果</th><th style="text-align:right;">时间</th></tr></thead><tbody>'
-    + list.map(r=>'<tr><td>'+esc(r.name)+'</td><td>'+esc(r.exam)+'</td><td class="num">'+r.score+'</td><td class="num">'+r.acc+'%</td><td class="num '+(r.pass?'pass':'fail')+'">'+(r.pass?'通过':'未通过')+'</td><td class="num">'+esc(r.time)+'</td></tr>').join('')
+  wrap.innerHTML = '<table><thead><tr><th>答题日期</th><th>姓名</th><th>职场</th><th>考试</th><th style="text-align:right;">分数</th><th style="text-align:right;">正确率</th><th style="text-align:right;">结果</th></tr></thead><tbody>'
+    + list.map(r=>{
+        const date = (r.time || '').split(' ')[0] || '-';
+        return '<tr><td>'+esc(date)+'</td><td>'+esc(r.name)+'</td><td>'+esc(r.site||'-')+'</td><td>'+esc(r.exam)+'</td><td class="num">'+r.score+'</td><td class="num">'+r.acc+'%</td><td class="num '+(r.pass?'pass':'fail')+'">'+(r.pass?'通过':'未通过')+'</td></tr>';
+      }).join('')
     + '</tbody></table>';
 }
 function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
@@ -122,7 +125,7 @@ function mergeAndRender(serverList){
 document.getElementById('parse').onclick = function(){
   const text = document.getElementById('raw').value;
   const rows = parseText(text);
-  if (!rows.length){ alert('没有识别到成绩行。确认格式如：【赛考体系小测】张三 96.7分 97% 通过 10-15 14:30'); return; }
+  if (!rows.length){ alert('没有识别到成绩行。确认格式如：【赛考体系小测】张三（汇诚） 96.7分 97% 通过 10-15 14:30'); return; }
   const list = loadAll();
   list.unshift(...rows);
   saveAll(list);
@@ -135,8 +138,8 @@ document.getElementById('clear').onclick = function(){
 document.getElementById('export').onclick = function(){
   const list = loadAll();
   if (!list.length){ alert('暂无数据'); return; }
-  let csv = '\ufeff姓名,考试,分数,正确率,结果,时间\n';
-  list.forEach(r=>{ csv += r.name + ',' + r.exam + ',' + r.score + ',' + r.acc + '%,' + (r.pass?'通过':'未通过') + ',' + r.time + '\n'; });
+  let csv = '\ufeff答题日期,姓名,职场,考试,分数,正确率,结果\n';
+  list.forEach(r=>{ csv += (r.time||'').split(' ')[0] + ',' + r.name + ',' + (r.site||'') + ',' + r.exam + ',' + r.score + ',' + r.acc + '%,' + (r.pass?'通过':'未通过') + '\n'; });
   const blob = new Blob([csv], { type: 'text/csv' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
