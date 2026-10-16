@@ -673,33 +673,24 @@ function pushToGitHub(rec, attempt){
   const statusEl = document.getElementById('copy-tip');
   const note = (t, ok) => { statusEl.textContent = t; statusEl.style.color = ok ? '#2eaf64' : '#e6a23c'; statusEl.style.display = 'block'; };
   note('⏳ 正在自动上报成绩…', false);
-  fetch('https://api.github.com/repos/' + GH_REPO + '/contents/' + GH_PATH + '?ref=main&t=' + Date.now(), {
-    headers: { 'Authorization': 'Bearer ' + GH_TOKEN, 'Accept': 'application/vnd.github+json' }
-  })
-  .then(r => r.ok ? r.json() : (r.status === 404 ? {sha: null, content: null} : Promise.reject('read ' + r.status)))
-  .then(data => {
-    let list = [];
-    try { list = JSON.parse(decodeURIComponent(escape(atob((data.content || '').replace(/\n/g, '')))) || '[]'); } catch(e) { list = []; }
-    if (!Array.isArray(list)) list = [];
-    if (list.some(x => x.name === rec.name && x.exam === rec.exam && x.score === rec.score && x.time === rec.time)) { note('✔ 成绩已自动上报给培训老师', true); return; }
-    rec.serverTime = new Date().toLocaleString('zh-CN', { hour12: false });
-    list.unshift(rec);
-    const body = { message: 'exam result: ' + rec.name + ' ' + rec.score, content: btoa(unescape(encodeURIComponent(JSON.stringify(list, null, 1)))), branch: 'main' };
-    if (data.sha) body.sha = data.sha;
-    return fetch('https://api.github.com/repos/' + GH_REPO + '/contents/' + GH_PATH, {
-      method: 'PUT',
-      headers: { 'Authorization': 'Bearer ' + GH_TOKEN, 'Accept': 'application/vnd.github+json', 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
-    });
+  rec.serverTime = new Date().toLocaleString('zh-CN', { hour12: false });
+  // 每人一个独立文件，文件名含毫秒时间戳，永不冲突
+  const path = 'results/r-' + encodeURIComponent(rec.name) + '-' + Date.now() + '.json';
+  const body = { message: 'exam result: ' + rec.name + ' ' + rec.score, content: btoa(unescape(encodeURIComponent(JSON.stringify(rec, null, 1)))), branch: 'main' };
+  fetch('https://api.github.com/repos/' + GH_REPO + '/contents/' + path, {
+    method: 'PUT',
+    headers: { 'Authorization': 'Bearer ' + GH_TOKEN, 'Accept': 'application/vnd.github+json', 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
   })
   .then(r => {
-    if (r && r.ok) { note('✔ 成绩已自动上报给培训老师', true); }
-    else if (r) throw 'conflict';
+    if (r.ok) { note('✔ 成绩已自动上报给培训老师', true); }
+    else if (r.status === 409 && attempt < 5) { throw 'conflict'; }
+    else throw 'http ' + r.status;
   })
   .catch(err => {
-    if (attempt < 4) {
-      note('⏳ 上报冲突，正在重试（' + (attempt+1) + '/4）…', false);
-      setTimeout(function(){ pushToGitHub(rec, attempt + 1); }, 4000 + attempt * 3000);
+    if (attempt < 5) {
+      note('⏳ 上报中，正在重试（' + (attempt+1) + '/5）…', false);
+      setTimeout(function(){ pushToGitHub(rec, attempt + 1); }, 3000 + attempt * 2000);
     } else note('⚠ 上报失败，请点下方按钮手动复制发给老师', false);
   });
 }
