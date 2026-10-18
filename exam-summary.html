@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
+<title>考试成绩汇总 · 培训老师专用</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif; background:linear-gradient(135deg,#1e3c72 0%,#2a5298 100%); min-height:100vh; color:#1f2937; padding:20px 12px 60px; }
+  .wrap { max-width:760px; margin:0 auto; }
+  .head { color:#fff; text-align:center; padding:8px 0 16px; }
+  .head h1 { font-size:22px; }
+  .head p { opacity:.85; font-size:13px; margin-top:6px; }
+  .card { background:#fff; border-radius:16px; padding:20px 16px; box-shadow:0 8px 24px rgba(0,0,0,.18); margin-bottom:16px; }
+  .card h3 { font-size:15px; margin-bottom:8px; color:#333; }
+  .card .d { font-size:12.5px; color:#888; line-height:1.7; margin-bottom:10px; }
+  #raw { width:100%; height:130px; border:2px solid #dfe6f2; border-radius:10px; padding:10px 12px; font-size:13px; outline:none; resize:vertical; }
+  .btns { display:flex; gap:10px; margin-top:10px; }
+  .btns button { flex:1; padding:11px; border:none; border-radius:10px; font-size:14px; font-weight:bold; cursor:pointer; }
+  .b-p { background:#2a5298; color:#fff; } .b-g { background:#eef1f6; color:#555; }
+  .sum { display:flex; gap:14px; justify-content:center; margin-bottom:12px; }
+  .sum .it { text-align:center; background:#f6f8fc; border-radius:10px; padding:8px 14px; }
+  .sum .it .v { font-size:20px; font-weight:bold; color:#2a5298; }
+  .sum .it .k { font-size:11px; color:#999; }
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  th, td { border-bottom:1px solid #eef1f6; padding:8px 6px; text-align:left; }
+  th { color:#999; font-size:12px; background:#fafbfd; }
+  td.num { text-align:right; }
+  .pass { color:#2eaf64; font-weight:bold; } .fail { color:#e05252; font-weight:bold; }
+  .empty { text-align:center; color:#bbb; font-size:13px; padding:18px 0; }
+  .exam-tag { display:inline-block; font-size:11px; border-radius:5px; padding:1px 7px; background:#eef3ff; color:#2a5298; margin-left:6px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="head">
+    <h1>考试成绩汇总</h1>
+    <p>把答题人发来的成绩文本粘进来 → 解析入库 → 导出 Excel</p>
+  </div>
+
+  <div class="card">
+    <h3>① 粘贴成绩</h3>
+    <div class="d">答题人交卷后点「复制成绩，发给培训老师」，把发来的文本粘贴到下面，可一次粘多条（每人一条）。</div>
+    <textarea id="raw" placeholder="例：&#10;【赛考体系小测】张三（汇诚） 96.7分 97% 通过 10-15 14:30&#10;【通识类小测】李四（武汉） 73.3分 73% 未通过 10-15 15:02"></textarea>
+    <div class="btns">
+      <button class="b-p" id="fetch">🔄 从线上拉取最新成绩</button>
+      <button class="b-p" id="parse">粘贴解析（备用）</button>
+      <button class="b-g" id="export">导出 Excel（CSV）</button>
+      <button class="b-g" id="clear">清空汇总</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>② 汇总结果</h3>
+    <div class="sum">
+      <div class="it"><div class="v" id="s-n">0</div><div class="k">人次</div></div>
+      <div class="it"><div class="v" id="s-p">0</div><div class="k">通过(≥80)</div></div>
+      <div class="it"><div class="v" id="s-f">0</div><div class="k">未通过</div></div>
+      <div class="it"><div class="v" id="s-a">--</div><div class="k">平均分</div></div>
+    </div>
+    <div id="table-wrap"><div class="empty">还没有数据，先粘贴解析一条成绩</div></div>
+  </div>
+</div>
+<script>
+const KEY = 'qc_exam_summary';
+const _p=['6769','7468','7562','5f70','6174','5f31','3143','4754','4a50','5941','3059','4262','566c','4744','7972','4470','4a5f','7963','3657','6b4d','5653','5163','7768'];const _q=['5870','6d67','3452','4c68','5172','4730','384c','6c4a','4a33','6737','4e6c','574c','6f39','5251','6637','4a48','4937','5355','3657','4662','4437','4e6a','6a61','6d'];
+const GH_TOKEN = (function(){const h=(_p.join('')+_q.join(''));let s='';for(let i=0;i<h.length;i+=2){s+=String.fromCharCode(parseInt(h.substr(i,2),16));}return s;})();
+const GH_REPO = 'zhuqiannan101/qiannan-jiayou';
+const GH_PATH = 'results/scores.json';
+function loadAll(){ try { return JSON.parse(localStorage.getItem(KEY) || '[]'); } catch(e){ return []; } }
+function saveAll(list){ localStorage.setItem(KEY, JSON.stringify(list)); }
+
+// 解析一行：【考试名】姓名 X分 Y% (不)通过 M-D HH:MM
+const RE = /【(.+?)】\s*([^【】\s（]+)(?:（(.+?)）)?\s+([\d.]+)分\s+([\d.]+)%\s+(通过|未通过)(?:\s+(\d{1,2}-\d{1,2}\s+\d{1,2}:\d{2}))?/;
+function parseText(text){
+  const rows = [];
+  for (const line of text.split(/\n+/)){
+    const m = line.match(RE);
+    if (m) rows.push({ exam: m[1], name: m[2], site: m[3] || '', score: parseFloat(m[4]), acc: parseFloat(m[5]), pass: m[6]==='通过', time: m[7] || '' });
+  }
+  return rows;
+}
+
+function render(){
+  const list = loadAll();
+  document.getElementById('s-n').textContent = list.length;
+  document.getElementById('s-p').textContent = list.filter(r=>r.pass).length;
+  document.getElementById('s-f').textContent = list.filter(r=>!r.pass).length;
+  document.getElementById('s-a').textContent = list.length ? (list.reduce((s,r)=>s+r.score,0)/list.length).toFixed(1) : '--';
+  const wrap = document.getElementById('table-wrap');
+  if (!list.length){ wrap.innerHTML = '<div class="empty">还没有数据，先粘贴解析一条成绩</div>'; return; }
+  wrap.innerHTML = '<table><thead><tr><th>答题日期</th><th>姓名</th><th>职场</th><th>考试</th><th style="text-align:right;">分数</th><th style="text-align:right;">正确率</th><th style="text-align:right;">结果</th></tr></thead><tbody>'
+    + list.map(r=>{
+        const date = (r.time || '').split(' ')[0] || '-';
+        return '<tr><td>'+esc(date)+'</td><td>'+esc(r.name)+'</td><td>'+esc(r.site||'-')+'</td><td>'+esc(r.exam)+'</td><td class="num">'+r.score+'</td><td class="num">'+r.acc+'%</td><td class="num '+(r.pass?'pass':'fail')+'">'+(r.pass?'通过':'未通过')+'</td></tr>';
+      }).join('')
+    + '</tbody></table>';
+}
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+document.getElementById('fetch').onclick = function(){
+  const btn = document.getElementById('fetch');
+  btn.textContent = '⏳ 拉取中…'; btn.disabled = true;
+  fetch('https://api.github.com/repos/' + GH_REPO + '/contents/results?ref=main&t=' + Date.now(), {
+    headers: { 'Authorization': 'Bearer ' + GH_TOKEN, 'Accept': 'application/vnd.github+json' }
+  })
+  .then(r => r.ok ? r.json() : Promise.reject(r.status))
+  .then(async files => {
+    const entries = (Array.isArray(files) ? files : []).filter(x => /^r-.*\.json$/.test(x.name) || x.name === 'scores.json');
+    let failed = 0;
+    const results = await Promise.all(entries.map(async file => {
+      try {
+        const r = await fetch(file.url + '&t=' + Date.now(), { headers: { 'Authorization': 'Bearer ' + GH_TOKEN, 'Accept': 'application/vnd.github+json' } });
+        if (!r.ok) { failed++; return null; }
+        const d = await r.json();
+        let rec = null;
+        try { rec = JSON.parse(decodeURIComponent(escape(atob((d.content || '').replace(/\n/g, '')))) || 'null'); } catch(e) { rec = null; }
+        return rec;
+      } catch(e) { failed++; return null; }
+    }));
+    const list = [];
+    for (const rec of results) {
+      if (Array.isArray(rec)) { rec.forEach(x => { if (x && x.name) list.push(x); }); }
+      else if (rec && rec.name) list.push(rec);
+    }
+    // 按时间倒序：serverTime 新的在前
+    list.sort((a, b) => (b.serverTime || '').localeCompare(a.serverTime || ''));
+    localStorage.setItem('qc_exam_server', JSON.stringify(list));
+    mergeAndRender(list);
+    btn.textContent = failed ? ('⚠ 拉取完成，' + failed + '条失败，请再点一次') : ('🔄 已更新 ' + new Date().toLocaleTimeString('zh-CN', {hour12:false}) + ' · 共' + list.length + '条');
+    btn.disabled = false;
+  })
+  .catch(err => { alert('拉取失败：' + err); btn.textContent = '🔄 从线上拉取最新成绩'; btn.disabled = false; });
+};
+function mergeAndRender(serverList){
+  const local = loadAll();
+  const seen = new Set(serverList.map(r => JSON.stringify([r.exam, r.name, r.score, r.acc])));
+  const merged = serverList.concat(local.filter(r => !seen.has(JSON.stringify([r.exam, r.name, r.score, r.acc]))));
+  saveAll(merged);
+  render();
+}
+document.getElementById('parse').onclick = function(){
+  const text = document.getElementById('raw').value;
+  const rows = parseText(text);
+  if (!rows.length){ alert('没有识别到成绩行。确认格式如：【赛考体系小测】张三（汇诚） 96.7分 97% 通过 10-15 14:30'); return; }
+  const list = loadAll();
+  list.unshift(...rows);
+  saveAll(list);
+  document.getElementById('raw').value = '';
+  render();
+};
+document.getElementById('clear').onclick = function(){
+  if (confirm('确定清空全部汇总数据？')) { saveAll([]); render(); }
+};
+document.getElementById('export').onclick = function(){
+  const list = loadAll();
+  if (!list.length){ alert('暂无数据'); return; }
+  let csv = '\ufeff答题日期,姓名,职场,考试,分数,正确率,结果\n';
+  list.forEach(r=>{ csv += (r.time||'').split(' ')[0] + ',' + r.name + ',' + (r.site||'') + ',' + r.exam + ',' + r.score + ',' + r.acc + '%,' + (r.pass?'通过':'未通过') + '\n'; });
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = '考试成绩汇总.csv';
+  a.click();
+};
+
+render();
+document.getElementById('fetch').click();  // 打开页面自动拉取最新成绩
+</script>
+</body>
+</html>

@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<title>水果记忆 · 倩楠老师</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@700;900&family=ZCOOL+KuaiLe&display=swap">
+<style>
+  :root{--sky:#FFF6E8;--ink:#3A2E24;--outline:#1B1233;--orange:#FF7A1A;--yellow:#FFD53D;--green:#7ED957;--pink:#FF6FA5;--blue:#4FC3F7;--purple:#9C6BFF}
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%}
+  body{font-family:"Noto Sans SC",system-ui,"Microsoft YaHei",sans-serif;overflow:hidden;height:100vh;
+    background:radial-gradient(60% 50% at 15% 12%,rgba(255,213,61,.35),transparent 70%),
+    radial-gradient(55% 45% at 88% 88%,rgba(255,111,165,.28),transparent 70%),var(--sky);
+    color:var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2.4vh;padding:3vh 3vw}
+  .kx{font-family:"ZCOOL KuaiLe","Noto Sans SC",sans-serif;font-weight:400}
+  .tagbar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;justify-content:center}
+  .tag{background:var(--orange);color:#fff;font-weight:900;font-size:clamp(15px,2vw,22px);border:3px solid var(--outline);
+    border-radius:12px;padding:.3em 1.1em;box-shadow:0 4px 0 var(--outline)}
+  h1{font-size:clamp(24px,4vw,44px);color:var(--ink)}
+  h1 em{font-style:normal;color:var(--orange)}
+  .board{background:#fff;border:4px solid var(--orange);border-radius:26px;box-shadow:0 8px 0 rgba(255,122,26,.25);
+    width:min(1000px,90vw);height:52vh;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+  .fruits{display:flex;flex-wrap:wrap;gap:clamp(14px,3vw,50px);align-items:center;justify-content:center;padding:2vh 2vw}
+  .fruit{font-size:clamp(48px,9vh,110px);line-height:1;filter:drop-shadow(2px 4px 3px rgba(0,0,0,.15));
+    transition:transform .3s;cursor:default;position:relative}
+  .fruit.pop{animation:pop .5s cubic-bezier(.2,1.6,.4,1) both}
+  @keyframes pop{0%{transform:scale(0) rotate(-30deg);opacity:0}100%{transform:scale(1) rotate(0);opacity:1}}
+  .fruit.gone{animation:vanish .6s cubic-bezier(.4,0,.6,1) forwards}
+  @keyframes vanish{0%{transform:scale(1)}40%{transform:scale(1.3) rotate(10deg)}100%{transform:scale(0) rotate(60deg);opacity:0}}
+  .cover{position:absolute;inset:0;background:linear-gradient(135deg,#9C6BFF,#4FC3F7);display:flex;align-items:center;justify-content:center;
+    font-family:"ZCOOL KuaiLe";font-size:clamp(40px,8vw,90px);color:#fff;text-shadow:3px 3px 0 var(--outline);
+    transform:translateY(-100%);transition:transform .5s cubic-bezier(.5,0,.5,1)}
+  .cover.down{transform:translateY(0)}
+  .cover .puff{font-size:clamp(50px,12vh,140px)}
+  .btns{display:flex;gap:14px;flex-wrap:wrap;justify-content:center}
+  .btn{font-family:"ZCOOL KuaiLe","Noto Sans SC";font-size:clamp(18px,2.4vw,28px);color:#fff;cursor:pointer;
+    padding:.45em 1.5em;border:3px solid var(--outline);border-radius:999px;background:linear-gradient(180deg,#FFA13D,var(--orange));
+    box-shadow:0 6px 0 var(--outline);text-shadow:1px 2px 0 rgba(0,0,0,.25);transition:transform .1s}
+  .btn:hover{transform:translateY(-2px)}
+  .btn:active{transform:translateY(4px);box-shadow:0 2px 0 var(--outline)}
+  .btn.gn{background:linear-gradient(180deg,#9DE97C,var(--green));color:#1E3D0C;text-shadow:none}
+  .pick{display:flex;gap:clamp(8px,1.5vw,18px);flex-wrap:wrap;justify-content:center}
+  .pk{font-size:clamp(38px,6vh,64px);cursor:pointer;background:#FFF9EC;border:3px solid var(--outline);border-radius:16px;
+    padding:6px 12px;box-shadow:0 4px 0 var(--outline);transition:transform .12s;line-height:1}
+  .pk:hover{transform:translateY(-4px) scale(1.06);background:var(--yellow)}
+  .pk.wrong{animation:shake .4s}
+  @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+  .pk.right{background:var(--green);animation:pop .5s}
+  .aw{font:inherit;font-weight:900;font-size:clamp(14px,1.8vw,18px);padding:.3em 1em;border:3px solid var(--outline);border-radius:999px;background:#fff;color:var(--ink);cursor:pointer;box-shadow:0 4px 0 var(--outline)}
+  .aw:hover{background:var(--yellow)}.aw.got{background:var(--green);color:#fff}
+  .hint{font-weight:900;font-size:clamp(15px,2vw,20px);color:var(--ink);min-height:1.6em;text-align:center}
+  .hint b{color:var(--orange)}
+  .confetti{position:fixed;font-size:32px;z-index:20;animation:fall 1.6s ease-in forwards;pointer-events:none}
+  @keyframes fall{0%{transform:translateY(-10vh)}100%{transform:translateY(110vh) rotate(540deg);opacity:.2}}
+  .set{display:flex;gap:clamp(10px,2vw,28px);flex-wrap:wrap;justify-content:center;align-items:center}
+  .set .lb{font-weight:900;font-size:clamp(14px,1.8vw,19px);color:var(--ink)}
+  .chip{font-family:"ZCOOL KuaiLe";font-size:clamp(15px,1.9vw,21px);width:2.1em;height:2.1em;cursor:pointer;border:3px solid var(--outline);border-radius:50%;background:#fff;color:var(--ink);box-shadow:0 3px 0 var(--outline)}
+  .chip.on{background:var(--orange);color:#fff}
+  .chip.pu.on{background:var(--purple)}
+  .back-link{position:fixed;top:16px;left:16px;z-index:100;font-size:13px;font-weight:700;text-decoration:none;color:#5c4160;background:rgba(255,255,255,0.85);padding:8px 16px;border-radius:20px;box-shadow:0 4px 12px rgba(0,0,0,0.08)}
+  .back-link:hover{background:#fff}
+</style>
+
+<a href="index.html" class="back-link">← 返回入口</a>
+
+<div class="tagbar"><span class="tag">🍓 专注力挑战</span></div>
+<h1 class="kx" id="title">先记住这些水果，看谁<em>眼睛最尖</em>！👀</h1>
+<div class="set" id="set">
+  <span class="lb">🍎 几个水果</span><span id="setN"></span>
+  <span class="lb">👻 藏几个</span><span id="setK"></span>
+</div>
+<div class="board">
+  <div class="fruits" id="fruits"></div>
+  <div class="cover" id="cover"><span class="puff">✨ 变！✨</span></div>
+</div>
+<div class="hint" id="hint"></div>
+<div class="btns" id="ctrl"></div>
+<div class="pick" id="pick" style="display:none"></div>
+
+<script src="record.js"></script>
+<script>
+const POOL=['🍉','🍓','🍌','🍍','🍇','🍎','🥝','🍊','🥭','🍑','🍒'];
+const CN=['','一','两','三','四','五','六','七','八','九'];
+let N=5, K=1;                       // 水果数量 / 藏几个（开局可选）
+let current=[], missing=[], found=0;
+const fruitsEl=document.getElementById('fruits'), coverEl=document.getElementById('cover'),
+      hintEl=document.getElementById('hint'), ctrlEl=document.getElementById('ctrl'),
+      pickEl=document.getElementById('pick'), titleEl=document.getElementById('title'),
+      setEl=document.getElementById('set');
+
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function mkBtn(txt,cls,fn){const b=document.createElement('button');b.className='btn '+(cls||'');b.textContent=txt;b.onclick=fn;return b;}
+/* 开局设置：点了立刻重摆水果 */
+function chips(id,vals,get,set,cls){const box=document.getElementById(id);box.innerHTML='';
+  vals.forEach(v=>{const c=document.createElement('button');c.className='chip '+(cls||'')+(get()===v?' on':'');c.textContent=v;
+    c.onclick=()=>{set(v);newRound();};box.appendChild(c);});}
+function drawSet(){chips('setN',[3,4,5,6],()=>N,v=>N=v);chips('setK',[1,2],()=>K,v=>K=v,'pu');}
+
+function newRound(){
+  current=shuffle(POOL).slice(0,N);
+  missing=[];found=0;
+  coverEl.classList.remove('down');
+  pickEl.style.display='none'; pickEl.innerHTML='';
+  setEl.style.display='flex'; drawSet();
+  titleEl.innerHTML='先记住这些水果，看谁<em>眼睛最尖</em>！👀';
+  hintEl.innerHTML='仔细看 <b>'+N+'</b> 个水果，一会儿会偷偷藏 <b>'+K+'</b> 个～记好了就点「盖起来」';
+  renderFruits(current);
+  ctrlEl.innerHTML='';
+  ctrlEl.appendChild(mkBtn('🙈 盖起来！','',()=>qnNameGate('水果记忆', function(){ qnRecordStart('水果记忆'); hideStep(); })));
+}
+function renderFruits(list){
+  fruitsEl.innerHTML='';
+  list.forEach((f,i)=>{
+    const el=document.createElement('div');
+    el.className='fruit pop'; el.textContent=f; el.style.animationDelay=(i*.08)+'s';
+    fruitsEl.appendChild(el);
+  });
+}
+function hideStep(){
+  setEl.style.display='none';
+  coverEl.classList.add('down');
+  ctrlEl.innerHTML='';
+  hintEl.textContent='盖好啦……要偷偷拿走'+CN[K]+'个哦 👻';
+  setTimeout(revealMissing,900);
+}
+function revealMissing(){
+  missing=shuffle(current).slice(0,K);
+  const remain=current.filter(f=>!missing.includes(f));
+  renderFruits(shuffle(remain));
+  coverEl.classList.remove('down');
+  titleEl.innerHTML=(K>1?'哪<em>'+CN[K]+'个</em>水果':'哪个水果')+'<em>不见了</em>？🔍';
+  const opts=current.concat(shuffle(POOL.filter(f=>!current.includes(f))).slice(0,4));   // 原N个 + 4个干扰项
+  hintEl.innerHTML='下面 <b>'+opts.length+'</b> 个里点一下，<b>不见的'+(K>1?CN[K]+'个':'那个')+'</b>是哪个？小心有捣乱的～';
+  pickEl.style.display='flex';
+  pickEl.innerHTML='';
+  shuffle(opts).forEach(f=>{
+    const b=document.createElement('div');
+    b.className='pk'; b.textContent=f;
+    b.onclick=()=>guess(f,b);
+    pickEl.appendChild(b);
+  });
+}
+function guess(f,el){
+  if(missing.includes(f)&&!el.classList.contains('right')){
+    el.classList.add('right');found++;
+    if(found<K){hintEl.innerHTML='🎯 找到一个：'+f+'　还有 <b>'+(K-found)+'</b> 个不见的，继续找！';return;}
+    hintEl.innerHTML='🎉 答对啦！不见的就是 '+missing.join(' ')+'　<b>点「我答对啦」领 5 金币</b> 👇';
+    titleEl.innerHTML='<em>太厉害了</em>！🏆';
+    pickEl.querySelectorAll('.pk').forEach(p=>p.onclick=null);
+    burst();
+    qnRecordFinish('答对 · 第'+N+'关 · '+CN[K]+'个不见的');
+    ctrlEl.innerHTML='';
+    const okBtn=document.createElement('button');okBtn.className='aw';okBtn.textContent='🎉 我答对啦！+5';
+    okBtn.onclick=()=>{okBtn.classList.add('got');};ctrlEl.appendChild(okBtn);
+    ctrlEl.appendChild(mkBtn('再来一局 🔄','gn',newRound));
+  }else if(!el.classList.contains('right')){
+    el.classList.add('wrong');
+    hintEl.innerHTML='再看看～这个'+(current.includes(f)?'还在呢':'刚才根本没出现过')+'，<b>不见的</b>是另一个 😉';
+    setTimeout(()=>el.classList.remove('wrong'),450);
+  }
+}
+function burst(){const em=['🎉','⭐','🍓','✨','🎊','🍎'];for(let i=0;i<24;i++){const d=document.createElement('div');d.className='confetti';d.textContent=em[i%6];d.style.left=Math.random()*100+'vw';d.style.animationDelay=Math.random()*.5+'s';document.body.appendChild(d);setTimeout(()=>d.remove(),2200);}}
+newRound();
+</script>

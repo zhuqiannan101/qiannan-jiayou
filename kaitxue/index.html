@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>倩楠老师的开学能量站 ☀️</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    min-height: 100vh;
+    background: linear-gradient(180deg, #8ed6ff 0%, #cdd9ff 30%, #ffe3c9 65%, #ffeef0 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+    overflow-x: hidden;
+    position: relative;
+    padding: 32px 16px 60px;
+  }
+
+  .sun {
+    position: fixed; top: 28px; right: 34px;
+    width: 86px; height: 86px; border-radius: 50%;
+    background: radial-gradient(circle at 40% 40%, #fff3b0, #ffd23f 60%, #ffb52e);
+    box-shadow: 0 0 40px rgba(255,210,63,0.9);
+    z-index: 0; animation: sunPulse 4s ease-in-out infinite;
+  }
+  .sun::before, .sun::after {
+    content: ""; position: absolute; inset: -15px; border-radius: 50%;
+    background: conic-gradient(from 0deg, transparent 0 22deg, #ffe28a 22deg 42deg, transparent 42deg 62deg, #ffe28a 62deg 82deg, transparent 82deg 102deg, #ffe28a 102deg 122deg, transparent 122deg 142deg, #ffe28a 142deg 162deg, transparent 162deg 182deg, #ffe28a 182deg 202deg, transparent 202deg 222deg, #ffe28a 222deg 242deg, transparent 242deg 262deg, #ffe28a 262deg 282deg, transparent 282deg 302deg, #ffe28a 302deg 322deg, transparent 322deg 342deg, #ffe28a 342deg 360deg);
+    animation: sunSpin 14s linear infinite;
+  }
+  @keyframes sunSpin { to { transform: rotate(360deg); } }
+  @keyframes sunPulse { 0%,100% { transform: scale(1);} 50% { transform: scale(1.06);} }
+
+  .cloud {
+    position: fixed; z-index: 0; width: 150px; height: 48px;
+    background: rgba(255,255,255,0.9); border-radius: 50px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.05);
+  }
+  .cloud::before, .cloud::after { content:""; position:absolute; background:inherit; border-radius:50%; }
+  .cloud::before { width: 60px; height: 60px; top: -28px; left: 26px; }
+  .cloud::after  { width: 44px; height: 44px; top: -20px; left: 74px; }
+  .cloud.c1 { top: 80px;  left: -40px; animation: drift 30s linear infinite; }
+  .cloud.c2 { top: 180px; left: 100%; width: 130px; animation: drift 36s linear infinite reverse; }
+  @keyframes drift { from { transform: translateX(0);} to { transform: translateX(120vw);} }
+
+  .grass {
+    position: fixed; left: 0; bottom: 0; width: 100%; height: 90px; z-index: 0;
+    background: linear-gradient(180deg, #b7e974, #8fd14a);
+    border-radius: 60% 60% 0 0 / 30px 30px 0 0;
+    box-shadow: 0 -8px 24px rgba(143,209,74,0.4);
+  }
+
+  .hero {
+    position: relative; z-index: 5; text-align: center; margin-bottom: 26px; padding-top: 8px;
+  }
+  .hero .mascot {
+    width: 82px; height: 82px; border-radius: 24px;
+    margin: 0 auto 12px;
+    background: linear-gradient(135deg, #ffd43b, #ff922b);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 46px; box-shadow: 0 8px 24px rgba(255,146,43,0.4);
+    animation: rock 2.4s ease-in-out infinite;
+  }
+  @keyframes rock { 0%,100%{ transform: rotate(-6deg);} 50%{ transform: rotate(6deg);} }
+  .hero h1 {
+    font-size: 32px; font-weight: 900; letter-spacing: 1px;
+    background: linear-gradient(90deg, #ff6b6b, #ffa94d, #f76707, #40c057);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    filter: drop-shadow(0 2px 3px rgba(0,0,0,0.08));
+  }
+  .hero p { color: #5c6b8a; font-size: 15px; margin-top: 8px; font-weight: 600; }
+
+  .grid {
+    position: relative; z-index: 5;
+    display: flex; gap: 20px; flex-wrap: wrap; justify-content: center;
+    max-width: 940px; width: 100%;
+  }
+  .entry {
+    flex: 1 1 320px; min-width: 280px; max-width: 430px;
+    background: rgba(255,255,255,0.85); border-radius: 30px;
+    padding: 30px 26px 26px; box-shadow: 0 18px 42px rgba(0,0,0,0.07);
+    text-align: center; text-decoration: none; color: inherit;
+    border: 1px solid rgba(255,255,255,0.9); transition: transform .25s, box-shadow .25s;
+    position: relative; overflow: hidden;
+  }
+  .entry:hover { transform: translateY(-6px); box-shadow: 0 28px 56px rgba(0,0,0,0.12); }
+  .entry.child { border-top: 6px solid #ffa94d; }
+  .entry.parent { border-top: 6px solid #e64980; }
+  .entry-emoji { font-size: 54px; margin-bottom: 6px; display: block; animation: pulse 2.4s infinite; }
+  @keyframes pulse { 0%,100%{ transform: scale(1);} 50%{ transform: scale(1.08);} }
+  .entry h2 { font-size: 22px; font-weight: 900; margin-bottom: 6px; color: #4a4a4a; }
+  .entry.child h2 { color: #f76707; }
+  .entry.parent h2 { color: #d6336c; }
+  .entry .tag {
+    display: inline-block; font-size: 11px; font-weight: 800; padding: 4px 12px;
+    border-radius: 20px; margin-bottom: 12px; letter-spacing: 1px; color: #fff;
+  }
+  .entry.child .tag { background: linear-gradient(135deg, #ffa94d, #ff6b6b); box-shadow: 0 2px 8px rgba(255,107,107,0.35); }
+  .entry.parent .tag { background: linear-gradient(135deg, #e64980, #d6336c); box-shadow: 0 2px 8px rgba(230,73,128,0.35); }
+  .entry p { color: #8a8a8a; font-size: 14px; line-height: 1.8; margin-bottom: 18px; }
+  .entry-btn {
+    display: inline-block; padding: 12px 30px; border-radius: 50px; border: none;
+    color: #fff; font-size: 15px; font-weight: 800; font-family: inherit; cursor: pointer; letter-spacing: 1px;
+    transition: transform .15s;
+  }
+  .entry.child .entry-btn { background: linear-gradient(135deg, #ffa94d, #ff6b6b); box-shadow: 0 6px 18px rgba(255,107,107,0.4); }
+  .entry.parent .entry-btn { background: linear-gradient(135deg, #e64980, #d6336c); box-shadow: 0 6px 18px rgba(230,73,128,0.4); }
+  .entry.word { border-top: 6px solid #40c057; }
+  .entry.word h2 { color: #2b8a3e; }
+  .entry.word .tag { background: linear-gradient(135deg, #69db7c, #37b24d); box-shadow: 0 2px 8px rgba(55,178,77,0.35); }
+  .entry.word .entry-btn { background: linear-gradient(135deg, #69db7c, #37b24d); box-shadow: 0 6px 18px rgba(55,178,77,0.4); }
+  .entry.math { border-top: 6px solid #f76707; }
+  .entry.math h2 { color: #e8590c; }
+  .entry.math .tag { background: linear-gradient(135deg, #ffa94d, #f76707); box-shadow: 0 2px 8px rgba(247,103,7,0.35); }
+  .entry.math .entry-btn { background: linear-gradient(135deg, #ffa94d, #f76707); box-shadow: 0 6px 18px rgba(247,103,7,0.4); }
+  .entry.schulte { border-top: 6px solid #7048e8; }
+  .entry.schulte h2 { color: #6741d9; }
+  .entry.schulte .tag { background: linear-gradient(135deg, #9775fa, #7048e8); box-shadow: 0 2px 8px rgba(112,72,232,0.35); }
+  .entry.schulte .entry-btn { background: linear-gradient(135deg, #9775fa, #7048e8); box-shadow: 0 6px 18px rgba(112,72,232,0.4); }
+  .entry.focus { border-top: 6px solid #2f9e44; }
+  .entry.focus h2 { color: #2b8a3e; }
+  .entry.focus .tag { background: linear-gradient(135deg, #69db7c, #2f9e44); box-shadow: 0 2px 8px rgba(47,158,68,0.35); }
+  .entry.focus .entry-btn { background: linear-gradient(135deg, #69db7c, #2f9e44); box-shadow: 0 6px 18px rgba(47,158,68,0.4); }
+  .entry.shout { border-top: 6px solid #e64980; }
+  .entry.shout h2 { color: #d6336c; }
+  .entry.shout .tag { background: linear-gradient(135deg, #ff922b, #e64980); box-shadow: 0 2px 8px rgba(230,73,128,0.35); }
+  .entry.shout .entry-btn { background: linear-gradient(135deg, #ff922b, #e64980); box-shadow: 0 6px 18px rgba(230,73,128,0.4); }
+  .entry.riddle { border-top: 6px solid #9775fa; }
+  .entry.riddle h2 { color: #7048e8; }
+  .entry.riddle .tag { background: linear-gradient(135deg, #9775fa, #7048e8); box-shadow: 0 2px 8px rgba(112,72,232,0.35); }
+  .entry.riddle .entry-btn { background: linear-gradient(135deg, #9775fa, #7048e8); box-shadow: 0 6px 18px rgba(112,72,232,0.4); }
+  .entry.memory { border-top: 6px solid #f59f00; }
+  .entry.memory h2 { color: #e67700; }
+  .entry.memory .tag { background: linear-gradient(135deg, #ffd43b, #f59f00); box-shadow: 0 2px 8px rgba(245,159,0,0.35); }
+  .entry.memory .entry-btn { background: linear-gradient(135deg, #ffd43b, #f59f00); box-shadow: 0 6px 18px rgba(245,159,0,0.4); }
+  .entry.faucet { border-top: 6px solid #1c7ed6; }
+  .entry.faucet h2 { color: #1971c2; }
+  .entry.faucet .tag { background: linear-gradient(135deg, #4dabf7, #1c7ed6); box-shadow: 0 2px 8px rgba(28,126,214,0.35); }
+  .entry.faucet .entry-btn { background: linear-gradient(135deg, #4dabf7, #1c7ed6); box-shadow: 0 6px 18px rgba(28,126,214,0.4); }
+  .entry:hover .entry-btn { transform: translateY(-2px); }
+
+  .footer {
+    position: relative; z-index: 5; color: #7a8aa0; font-size: 13px; margin-top: 34px; text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<div class="sun"></div>
+<div class="cloud c1"></div>
+<div class="cloud c2"></div>
+<div class="grass"></div>
+
+<div class="hero">
+  <div class="mascot">🌞</div>
+  <h1>倩楠老师的开学能量站</h1>
+  <p>每个小朋友都在闪闪发光 · 新学期每天进步一点点</p>
+</div>
+
+<div class="grid">
+
+  <a href="riddle.html" class="entry riddle">
+    <span class="entry-emoji">🤔</span>
+    <span class="tag">💡 每天 10 题 · 动动脑</span>
+    <h2>脑筋急转弯</h2>
+    <p>每天 10 个脑筋急转弯，题目按日期每天更新。动动小脑筋猜一猜，猜对了告诉倩楠老师，还能领金币哦！</p>
+    <button class="entry-btn">点这里 →</button>
+  </a>
+
+  <a href="shout.html" class="entry shout">
+    <span class="entry-emoji">⭐</span>
+    <span class="tag">🔊 声音控制 · 大声喊</span>
+    <h2>喊出小魔星</h2>
+    <p>开麦大声喊，小魔星就往前跑！喊得越响跳得越高，吃到的音符越多越好。专注力、肺活量一起练，全班都能一起玩！</p>
+    <button class="entry-btn">点这里 →</button>
+  </a>
+
+  <a href="words.html" class="entry word">
+    <span class="entry-emoji">📖</span>
+    <span class="tag">🔤 帮孩子背单词</span>
+    <h2>单词小乐园</h2>
+    <p>家长放进今天要背的单词，自动变成有趣的题：听发音写单词、看中文写英文、看英文写中文、补全缺的字母。答对给小动物加分，全部通关有爸爸妈妈的奖励！</p>
+    <button class="entry-btn">点这里 →</button>
+  </a>
+
+  <a href="math.html" class="entry math">
+    <span class="entry-emoji">🧮</span>
+    <span class="tag">✨ 提成绩 · 练计算</span>
+    <h2>口算小达人</h2>
+    <p>加、减、乘、除随便选，难度题数都能调。每天练几分钟，算得又快又对，数学成绩稳稳进步！</p>
+    <button class="entry-btn">点这里 →</button>
+  </a>
+
+  <a href="schulte.html" class="entry schulte">
+    <span class="entry-emoji">👀</span>
+    <span class="tag">🎯 训练专注力</span>
+    <h2>舒尔特方格</h2>
+    <p>从 1 开始按顺序找出所有数字，手眼脑一起练！专治走神、写作业东张西望，全家都能比谁更快。</p>
+    <button class="entry-btn">点这里 →</button>
+  </a>
+
+  <a href="focus.html" class="entry focus">
+    <span class="entry-emoji">🌳</span>
+    <span class="tag">🍅 静下心 · 不走神</span>
+    <h2>番茄专注种树</h2>
+    <p>订一个专心时段，小树跟着专注时间慢慢长高；中途切走会暂停。培养孩子静下心、坐得住的好习惯！</p>
+    <button class="entry-btn">点这里 →</button>
+  </a>
+
+  <a href="memory.html" class="entry memory">
+    <span class="entry-emoji">🍉</span>
+    <span class="tag">🍓 练眼力 · 记性好</span>
+    <h2>水果记忆</h2>
+    <p>先记住几个水果，然后屏幕偷偷藏起一两个，看看哪个水果不见了！水果几个、藏几个都能自己调，越玩眼睛越尖、记性越好。</p>
+    <button class="entry-btn">点这里 →</button>
+  </a>
+
+  <a href="faucet.html" class="entry faucet">
+    <span class="entry-emoji">🚰</span>
+    <span class="tag">💧 动脑 · 逻辑推理</span>
+    <h2>哪个杯子先装满</h2>
+    <p>先猜猜哪个杯子会先装满，再放水看水流怎么走：哪根管子被堵住了？哪个杯底有洞？看着水一点点流，动脑筋推理，还能随机换题。</p>
+    <button class="entry-btn">点这里 →</button>
+  </a>
+
+</div>
+
+<div class="footer">
+  🎵 轻松的音乐 &nbsp;|&nbsp; ✨ 倩楠老师 · 伴你成长 ✨<br>
+  新学期，孩子加油，您也要加油！
+</div>
+
+</body>
+</html>
