@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>直播教学基本功 Day2 培训刷题</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:"PingFang SC","Microsoft YaHei",system-ui,sans-serif; background:#f2f4f8; color:#1f2937; min-height:100vh; }
+  .wrap { max-width:860px; margin:0 auto; padding:24px 16px 80px; }
+  header { background:linear-gradient(135deg,#e11d48,#f43f5e); color:#fff; border-radius:16px; padding:28px 24px; margin-bottom:20px; }
+  header h1 { font-size:22px; margin-bottom:6px; }
+  header p { font-size:13px; opacity:.9; }
+  .stats { display:flex; gap:12px; margin-top:16px; flex-wrap:wrap; }
+  .stat { background:rgba(255,255,255,.16); border-radius:10px; padding:10px 16px; font-size:13px; min-width:86px; text-align:center; }
+  .stat b { display:block; font-size:20px; margin-top:2px; }
+  .toolbar { display:flex; gap:10px; margin-bottom:10px; flex-wrap:wrap; }
+  .toolbar button { border:none; border-radius:10px; padding:10px 18px; font-size:14px; cursor:pointer; background:#fff; color:#374151; box-shadow:0 1px 3px rgba(0,0,0,.08); transition:.15s; }
+  .toolbar button:hover { transform:translateY(-1px); }
+  .toolbar button.primary { background:#e11d48; color:#fff; }
+  .filter { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px; align-items:center; }
+  .filter .lbl { font-size:13px; color:#6b7280; }
+  .filter button { border:1px solid #d1d5db; background:#fff; border-radius:999px; padding:6px 14px; font-size:13px; cursor:pointer; color:#4b5563; }
+  .filter button.on { background:#e11d48; border-color:#e11d48; color:#fff; }
+  .card { background:#fff; border-radius:14px; padding:20px; margin-bottom:14px; box-shadow:0 1px 3px rgba(0,0,0,.06); }
+  .qtype { display:inline-block; font-size:11px; padding:2px 8px; border-radius:999px; margin-bottom:8px; font-weight:600; }
+  .qtype.single { background:#ffe4e6; color:#be123c; }
+  .qtype.multi { background:#fce7f3; color:#be185d; }
+  .qtype.judge { background:#dcfce7; color:#15803d; }
+  .qtext { font-size:15px; font-weight:600; line-height:1.6; margin-bottom:12px; }
+  .opt { display:block; border:1.5px solid #e5e7eb; border-radius:10px; padding:10px 14px; margin-bottom:8px; cursor:pointer; font-size:14px; line-height:1.5; transition:.12s; user-select:none; }
+  .opt:hover { border-color:#fda4af; }
+  .opt.sel { border-color:#e11d48; background:#fff1f2; }
+  .opt.right { border-color:#16a34a; background:#f0fdf4; }
+  .opt.wrong { border-color:#dc2626; background:#fef2f2; }
+  .opt.disabled { cursor:default; }
+  .exp { display:none; margin-top:10px; padding:10px 14px; border-radius:10px; background:#f9fafb; border-left:3px solid #e11d48; font-size:13px; color:#4b5563; line-height:1.6; }
+  .exp.show { display:block; }
+  .result { display:none; background:#fff; border-radius:16px; padding:28px; text-align:center; box-shadow:0 1px 3px rgba(0,0,0,.06); margin-top:10px; }
+  .result .big { font-size:40px; font-weight:700; }
+  .result .msg { margin:8px 0 18px; color:#6b7280; font-size:14px; }
+  .tip { font-size:12px; color:#9ca3af; margin-bottom:16px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>🎥 直播教学基本功 Day2 培训刷题</h1>
+    <p>考核范围：为什么开直播 / 顺应市场 / 四大直播场景 / 坐姿 / 手势 / 仪容仪表 ｜ 共 30 题</p>
+    <div class="stats">
+      <div class="stat">已答<b id="s-answered">0</b></div>
+      <div class="stat">答对<b id="s-right">0</b></div>
+      <div class="stat">答错<b id="s-wrong">0</b></div>
+    </div>
+  </header>
+
+  <div class="toolbar">
+    <button class="primary" onclick="submitAll()">交卷并评分</button>
+    <button onclick="resetAll()">重新开始</button>
+    <button id="expBtn" onclick="toggleExpAll(this)">显示全部解析</button>
+  </div>
+  <div class="filter">
+    <span class="lbl">题型筛选：</span>
+    <button class="on" data-f="all" onclick="setFilter('all',this)">全部</button>
+    <button data-f="single" onclick="setFilter('single',this)">单选 12</button>
+    <button data-f="multi" onclick="setFilter('multi',this)">多选 8</button>
+    <button data-f="judge" onclick="setFilter('judge',this)">判断 10</button>
+  </div>
+  <div class="tip">💡 四大直播场景是考核重点（表格四行全覆盖）。单选/判断点击选项即判分；多选点选后点「确认答案」判分；交卷时未作答按错误计。</div>
+
+  <div id="list"></div>
+
+  <div class="result" id="result">
+    <div class="big" id="r-score">--</div>
+    <div class="msg" id="r-msg"></div>
+    <button class="primary" style="border:none;border-radius:10px;padding:10px 18px;background:#e11d48;color:#fff;cursor:pointer" onclick="resetAll()">再刷一遍</button>
+  </div>
+</div>
+
+<script>
+const DATA = [
+  // ===== 单选 12 =====
+  {t:"single", q:"开直播建立老师感，是为了让家长和孩子感受到什么？", o:["真实的老师在教学","课件制作精美","公司规模大","优惠力度大"], a:[0],
+   e:"老师感——让家长和孩子感受到真实的老师在教学；配合服务感（即时答疑、关注每个孩子）和用户粘性（定期直播形成习惯与情感连接）。"},
+  {t:"single", q:"从市场维度看，直播是最直观的什么？", o:["招生广告投放渠道","教学成果展示，优质片段还能作为宣传素材带动转介绍","替代电话回访的工具","降低运营成本的手段"], a:[1],
+   e:"市场方面，直播是最直观的教学成果展示，家长能看到孩子的表现，优质片段还能作为宣传素材带动转介绍。"},
+  {t:"single", q:"现在的市场模式下，录播课和直播课普遍存在的问题是？", o:["录播课太贵，直播课太便宜","录播课和直播课内容完全一样","录播课看得多练得少，直播课听得多会得少","录播课和直播课都没有互动"], a:[2],
+   e:"现在的市场模式：录播课——看得多、练得少；直播课——听得多、会得少。这正是我们要用莫顿实操课 + 直播去解决的痛点。"},
+  {t:"single", q:"我们的课程模式中，唯一一家指的是？", o:["唯一一家纯直播课程","唯一一家录播课程","唯一一家莫顿实操课程","唯一一家免费课程"], a:[2],
+   e:"我们的课程模式——唯一一家莫顿实操课程，莫顿实操课 + 直播，边学边练更有结果。"},
+  {t:"single", q:"见面会直播的直播节点、面向对象和核心目标是？", o:["开课前、孩子、孩子喜欢","开课前、家长、家长信任","每次课前、孩子、孩子喜欢","根据运营节奏、孩子、个性辅导"], a:[0],
+   e:"见面会：开课前，面向孩子，核心目标是孩子喜欢，氛围轻松愉快。"},
+  {t:"single", q:"家长会直播的核心目标是？", o:["个性辅导","家长信任","设备调试","孩子喜欢"], a:[1],
+   e:"家长会：开课前，面向家长，核心目标是家长信任，氛围要专业负责。"},
+  {t:"single", q:"课前直播的直播节点是？", o:["开课前一次性","每次课前","根据运营节奏","期中期末"], a:[1],
+   e:"课前直播：每次课前，面向孩子，核心目标是孩子喜欢，氛围轻松。注意与见面会（开课前）区分。"},
+  {t:"single", q:"小灶课的核心目标是？", o:["赛考动员","孩子喜欢","家长信任","个性辅导"], a:[3],
+   e:"小灶课：根据运营节奏安排，面向孩子，核心目标是个性辅导，氛围要专业有趣。"},
+  {t:"single", q:"面向孩子的小灶课，直播氛围的要求是？", o:["轻松愉快","专业负责","专业有趣","严肃认真"], a:[2],
+   e:"小灶课氛围：专业有趣。对比记忆——见面会轻松愉快、家长会专业负责、课前直播氛围轻松、小灶课专业有趣。"},
+  {t:"single", q:"坐姿的镜头位置要求，摄像头与眼睛的关系是？", o:["越低越好，显脸小","高于头顶","随意摆放","与眼睛平齐或略高"], a:[3],
+   e:"镜头位置要求：摄像头与眼睛平齐或略高，配合九宫格构图、肩膀完整露出、头顶保留适当留白。"},
+  {t:"single", q:"正确手势的高度与脸部关系是？", o:["挡住半张脸突出手部","与耳齐平，不挡脸，完整展示","高过头顶才有感染力","低于桌面更自然"], a:[1],
+   e:"手势要与耳齐平、不挡脸、完整展示，手势自然、有节奏、配合讲解，幅度可以大。"},
+  {t:"single", q:"衣服颜色与背景的关系要求是？", o:["颜色与背景有明显区别","颜色与背景完全一致","必须穿纯黑色","必须穿公司制服"], a:[0],
+   e:"仪容仪表之衣着得体：衣服颜色与背景有明显区别，符合教师职业形象；想更好可以淡妆、穿符合孩子喜好的穿搭。"},
+
+  // ===== 多选 8 =====
+  {t:"multi", q:"开直播的核心价值包括哪些？", o:["强化老师形象 + 个性化服务","增强学员粘性","市场维度：教学成果展示、带动转介绍","课程维度：提升参与度、实时反馈调整节奏"], a:[0,1,2,3],
+   e:"开直播价值两维度：用户侧（老师感、服务感、粘性）+ 市场与课程侧（成果展示转介绍、互动提升参与度、实时反馈调节奏、动态演示助理解）。"},
+  {t:"multi", q:"以下哪些属于常见直播场景？", o:["见面会","家长会","课前直播","小灶课"], a:[0,1,2,3],
+   e:"四种常见直播场景：见面会、家长会、课前直播、小灶课。每种场景的节点、对象、目标、氛围各有侧重。"},
+  {t:"multi", q:"关于四种直播场景的节点与面向对象，正确的有？", o:["见面会：开课前，面向孩子","家长会：开课前，面向家长","课前直播：每次课前，面向孩子","小灶课：根据运营节奏，面向孩子"], a:[0,1,2,3],
+   e:"场景表四行完整对照。判断场景先看面向谁（孩子还是家长），再看什么节点（开课前/每次课前/运营节奏）。"},
+  {t:"multi", q:"关于四种直播场景的核心目标与氛围，正确的有？", o:["见面会——孩子喜欢——轻松愉快","家长会——家长信任——专业负责","课前直播——孩子喜欢——氛围轻松","小灶课——个性辅导——专业有趣"], a:[0,1,2,3],
+   e:"四组目标与氛围一一对应，不能混搭：给孩子的场景氛围偏轻松有趣，给家长的场景氛围偏专业负责。"},
+  {t:"multi", q:"坐姿的镜头位置要求包括？", o:["九宫格构图","肩膀完整露出画面","头顶保留适当留白","摄像头与眼睛平齐或略高"], a:[0,1,2,3],
+   e:"镜头位置四要求：九宫格构图、肩膀完整露出画面、头顶保留适当留白、摄像头与眼睛平齐或略高。"},
+  {t:"multi", q:"坐姿状态的要求包括？", o:["挺胸抬头，腰背挺直","不跷二郎腿","坐稳，不前后左右乱晃","身体微微前倾，表现专注"], a:[0,1,2,3],
+   e:"坐姿状态四要求：挺胸抬头腰背挺直、不跷二郎腿、坐稳不乱晃、身体微微前倾表现专注。"},
+  {t:"multi", q:"以下哪些属于正确手势？", o:["鼓掌、打招呼","比数字、点赞、OK、比心","手势自然、有节奏、配合讲解","竖中指、摇手指"], a:[0,1,2],
+   e:"正确手势：鼓掌、打招呼、比数字、点赞、OK、比心，要自然有节奏配合讲解，幅度可以大。D 错误——竖中指、摇手指是明确的错误手势。"},
+  {t:"multi", q:"以下哪些属于直播中的错误手势？", o:["竖中指、摇手指、出小拇指","拇指朝下","抓耳挠腮、抠鼻","长时间无意义手势、中指扶镜框"], a:[0,1,2,3],
+   e:"错误手势四类：竖中指/摇手指/出小拇指、拇指朝下、抓耳挠腮抠鼻、长时间无意义手势和中指扶镜框——这些都是不专业动作，直播中要避免。"},
+
+  // ===== 判断 10 =====
+  {t:"judge", q:"直播互动可以提升孩子参与度，实时反馈能帮助调整教学节奏。", a:[0],
+   e:"课程维度价值：直播互动提升参与度，实时反馈帮助调整教学节奏，动态演示让知识更易理解，最终提升学习效果和续报意愿。"},
+  {t:"judge", q:"定期直播能形成习惯和情感连接，增强学员粘性。", a:[0],
+   e:"用户粘性来自定期直播形成的习惯和情感连接，这是开直播的核心价值之一。"},
+  {t:"judge", q:"莫顿实操课加直播的模式，能让孩子边学边练更有结果。", a:[0],
+   e:"我们的课程模式——唯一一家莫顿实操课程；莫顿实操课 + 直播，边学边练更有结果，还配实操演练、现场纠错、现场巩固、直播巩固。"},
+  {t:"judge", q:"见面会是开课前面向家长开展的直播。", a:[1],
+   e:"见面会面向的是【孩子】，核心目标是孩子喜欢、氛围轻松愉快；面向家长的开课前直播是家长会。"},
+  {t:"judge", q:"家长会直播的氛围要求是轻松愉快，跟见面会一样。", a:[1],
+   e:"家长会氛围要求【专业负责】（面向家长、目标家长信任）；轻松愉快是见面会的氛围要求，两者不能混。"},
+  {t:"judge", q:"课前直播每次课前都要开展，面向孩子。", a:[0],
+   e:"课前直播：每次课前，面向孩子，核心目标孩子喜欢，氛围轻松。"},
+  {t:"judge", q:"坐姿允许跷二郎腿，只要上半身挺直就行。", a:[1],
+   e:"坐姿明确要求【不跷二郎腿】；要挺胸抬头、腰背挺直、坐稳不乱晃、身体微微前倾。"},
+  {t:"judge", q:"直播时身体可以微微前倾，表现专注和投入。", a:[0],
+   e:"身体微微前倾是坐姿状态的要求之一，向屏幕前的孩子传递专注和投入的信号。"},
+  {t:"judge", q:"为了更有亲和力，直播时可以偶尔比划拇指朝下的手势活跃气氛。", a:[1],
+   e:"拇指朝下属于明确禁止的错误手势；正确手势是点赞（拇指朝上）、OK、比心等正向手势。"},
+  {t:"judge", q:"淡妆、符合孩子喜好的穿搭、可爱发箍、道具眼镜，都可以增加孩子的好感度。", a:[0],
+   e:"这是仪容仪表页的小 tips：淡妆、符合孩子喜好的穿搭、可爱发箍、道具眼镜都可以增加孩子好感度。"},
+];
+
+const TYPE_LABEL = {single:"单选", multi:"多选", judge:"判断"};
+const JOPTS = ["√ 正确","× 错误"];
+let answered = 0, right = 0;
+const answers = {};
+
+function esc(s){ return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+function letters(arr){ return arr.map(i=>String.fromCharCode(65+i)).sort().join(""); }
+
+function render(){
+  const list = document.getElementById('list');
+  list.innerHTML = '';
+  DATA.forEach((item, idx) => {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.dataset.idx = idx;
+    card.dataset.type = item.t;
+    const opts = item.t === 'judge' ? JOPTS : item.o;
+    let html = `<span class="qtype ${item.t}">${idx+1}. ${TYPE_LABEL[item.t]}${item.t==='multi'?'（多选）':''}</span>
+      <div class="qtext">${esc(item.q)}</div>`;
+    opts.forEach((opt, oi) => {
+      html += `<div class="opt" data-oi="${oi}" data-idx="${idx}">${String.fromCharCode(65+oi)}. ${esc(opt)}</div>`;
+    });
+    if (item.t === 'multi') {
+      html += `<div style="text-align:right;margin-top:4px"><button class="confirm-btn" data-idx="${idx}" style="border:none;border-radius:8px;padding:7px 16px;background:#e11d48;color:#fff;cursor:pointer;font-size:13px">确认答案</button></div>`;
+    }
+    html += `<div class="exp" id="exp-${idx}">💡 解析：${esc(item.e)}</div>`;
+    card.innerHTML = html;
+    list.appendChild(card);
+  });
+  bind();
+}
+
+function bind(){
+  document.querySelectorAll('.opt').forEach(el => {
+    el.addEventListener('click', () => {
+      const idx = +el.dataset.idx;
+      if (answers[idx] !== undefined) return;
+      const item = DATA[idx];
+      if (item.t === 'multi') {
+        el.classList.toggle('sel');
+      } else {
+        document.querySelectorAll(`.opt[data-idx="${idx}"]`).forEach(o=>o.classList.remove('sel'));
+        el.classList.add('sel');
+        check(idx);
+      }
+    });
+  });
+  document.querySelectorAll('.confirm-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = +btn.dataset.idx;
+      if (answers[idx] === undefined) check(idx);
+    });
+  });
+}
+
+function getSel(idx){
+  return [...document.querySelectorAll(`.opt[data-idx="${idx}"].sel`)].map(e=>+e.dataset.oi);
+}
+
+function check(idx){
+  const item = DATA[idx];
+  const sel = getSel(idx);
+  const selKey = letters(sel), ansKey = letters(item.a);
+  const correct = selKey === ansKey && sel.length === item.a.length;
+  answers[idx] = correct;
+  answered++; if (correct) right++;
+  document.querySelectorAll(`.opt[data-idx="${idx}"]`).forEach(o=>{
+    o.classList.add('disabled');
+    const oi = +o.dataset.oi;
+    if (item.a.includes(oi)) o.classList.add('right');
+    else if (o.classList.contains('sel')) o.classList.add('wrong');
+  });
+  document.getElementById(`exp-${idx}`).classList.add('show');
+  updateStats();
+  if (answered === DATA.length) setTimeout(showResult, 400);
+}
+
+function updateStats(){
+  document.getElementById('s-answered').textContent = answered;
+  document.getElementById('s-right').textContent = right;
+  document.getElementById('s-wrong').textContent = answered - right;
+}
+
+function submitAll(){
+  DATA.forEach((item, idx) => { if (answers[idx] === undefined) check(idx); });
+  showResult();
+}
+
+function showResult(){
+  const p = Math.round(right / DATA.length * 100);
+  const el = document.getElementById('r-score');
+  el.textContent = `${right} / ${DATA.length}（${p}分）`;
+  el.style.color = p>=80 ? '#16a34a' : p>=60 ? '#d97706' : '#dc2626';
+  document.getElementById('r-msg').textContent =
+    p>=90 ? '🎉 太棒了！四大场景和直播基本功已烂熟于心！' :
+    p>=80 ? '👍 很不错，把错题解析再看一遍就稳了！' :
+    p>=60 ? '💪 及格了，重点复习四大场景对照表和坐姿手势标准。' :
+            '📖 建议重读 PPT 的场景表、坐姿、手势、仪容仪表四页后再刷一遍。';
+  const r = document.getElementById('result');
+  r.style.display = 'block';
+  r.scrollIntoView({behavior:'smooth'});
+}
+
+function resetAll(){
+  Object.keys(answers).forEach(k => delete answers[k]);
+  answered = 0; right = 0;
+  const eb = document.getElementById('expBtn');
+  eb.dataset.on = ''; eb.textContent = '显示全部解析';
+  render();
+  updateStats();
+  document.getElementById('result').style.display = 'none';
+  window.scrollTo({top:0});
+}
+
+function setFilter(f, btn){
+  document.querySelectorAll('.filter button').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  document.querySelectorAll('.card').forEach(c=>{
+    c.style.display = (f==='all' || c.dataset.type===f) ? '' : 'none';
+  });
+}
+
+function toggleExpAll(btn){
+  const show = !btn.dataset.on;
+  btn.dataset.on = show ? '1' : '';
+  document.querySelectorAll('.exp').forEach(e=>{
+    if (show) e.classList.add('show'); else e.classList.remove('show');
+  });
+  btn.textContent = show ? '隐藏全部解析' : '显示全部解析';
+}
+
+render();
+updateStats();
+</script>
+</body>
+</html>

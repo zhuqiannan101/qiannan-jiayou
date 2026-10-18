@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>图形化课导 Day1 培训刷题</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:"PingFang SC","Microsoft YaHei",system-ui,sans-serif; background:#f2f4f8; color:#1f2937; min-height:100vh; }
+  .wrap { max-width:860px; margin:0 auto; padding:24px 16px 80px; }
+  header { background:linear-gradient(135deg,#4f6ef7,#7c5cf0); color:#fff; border-radius:16px; padding:28px 24px; margin-bottom:20px; }
+  header h1 { font-size:22px; margin-bottom:6px; }
+  header p { font-size:13px; opacity:.9; }
+  .stats { display:flex; gap:12px; margin-top:16px; flex-wrap:wrap; }
+  .stat { background:rgba(255,255,255,.16); border-radius:10px; padding:10px 16px; font-size:13px; min-width:86px; text-align:center; }
+  .stat b { display:block; font-size:20px; margin-top:2px; }
+  .toolbar { display:flex; gap:10px; margin-bottom:10px; flex-wrap:wrap; }
+  .toolbar button { border:none; border-radius:10px; padding:10px 18px; font-size:14px; cursor:pointer; background:#fff; color:#374151; box-shadow:0 1px 3px rgba(0,0,0,.08); transition:.15s; }
+  .toolbar button:hover { transform:translateY(-1px); }
+  .toolbar button.primary { background:#4f6ef7; color:#fff; }
+  .filter { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px; align-items:center; }
+  .filter .lbl { font-size:13px; color:#6b7280; }
+  .filter button { border:1px solid #d1d5db; background:#fff; border-radius:999px; padding:6px 14px; font-size:13px; cursor:pointer; color:#4b5563; }
+  .filter button.on { background:#4f6ef7; border-color:#4f6ef7; color:#fff; }
+  .card { background:#fff; border-radius:14px; padding:20px; margin-bottom:14px; box-shadow:0 1px 3px rgba(0,0,0,.06); }
+  .qtype { display:inline-block; font-size:11px; padding:2px 8px; border-radius:999px; margin-bottom:8px; font-weight:600; }
+  .qtype.single { background:#e0e7ff; color:#4338ca; }
+  .qtype.multi { background:#fce7f3; color:#be185d; }
+  .qtype.judge { background:#dcfce7; color:#15803d; }
+  .qtext { font-size:15px; font-weight:600; line-height:1.6; margin-bottom:12px; }
+  .opt { display:block; border:1.5px solid #e5e7eb; border-radius:10px; padding:10px 14px; margin-bottom:8px; cursor:pointer; font-size:14px; line-height:1.5; transition:.12s; user-select:none; }
+  .opt:hover { border-color:#a5b4fc; }
+  .opt.sel { border-color:#4f6ef7; background:#eef2ff; }
+  .opt.right { border-color:#16a34a; background:#f0fdf4; }
+  .opt.wrong { border-color:#dc2626; background:#fef2f2; }
+  .opt.disabled { cursor:default; }
+  .exp { display:none; margin-top:10px; padding:10px 14px; border-radius:10px; background:#f9fafb; border-left:3px solid #4f6ef7; font-size:13px; color:#4b5563; line-height:1.6; }
+  .exp.show { display:block; }
+  .result { display:none; background:#fff; border-radius:16px; padding:28px; text-align:center; box-shadow:0 1px 3px rgba(0,0,0,.06); margin-top:10px; }
+  .result .big { font-size:40px; font-weight:700; }
+  .result .msg { margin:8px 0 18px; color:#6b7280; font-size:14px; }
+  .tip { font-size:12px; color:#9ca3af; margin-bottom:16px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>📚 图形化课导 Day1 培训刷题</h1>
+    <p>考核范围：带班周期 / 班级时间 / 用户来源 / 用户特点 / LEVEL 课时安排 / 七大阶段重点 / 各阶段用户心理 ｜ 共 38 题</p>
+    <div class="stats">
+      <div class="stat">已答<b id="s-answered">0</b></div>
+      <div class="stat">答对<b id="s-right">0</b></div>
+      <div class="stat">答错<b id="s-wrong">0</b></div>
+    </div>
+  </header>
+
+  <div class="toolbar">
+    <button class="primary" onclick="submitAll()">交卷并评分</button>
+    <button onclick="resetAll()">重新开始</button>
+    <button id="expBtn" onclick="toggleExpAll(this)">显示全部解析</button>
+  </div>
+  <div class="filter">
+    <span class="lbl">题型筛选：</span>
+    <button class="on" data-f="all" onclick="setFilter('all',this)">全部</button>
+    <button data-f="single" onclick="setFilter('single',this)">单选 16</button>
+    <button data-f="multi" onclick="setFilter('multi',this)">多选 10</button>
+    <button data-f="judge" onclick="setFilter('judge',this)">判断 12</button>
+  </div>
+  <div class="tip">💡 干扰项均来自培训内容中的易混知识点，请认真审题。单选/判断点击选项即判分；多选点选后点「确认答案」判分；交卷时未作答按错误计。</div>
+
+  <div id="list"></div>
+
+  <div class="result" id="result">
+    <div class="big" id="r-score">--</div>
+    <div class="msg" id="r-msg"></div>
+    <button class="primary" style="border:none;border-radius:10px;padding:10px 18px;background:#4f6ef7;color:#fff;cursor:pointer" onclick="resetAll()">再刷一遍</button>
+  </div>
+</div>
+
+<script>
+const DATA = [
+  // ===== 单选 16 =====
+  {t:"single", q:"图形化课导的带班周期是？", o:["3 个月","4 个月","半年","一年"], a:[2],
+   e:"带班信息页明确：带班周期为半年。"},
+  {t:"single", q:"图形化课导每人分配两个固定上课时间段，以下哪组全部属于这些时间段？", o:["周二、周四、周六 19:00","周四、周五、周六 19:00","周五、周六、周日 19:00","周三、周五、周日 19:00"], a:[1],
+   e:"带班时间为周四（19:00）、周五（19:00）、周六（19:00），不含周二、周三、周日。"},
+  {t:"single", q:"图形化课导班级的用户来源是？", o:["信息流投放直接购课的新用户","老学员转介绍","代理商渠道推荐","前端班主任续报上来"], a:[3],
+   e:"用户来源：前端班主任续报上来，即体验课阶段由班主任转化续报的学员。"},
+  {t:"single", q:"图形化课导班级的用户特点是？", o:["基本都无编程基础","大多学过 Scratch，有一定基础","一半以上有 Python 基础","均为转介绍来的老学员"], a:[0],
+   e:"用户特点：基本都无编程基础，因此需要课导做更细致的入门引导与陪伴。"},
+  {t:"single", q:"图形化课每个 LEVEL 的课时与时长安排是？", o:["8 课时，为期 3 周","10 课时，为期 1 个月","12 课时，为期 6 周","20 课时，为期 2 个月"], a:[1],
+   e:"每个 LEVEL 是一个月（4 周）的课程、共 10 课时：第 1-3 周 3 次 × 2 课时 = 6 课时，第 4 周 2 次 × 2 课时 = 4 课时，合计 10 课时。"},
+  {t:"single", q:"关于每个 LEVEL 内的上课频次安排，正确的是？", o:["第 1-3 周每周 1 次、一次 2 课时；第 4 周每周 2 次，周日增加赛考课或赛考直播课","全程每周 1 次、一次 2 课时，不加课","第 1-3 周每周 2 次；第 4 周每周 1 次收尾","每周固定 2 次，周日安排作业集中答疑课"], a:[0],
+   e:"LEVEL 内节奏：第 1-3 周每周 1 次（一次 2 课时）；第 4 周加密为每周 2 次，其中周日增加赛考课或赛考直播课（一次 2 课时）。"},
+  {t:"single", q:"每个 LEVEL 的第 4 周，在常规课之外周日增加的课是？", o:["续报预热直播课","家长课堂","赛考课或赛考直播课","作业集中答疑课"], a:[2],
+   e:"第 4 周周日增加的是赛考课或赛考直播课（一次 2 课时）；续报预热电访是 L4 阶段的电访动作，不是加课。"},
+  {t:"single", q:"接班期的周期与核心目标分别是？", o:["3 周；防流失 + 建信任","3 周；全力推进正式续报","4 周；防流失 + 建信任","3 周；招报预热 + 赛考联报"], a:[0],
+   e:"接班期持续 3 周（注意不是 4 周），核心目标是「防流失 + 建信任」。B 是 L5 的目标，D 是 L2 的目标。"},
+  {t:"single", q:"L1 试学期的核心目标是？", o:["招报预热 + 赛考联报","等考考试 + 续报预热","赛考履约 + 考务提醒","给家长吃定心丸，建立学习习惯 + 预防流失"], a:[3],
+   e:"L1 试学期 4 周，核心目标：给家长吃定心丸，建立学习习惯 + 预防流失。A 是 L2、B 是 L4、C 是 L3 的目标。"},
+  {t:"single", q:"赛考招报规划电访需在哪个时间节点前完成？", o:["L1-4 前","L2-4 前","L3-2 前","L4-1 前"], a:[1],
+   e:"L2 招报预热阶段要求「L2-4 前完成规划电访」，帮家长明确赛事路径、确认报考意愿，并上传 SOP。"},
+  {t:"single", q:"正式续报的时间节点是？", o:["L4-1 / L4-3","L3-2 / L2-4","L6-2 / L6-4","L5-2 / L5-4"], a:[3],
+   e:"L5 为正式续报阶段，节点 L5-2 / L5-4。注意区分：L4-1/L4-3 是等考，L3-2/L2-4 是赛考联报。"},
+  {t:"single", q:"L4 阶段的核心目标是？", o:["等考考试 + 续报预热","赛考履约 + 考务提醒","招报预热 + 赛考联报","维稳 + 防退费追单"], a:[0],
+   e:"L4 核心目标：等考考试 + 续报预热；L4-1/L4-3 参加等考，同时启动续报预热电访。B 是 L3、C 是 L2、D 是 L6 的目标。"},
+  {t:"single", q:"接班期学员家长的典型心理状态是？", o:["已付费但尚未完全安心，关注孩子适应度与退费保障","要不要交钱、续不续报","结果焦虑、退费风险、追单敏感","需求明确但信任未建立，不安感与表达欲最强"], a:[3],
+   e:"接班期心理：需求明确但信任未建立，不安感与表达欲最强——这正是打首通、见面会、家长会建信任的依据。A 是 L1、B 是 L5、C 是 L6 的心理。"},
+  {t:"single", q:"L5 续报阶段用户的核心心理是？", o:["报课初心与现状是否匹配，权衡是否报赛考","等考能否拿到成绩、收获与期望值","要不要交钱，续不续报","处于续报考虑期间"], a:[2],
+   e:"L5 心理：要不要交钱，持续报；此阶段要做政策解读、逐一跟进未续报学员。A 是 L2、B 是 L3、D 是 L4 的心理。"},
+  {t:"single", q:"日常行课流程中，「开课中」环节包含的动作是？", o:["确认到课、备课、课前直播","课中反馈、课上连麦、后台答疑","课后反馈、作业批改、错误作业反馈","小灶直播课、硬件随材发放"], a:[1],
+   e:"日常行课三段：开课前（确认到课/备课/课前直播）、开课中（课中反馈/课上连麦/后台答疑）、开课后（课后反馈/作业批改/错误作业反馈）。"},
+  {t:"single", q:"L2 阶段赛事小测的主要形式是？", o:["全员参加的大班线上模考","赛前一周集中辅导营","1V1 / 1Vn 讲题小灶课","等考真题串讲直播"], a:[2],
+   e:"L2 招报预热阶段的「赛事小测」以 1V1 / 1Vn 讲题小灶课形式开展，铺垫赛考认知。赛前集中辅导是 L3 的动作。"},
+
+  // ===== 多选 10 =====
+  {t:"multi", q:"以下关于带班信息描述正确的有？", o:["带班周期为半年","固定上课时间为周四 / 周五 / 周六 19:00","每位课导分配两个上课时间段","学员大多有 Scratch 学习经验"], a:[0,1,2],
+   e:"D 错误：用户特点为基本都【无】编程基础。"},
+  {t:"multi", q:"接班期需要完成的关键动作包括？", o:["扒轨迹","组织赛考联报","见面会","家长会"], a:[0,2,3],
+   e:"接班期四件事：扒轨迹、打首通、见面会、家长会。B 错误：赛考联报是 L2 阶段（L3-2/L2-4）启动的动作。"},
+  {t:"multi", q:"「扒轨迹」这一动作的目的是？", o:["了解学员前期学习情况","清晰报名动机","确定续报优惠折扣","排查风险学员"], a:[0,1,3],
+   e:"扒轨迹三件事：了解学员前期学习、清晰报名动机、排查风险学员。C 错误：续报优惠政策解读是 L5 阶段的工作。"},
+  {t:"multi", q:"「打首通」要达成的目标包括？", o:["建立情感连接","促成家长当场续报缴费","介绍课程和服务","明确学期安排"], a:[0,2,3],
+   e:"首通四目标：建立情感连接、介绍课程和服务、确认报名动机、明确学期安排。B 错误：首通在接班期，目的是建信任，续报转化是 L5 的任务。"},
+  {t:"multi", q:"「见面会」的目标包括？", o:["拉近师生关系","提升兴趣度","提高学员开课期待值","回扣直播课程模式"], a:[0,1,2,3],
+   e:"见面会四目标：拉近师生关系、提升兴趣度、提高学员开课期待值、回扣直播课程模式。"},
+  {t:"multi", q:"「家长会」的目标包括？", o:["现场推进年课续报缴费","向家长同步规划","建立信任","明确预期"], a:[1,2,3],
+   e:"家长会三目标：向家长同步规划、建立信任、明确预期。A 错误：正式续报在 L5 阶段（L5-2/L5-4），家长会只做规划同步与信任建立。"},
+  {t:"multi", q:"日常行课「开课后」的基础工作包括？", o:["课后反馈","课后作业批改","课前直播","错误作业反馈"], a:[0,1,3],
+   e:"开课后三项：课后反馈、课后作业批改、错误作业反馈。C 错误：课前直播属于「开课前」环节。"},
+  {t:"multi", q:"L1 试学期的工作要点包括？", o:["开课前、开课中、开课后三大工作流程全流程覆盖","小灶课 L1 阶段全覆盖","硬件随材扣费规则提醒","流失预判"], a:[0,1,2,3],
+   e:"L1 四大要点：三大工作流程走扎实（未回复家长必电话跟进）、小灶课全覆盖夯实学习意愿、硬件随材扣费规则提醒、流失预判。"},
+  {t:"multi", q:"L6 用户维稳阶段的重点动作包括？", o:["组织国赛 / 白名单赛事考试，冲刺高阶奖项","防退费，重点关注退费风险学员","跟进未续报学员追单","启动赛考规划电访"], a:[0,1,2],
+   e:"L6 四大动作：国赛/白赛考试、防退费、追单、结课过渡。D 错误：赛考规划电访是 L2 阶段（L2-4 前）的动作。"},
+  {t:"multi", q:"课导工作的价值最终落到哪三个层面？", o:["对家长：孩子上课有人盯，进步看得见，家长认可愿意续报","对公司：完课率、续报率守住，获客来的孩子产生长期价值","对自己：续报率 = 绩效 + 晋升，回扣收入和履历","对投放团队：为渠道优化投放素材"], a:[0,1,2],
+   e:"课导价值三层面：对家长、对公司、对自己，形成「服务好家长 → 续报 → 公司业绩稳 → 绩效晋升」的正循环。"},
+
+  // ===== 判断 12 =====
+  {t:"judge", q:"图形化课导的带班周期为一个季度。", a:[1],
+   e:"带班周期为半年，不是 3 个月。"},
+  {t:"judge", q:"班级学员入学时大多已有扎实的 Scratch 基础，可以直接上进度较快的内容。", a:[1],
+   e:"用户特点：基本都【无】编程基础，需要课导做细致的入门引导和陪伴。"},
+  {t:"judge", q:"每个 LEVEL 为一个月课程、共 10 课时：第 1-3 周每周 1 次、一次 2 课时；第 4 周每周 2 次，周日增加赛考课或赛考直播课。", a:[0],
+   e:"这是每个 LEVEL 的固定节奏：3 次 × 2 课时 + 2 次 × 2 课时 = 10 课时。"},
+  {t:"judge", q:"「第 4 周每周 2 次、周日加赛考课或赛考直播课」的安排只适用于 L1 阶段，L2 起恢复每周一次。", a:[1],
+   e:"每个月（每个 LEVEL）都是这样的安排，L1 到 L6 全程按此节奏循环，不是只有 L1 加课。"},
+  {t:"judge", q:"第 4 周周日增加的课是续报预热直播课。", a:[1],
+   e:"第 4 周周日增加的是【赛考课或赛考直播课】（一次 2 课时）；续报预热电访是 L4 阶段的电访动作，不是加课。"},
+  {t:"judge", q:"接班期的核心目标是全力推进正式续报。", a:[1],
+   e:"接班期核心目标：防流失 + 建信任；正式续报是 L5 阶段（L5-2 / L5-4）的目标。"},
+  {t:"judge", q:"L1 阶段家长的状态是：已付费但尚未完全安心，会关注孩子适应度、课程价值与退费保障。", a:[0],
+   e:"这是七大阶段用户心理表对 L1 的描述，因此 L1 要「给家长吃定心丸」。"},
+  {t:"judge", q:"日常沟通反馈中，未回复的家长可以等家长主动联系，不必电话跟进。", a:[1],
+   e:"L1 明确「未回复家长必电话跟进」，确保家校沟通不断档。"},
+  {t:"judge", q:"赛考联报的启动节点是 L4-1 / L4-3。", a:[1],
+   e:"赛考联报节点是【L3-2 / L2-4】；L4-1 / L4-3 是【等考考试】的节点，两者易混。"},
+  {t:"judge", q:"等考考试安排在 L4-1 / L4-3。", a:[0],
+   e:"L4-1 / L4-3 参加等考，检验阶段学习成果，并向家长展示成果、增强续报信心。"},
+  {t:"judge", q:"L3 赛考履约阶段，考前应给家长「降预期」，而不是一味拉高期待。", a:[0],
+   e:"L3 赛考辅导三动作：赛前集中辅导、考前降预期、考后私信运营。"},
+  {t:"judge", q:"L6 阶段对未续报学员要跟进追单，争取最后转化机会。", a:[0],
+   e:"L6 核心目标：维稳 + 防退费追单；追单是争取最后转化机会的动作，同时做好结课过渡。"},
+];
+
+const TYPE_LABEL = {single:"单选", multi:"多选", judge:"判断"};
+const JOPTS = ["√ 正确","× 错误"];
+let answered = 0, right = 0;
+const answers = {};
+
+function esc(s){ return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+function letters(arr){ return arr.map(i=>String.fromCharCode(65+i)).sort().join(""); }
+
+function render(){
+  const list = document.getElementById('list');
+  list.innerHTML = '';
+  DATA.forEach((item, idx) => {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.dataset.idx = idx;
+    card.dataset.type = item.t;
+    const opts = item.t === 'judge' ? JOPTS : item.o;
+    let html = `<span class="qtype ${item.t}">${idx+1}. ${TYPE_LABEL[item.t]}${item.t==='multi'?'（多选）':''}</span>
+      <div class="qtext">${esc(item.q)}</div>`;
+    opts.forEach((opt, oi) => {
+      html += `<div class="opt" data-oi="${oi}" data-idx="${idx}">${String.fromCharCode(65+oi)}. ${esc(opt)}</div>`;
+    });
+    if (item.t === 'multi') {
+      html += `<div style="text-align:right;margin-top:4px"><button class="confirm-btn" data-idx="${idx}" style="border:none;border-radius:8px;padding:7px 16px;background:#4f6ef7;color:#fff;cursor:pointer;font-size:13px">确认答案</button></div>`;
+    }
+    html += `<div class="exp" id="exp-${idx}">💡 解析：${esc(item.e)}</div>`;
+    card.innerHTML = html;
+    list.appendChild(card);
+  });
+  bind();
+}
+
+function bind(){
+  document.querySelectorAll('.opt').forEach(el => {
+    el.addEventListener('click', () => {
+      const idx = +el.dataset.idx;
+      if (answers[idx] !== undefined) return;
+      const item = DATA[idx];
+      if (item.t === 'multi') {
+        el.classList.toggle('sel');
+      } else {
+        document.querySelectorAll(`.opt[data-idx="${idx}"]`).forEach(o=>o.classList.remove('sel'));
+        el.classList.add('sel');
+        check(idx);
+      }
+    });
+  });
+  document.querySelectorAll('.confirm-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = +btn.dataset.idx;
+      if (answers[idx] === undefined) check(idx);
+    });
+  });
+}
+
+function getSel(idx){
+  return [...document.querySelectorAll(`.opt[data-idx="${idx}"].sel`)].map(e=>+e.dataset.oi);
+}
+
+function check(idx){
+  const item = DATA[idx];
+  const sel = getSel(idx);
+  const selKey = letters(sel), ansKey = letters(item.a);
+  const correct = selKey === ansKey && sel.length === item.a.length;
+  answers[idx] = correct;
+  answered++; if (correct) right++;
+  document.querySelectorAll(`.opt[data-idx="${idx}"]`).forEach(o=>{
+    o.classList.add('disabled');
+    const oi = +o.dataset.oi;
+    if (item.a.includes(oi)) o.classList.add('right');
+    else if (o.classList.contains('sel')) o.classList.add('wrong');
+  });
+  document.getElementById(`exp-${idx}`).classList.add('show');
+  updateStats();
+  if (answered === DATA.length) setTimeout(showResult, 400);
+}
+
+function updateStats(){
+  document.getElementById('s-answered').textContent = answered;
+  document.getElementById('s-right').textContent = right;
+  document.getElementById('s-wrong').textContent = answered - right;
+}
+
+function submitAll(){
+  DATA.forEach((item, idx) => { if (answers[idx] === undefined) check(idx); });
+  showResult();
+}
+
+function showResult(){
+  const p = Math.round(right / DATA.length * 100);
+  const el = document.getElementById('r-score');
+  el.textContent = `${right} / ${DATA.length}（${p}分）`;
+  el.style.color = p>=80 ? '#16a34a' : p>=60 ? '#d97706' : '#dc2626';
+  document.getElementById('r-msg').textContent =
+    p>=90 ? '🎉 太棒了！带班信息和七大阶段已烂熟于心！' :
+    p>=80 ? '👍 很不错，把错题解析再看一遍就稳了！' :
+    p>=60 ? '💪 及格了，重点复习「七大阶段重点」和「用户心理」表。' :
+            '📖 建议重读 PPT 的带班信息、七大阶段重点、用户心理三页后再刷一遍。';
+  const r = document.getElementById('result');
+  r.style.display = 'block';
+  r.scrollIntoView({behavior:'smooth'});
+}
+
+function resetAll(){
+  Object.keys(answers).forEach(k => delete answers[k]);
+  answered = 0; right = 0;
+  const eb = document.getElementById('expBtn');
+  eb.dataset.on = ''; eb.textContent = '显示全部解析';
+  render();
+  updateStats();
+  document.getElementById('result').style.display = 'none';
+  window.scrollTo({top:0});
+}
+
+function setFilter(f, btn){
+  document.querySelectorAll('.filter button').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  document.querySelectorAll('.card').forEach(c=>{
+    c.style.display = (f==='all' || c.dataset.type===f) ? '' : 'none';
+  });
+}
+
+function toggleExpAll(btn){
+  const show = !btn.dataset.on;
+  btn.dataset.on = show ? '1' : '';
+  document.querySelectorAll('.exp').forEach(e=>{
+    if (show) e.classList.add('show'); else e.classList.remove('show');
+  });
+  btn.textContent = show ? '隐藏全部解析' : '显示全部解析';
+}
+
+render();
+updateStats();
+</script>
+</body>
+</html>

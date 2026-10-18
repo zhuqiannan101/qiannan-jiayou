@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>首通电话全流程 培训刷题</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:"PingFang SC","Microsoft YaHei",system-ui,sans-serif; background:#f2f4f8; color:#1f2937; min-height:100vh; }
+  .wrap { max-width:860px; margin:0 auto; padding:24px 16px 80px; }
+  header { background:linear-gradient(135deg,#0ea5e9,#6366f1); color:#fff; border-radius:16px; padding:28px 24px; margin-bottom:20px; }
+  header h1 { font-size:22px; margin-bottom:6px; }
+  header p { font-size:13px; opacity:.9; }
+  .stats { display:flex; gap:12px; margin-top:16px; flex-wrap:wrap; }
+  .stat { background:rgba(255,255,255,.16); border-radius:10px; padding:10px 16px; font-size:13px; min-width:86px; text-align:center; }
+  .stat b { display:block; font-size:20px; margin-top:2px; }
+  .toolbar { display:flex; gap:10px; margin-bottom:10px; flex-wrap:wrap; }
+  .toolbar button { border:none; border-radius:10px; padding:10px 18px; font-size:14px; cursor:pointer; background:#fff; color:#374151; box-shadow:0 1px 3px rgba(0,0,0,.08); transition:.15s; }
+  .toolbar button:hover { transform:translateY(-1px); }
+  .toolbar button.primary { background:#0ea5e9; color:#fff; }
+  .filter { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px; align-items:center; }
+  .filter .lbl { font-size:13px; color:#6b7280; }
+  .filter button { border:1px solid #d1d5db; background:#fff; border-radius:999px; padding:6px 14px; font-size:13px; cursor:pointer; color:#4b5563; }
+  .filter button.on { background:#0ea5e9; border-color:#0ea5e9; color:#fff; }
+  .card { background:#fff; border-radius:14px; padding:20px; margin-bottom:14px; box-shadow:0 1px 3px rgba(0,0,0,.06); }
+  .qtype { display:inline-block; font-size:11px; padding:2px 8px; border-radius:999px; margin-bottom:8px; font-weight:600; }
+  .qtype.single { background:#e0f2fe; color:#0369a1; }
+  .qtype.multi { background:#fce7f3; color:#be185d; }
+  .qtype.judge { background:#dcfce7; color:#15803d; }
+  .qtext { font-size:15px; font-weight:600; line-height:1.6; margin-bottom:12px; }
+  .opt { display:block; border:1.5px solid #e5e7eb; border-radius:10px; padding:10px 14px; margin-bottom:8px; cursor:pointer; font-size:14px; line-height:1.5; transition:.12s; user-select:none; }
+  .opt:hover { border-color:#7dd3fc; }
+  .opt.sel { border-color:#0ea5e9; background:#f0f9ff; }
+  .opt.right { border-color:#16a34a; background:#f0fdf4; }
+  .opt.wrong { border-color:#dc2626; background:#fef2f2; }
+  .opt.disabled { cursor:default; }
+  .exp { display:none; margin-top:10px; padding:10px 14px; border-radius:10px; background:#f9fafb; border-left:3px solid #0ea5e9; font-size:13px; color:#4b5563; line-height:1.6; }
+  .exp.show { display:block; }
+  .result { display:none; background:#fff; border-radius:16px; padding:28px; text-align:center; box-shadow:0 1px 3px rgba(0,0,0,.06); margin-top:10px; }
+  .result .big { font-size:40px; font-weight:700; }
+  .result .msg { margin:8px 0 18px; color:#6b7280; font-size:14px; }
+  .tip { font-size:12px; color:#9ca3af; margin-bottom:16px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>📞 首通电话全流程 培训刷题</h1>
+    <p>考核范围：首通目的 / 前期准备 / 用户分层 / 五阶段流程与动作 / 首通标准 ｜ 共 35 题</p>
+    <div class="stats">
+      <div class="stat">已答<b id="s-answered">0</b></div>
+      <div class="stat">答对<b id="s-right">0</b></div>
+      <div class="stat">答错<b id="s-wrong">0</b></div>
+    </div>
+  </header>
+
+  <div class="toolbar">
+    <button class="primary" onclick="submitAll()">交卷并评分</button>
+    <button onclick="resetAll()">重新开始</button>
+    <button id="expBtn" onclick="toggleExpAll(this)">显示全部解析</button>
+  </div>
+  <div class="filter">
+    <span class="lbl">题型筛选：</span>
+    <button class="on" data-f="all" onclick="setFilter('all',this)">全部</button>
+    <button data-f="single" onclick="setFilter('single',this)">单选 14</button>
+    <button data-f="multi" onclick="setFilter('multi',this)">多选 9</button>
+    <button data-f="judge" onclick="setFilter('judge',this)">判断 12</button>
+  </div>
+  <div class="tip">💡 干扰项均来自培训内容中的易混知识点，请认真审题。单选/判断点击选项即判分；多选点选后点「确认答案」判分；交卷时未作答按错误计。</div>
+
+  <div id="list"></div>
+
+  <div class="result" id="result">
+    <div class="big" id="r-score">--</div>
+    <div class="msg" id="r-msg"></div>
+    <button class="primary" style="border:none;border-radius:10px;padding:10px 18px;background:#0ea5e9;color:#fff;cursor:pointer" onclick="resetAll()">再刷一遍</button>
+  </div>
+</div>
+
+<script>
+const DATA = [
+  // ===== 单选 14 =====
+  {t:"single", q:"首通电话对用户一侧的核心目的是？", o:["尽快推销年课续费","建立信任、传递课程价值、消除决策顾虑","通知开课时间即可","收集家长收入信息"], a:[1],
+   e:"对用户侧核心：建立信任关系，清晰传递课程价值与服务优势，针对性解答用户对课程内容、学习效果及服务保障的疑问，消除决策顾虑。"},
+  {t:"single", q:"培训中提到首通的本质定位是？", o:["首通就是一次卖课","首通是催课提醒","首通是接住用户","首通是售后回访"], a:[2],
+   e:"首通不是「卖课」，而是「接住用户」。用户已支付 4399、认可编程价值，核心任务是让家长相信：接下来 5-6 个月，能把孩子带好、把课教好。"},
+  {t:"single", q:"首通前准备工作的核心原则是？", o:["知己知彼","先声夺人","快问快答","少问多讲"], a:[0],
+   e:"准备工作的核心原则是「知己知彼」——充分的前期准备，是高效沟通与信任建立的基石。"},
+  {t:"single", q:"接棒准备中查 UID 记录的主要目的是？", o:["核对手机号","查询核桃币余额","统计班级人数","了解家长怎么报进来的，警惕退费风险及报课需求"], a:[3],
+   e:"接棒准备要求查 UID 记录，了解家长是怎么报进来的，注意警惕退费风险及家长报课需求；目标是给家长「前后衔接靠谱」的感觉。"},
+  {t:"single", q:"首通前对用户期许进行甄别归类，一共分为几大类？", o:["两类","四类","三类","五类"], a:[2],
+   e:"用户期许分层共三大类：思维型、升学型、混合型。"},
+  {t:"single", q:"追求孩子快乐成长与可感知进步、需要趣味编程学习与托管服务的普娃属于哪一类？", o:["思维型","升学型","混合型","兴趣型"], a:[0],
+   e:"思维型画像——普娃，追求孩子快乐成长与可感知进步，提供趣味编程学习与托管服务。注意区分：升学型是牛娃，混合型是既要又要的普娃。"},
+  {t:"single", q:"目标顶级竞赛成绩与特殊升学最优解、追求顶尖资源与效率的牛娃属于哪一类？", o:["思维型","混合型","竞赛型","升学型"], a:[3],
+   e:"升学型画像——牛娃，目标顶级竞赛成绩与特殊升学最优解，追求顶尖资源与效率。"},
+  {t:"single", q:"兼顾兴趣与升学、需要可量化成果和升学希望证明的普娃属于哪一类？", o:["升学型","混合型","思维型","均衡型"], a:[1],
+   e:"混合型画像——普娃，兼顾兴趣与升学，需可量化成果、行为改变及升学希望证明，也叫「既要又要」型。"},
+        {t:"single", q:"首通第一阶段的主题是？", o:["挖需·下切法","收尾·固化信任","破冰·立人设","事务确认"], a:[2],
+   e:"首通框架三阶段：阶段一破冰·立人设 → 阶段二挖需·下切法 → 阶段三收尾·固化信任，全程贯穿「情绪饱满贯彻始终、人设建立形象饱满」。"},
+  {t:"single", q:"首通第二阶段的主题是？", o:["挖需·下切法","破冰·立人设","收尾·固化信任","事务确认"], a:[0],
+   e:"阶段二是挖需·下切法，通过层层下切追问深挖关键细节，是整个首通中挖需求的核心环节，动作最多。"},
+  {t:"single", q:"首通第三阶段的主题是？", o:["破冰·立人设","挖需·下切法","事务确认","收尾·固化信任"], a:[3],
+   e:"阶段三是收尾·固化信任：问注意事项（体验课问题改善）、硬件地址确认、固化信任，把首通效果沉淀下来。"},
+  {t:"single", q:"首通标准中，一次有效沟通的通话时长要求是？", o:["5 分钟以上","15 分钟以上","8 分钟以上","30 分钟以上"], a:[1],
+   e:"有效沟通≥15 分钟——通话时长达到 15 分钟以上，才算一次成功沟通。"},
+  {t:"single", q:"信息完整加流程正确这条标准的量化指标是复原率不低于多少？", o:["60%","95%","85%","70%"], a:[2],
+   e:"信息完整 + 流程正确：家长信息记录完整、按既定流程执行，复原率≥85%。"},
+  {t:"single", q:"首通中挖掘家长需求时应善用哪种提问方式？", o:["开放式提问","封闭式提问","连环反问","默认式提问"], a:[0],
+   e:"核心原则是善用开放式提问、挖掘关键细节：避免封闭式「是/否」回答，通过开放式问题引导家长多维度表达，弥补信息差。例如问孩子之前接触过哪些编程内容、希望孩子在哪些方面获得提升。"},
+
+  // ===== 多选 10 =====
+  {t:"multi", q:"首通的四大目标包括哪些？", o:["建立初步联系，构建信任基础","收集关键信息，精准挖掘真实需求","传递课程价值，塑造专业老师形象","锁定意向，有效推动下一步转化行动"], a:[0,1,2,3],
+   e:"首通四大目标：建联系信任 → 收集信息挖需求 → 传递价值立形象 → 锁定意向促转化，环环相扣。"},
+  {t:"multi", q:"首通前的准备工作包括哪两个方面？", o:["复盘历史沟通轨迹","回顾家长反馈记录","当场给家长报价"], a:[0,1],
+   e:"知己知彼：复盘历史沟通轨迹（明确沟通节点与意向线索）、回顾家长反馈记录（预判疑问顾虑）。C 错误——报价不是准备工作。"},
+  {t:"multi", q:"首通的三个优先级包括？", o:["立人设，树权威","报价格，催缴费","明确需求，给规划","识风险，做分层"], a:[0,2,3],
+   e:"三个优先级：①立人设树权威——我是孩子接下来半年的辅导老师，懂孩子、很专业；②明确需求给规划——标出畏难的、学习有问题的、对课程质疑的、试试看的用户；③识风险做分层——了解孩子真实情况、家长付费动机和核心关注点。B 错误——首通不是卖课。"},
+  {t:"multi", q:"用户期许分层包括哪几大类？", o:["思维型","升学型","混合型","闲逛型"], a:[0,1,2],
+   e:"三大类：思维型、升学型、混合型（既要又要）。每个用户的诉求各有不同，首通前要先甄别归类。"},
+            {t:"multi", q:"首通阶段一破冰·立人设的动作包括？", o:["表身份","锁定见面时间","夸表现","加微信"], a:[0,2,3],
+   e:"阶段一破冰·立人设三动作：表身份、夸表现、加微信。B 错误——新框架收尾阶段做的是固化信任，锁定见面时间是旧框架的说法。"},
+  {t:"multi", q:"首通阶段二挖需·下切法的动作包括？", o:["聊时间安排和家长教育方向","办理退费流程","聊报名动机和挖风险因子","聊赛考规划和外化学习效果"], a:[0,2,3],
+   e:"阶段二挖需·下切法六大动作：聊时间安排 + 家长教育方向、基于体验课表现告知辅导策略、聊报名动机 + 挖风险因子、上课节奏 + 首月建立信心、正向反馈 + 长远靠习惯坚持、告知上课设备 + 聊赛考规划 + 外化学习效果。B 错误——退费处理不是挖需环节的动作。"},
+  {t:"multi", q:"首通阶段三收尾·固化信任的动作包括？", o:["问注意事项，聚焦体验课问题改善","硬件地址确认","固化信任","现场售卖年课"], a:[0,1,2],
+   e:"阶段三收尾·固化信任三动作：问注意事项（体验课问题改善）、硬件地址确认、固化信任。D 错误——首通不是卖课，收尾目标是固化信任而非推销。"},
+  {t:"multi", q:"首通阶段二挖需·下切法中，围绕建立信心的动作包括？", o:["上课节奏沟通，首月建立信心","基于体验课表现告知辅导策略","正向反馈，长远靠习惯坚持","硬件地址确认"], a:[0,1,2],
+   e:"建立信心三动作：上课节奏 + 首月建立信心、基于体验课表现告知辅导策略、正向反馈 + 长远靠习惯坚持。D 错误——硬件地址确认是阶段三收尾的动作。"},
+  {t:"multi", q:"首通的四大核心标准包括？", o:["专业规范先行","需求深度挖掘","沟通高效简洁","传递服务温度"], a:[0,1,2,3],
+   e:"四大核心标准：专业规范先行（标准话术、规范开场结束）、需求深度挖掘（开放式提问捕捉痛点）、沟通高效简洁（把控节奏、减少无效寒暄）、传递服务温度（热情亲切、关注情绪反馈）。"},
+
+  // ===== 判断 12 =====
+  {t:"judge", q:"首通电话的本质是卖课，要在通话中尽快推销续报。", a:[1],
+   e:"首通不是「卖课」，而是「接住用户」。家长已付费认可编程价值，首通的核心是建立信任、收集信息、挖掘需求。"},
+  {t:"judge", q:"首通前应提前进入系统，了解家长及班主任基本情况、历史聊天记录。", a:[0],
+   e:"这是接棒准备中通话前必须完成的动作，目标是给家长核桃编程「前后衔接靠谱」的感觉。"},
+  {t:"judge", q:"查 UID 记录时需要警惕退费风险及家长报课需求。", a:[0],
+   e:"查 UID 是为了了解家长怎么报进来的，同时警惕退费风险、识别报课需求，为通话中的风险预判做准备。"},
+  {t:"judge", q:"用户分层中，混合型也被称为既要又要型。", a:[0],
+   e:"混合型即「既要又要」——普娃兼顾兴趣与升学，既要孩子学得开心，又要可量化成果和升学希望证明。"},
+  {t:"judge", q:"思维型用户的画像是牛娃，目标是顶级竞赛成绩。", a:[1],
+   e:"思维型是【普娃】，追求快乐成长与可感知进步；目标是顶级竞赛成绩与特殊升学最优解的【牛娃】是【升学型】，两者别混。"},
+  {t:"judge", q:"挖掘家长需求时，应避免封闭式的是否回答，多用开放式提问。", a:[0],
+   e:"封闭式提问只能得到是/否，开放式提问才能引导家长多维度表达、挖掘关键细节，弥补信息差。"},
+  {t:"judge", q:"通话时长达到 15 分钟以上才算一次有效沟通。", a:[0],
+   e:"首通 9 条要求之一：有效沟通≥15 分钟。时长不足说明信息收集和需求挖掘大概率不充分。"},
+  {t:"judge", q:"为了把控通话节奏，家长说话时可以适当打断。", a:[1],
+   e:"标准要求「不打断」——耐心听家长说完、不抢话，同时「多听家长说」，多引导家长表达，做互动式沟通而非单方面输出。"},
+  {t:"judge", q:"当天首通任务没打完，可以留到次日再完成。", a:[1],
+   e:"标准要求当日完成 100%——当天任务量全部完成，不留到次日。"},
+  {t:"judge", q:"首通全程要做到情绪饱满贯彻始终、人设建立形象饱满。", a:[0],
+   e:"这是贯穿首通全程的两大原则：情绪饱满 + 人设饱满，配合五阶段流程执行。"},
+  {t:"judge", q:"通话中话题偏离时，应该温柔拉回。", a:[0],
+   e:"关键控场技巧：开场定调明方向，话题偏离温柔拉回，适时总结防遗漏，主动结束显专业。"},
+  {t:"judge", q:"结束通话时应一直等家长先挂断，自己绝不主动结束。", a:[1],
+   e:"控场技巧要求「主动结束显专业」——掌握节奏，在沟通目标达成后自然收尾，而不是被动等待。"},
+];
+
+const TYPE_LABEL = {single:"单选", multi:"多选", judge:"判断"};
+const JOPTS = ["√ 正确","× 错误"];
+let answered = 0, right = 0;
+const answers = {};
+
+function esc(s){ return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+function letters(arr){ return arr.map(i=>String.fromCharCode(65+i)).sort().join(""); }
+
+function render(){
+  const list = document.getElementById('list');
+  list.innerHTML = '';
+  DATA.forEach((item, idx) => {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.dataset.idx = idx;
+    card.dataset.type = item.t;
+    const opts = item.t === 'judge' ? JOPTS : item.o;
+    let html = `<span class="qtype ${item.t}">${idx+1}. ${TYPE_LABEL[item.t]}${item.t==='multi'?'（多选）':''}</span>
+      <div class="qtext">${esc(item.q)}</div>`;
+    opts.forEach((opt, oi) => {
+      html += `<div class="opt" data-oi="${oi}" data-idx="${idx}">${String.fromCharCode(65+oi)}. ${esc(opt)}</div>`;
+    });
+    if (item.t === 'multi') {
+      html += `<div style="text-align:right;margin-top:4px"><button class="confirm-btn" data-idx="${idx}" style="border:none;border-radius:8px;padding:7px 16px;background:#0ea5e9;color:#fff;cursor:pointer;font-size:13px">确认答案</button></div>`;
+    }
+    html += `<div class="exp" id="exp-${idx}">💡 解析：${esc(item.e)}</div>`;
+    card.innerHTML = html;
+    list.appendChild(card);
+  });
+  bind();
+}
+
+function bind(){
+  document.querySelectorAll('.opt').forEach(el => {
+    el.addEventListener('click', () => {
+      const idx = +el.dataset.idx;
+      if (answers[idx] !== undefined) return;
+      const item = DATA[idx];
+      if (item.t === 'multi') {
+        el.classList.toggle('sel');
+      } else {
+        document.querySelectorAll(`.opt[data-idx="${idx}"]`).forEach(o=>o.classList.remove('sel'));
+        el.classList.add('sel');
+        check(idx);
+      }
+    });
+  });
+  document.querySelectorAll('.confirm-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = +btn.dataset.idx;
+      if (answers[idx] === undefined) check(idx);
+    });
+  });
+}
+
+function getSel(idx){
+  return [...document.querySelectorAll(`.opt[data-idx="${idx}"].sel`)].map(e=>+e.dataset.oi);
+}
+
+function check(idx){
+  const item = DATA[idx];
+  const sel = getSel(idx);
+  const selKey = letters(sel), ansKey = letters(item.a);
+  const correct = selKey === ansKey && sel.length === item.a.length;
+  answers[idx] = correct;
+  answered++; if (correct) right++;
+  document.querySelectorAll(`.opt[data-idx="${idx}"]`).forEach(o=>{
+    o.classList.add('disabled');
+    const oi = +o.dataset.oi;
+    if (item.a.includes(oi)) o.classList.add('right');
+    else if (o.classList.contains('sel')) o.classList.add('wrong');
+  });
+  document.getElementById(`exp-${idx}`).classList.add('show');
+  updateStats();
+  if (answered === DATA.length) setTimeout(showResult, 400);
+}
+
+function updateStats(){
+  document.getElementById('s-answered').textContent = answered;
+  document.getElementById('s-right').textContent = right;
+  document.getElementById('s-wrong').textContent = answered - right;
+}
+
+function submitAll(){
+  DATA.forEach((item, idx) => { if (answers[idx] === undefined) check(idx); });
+  showResult();
+}
+
+function showResult(){
+  const p = Math.round(right / DATA.length * 100);
+  const el = document.getElementById('r-score');
+  el.textContent = `${right} / ${DATA.length}（${p}分）`;
+  el.style.color = p>=80 ? '#16a34a' : p>=60 ? '#d97706' : '#dc2626';
+  document.getElementById('r-msg').textContent =
+    p>=90 ? '🎉 太棒了！首通目的、分层、五阶段流程已烂熟于心！' :
+    p>=80 ? '👍 很不错，把错题解析再看一遍就稳了！' :
+    p>=60 ? '💪 及格了，重点复习五阶段动作和首通九条标准。' :
+            '📖 建议重读 PPT 的重要性、准备工作、五阶段框架、标准与要求四部分后再刷一遍。';
+  const r = document.getElementById('result');
+  r.style.display = 'block';
+  r.scrollIntoView({behavior:'smooth'});
+}
+
+function resetAll(){
+  Object.keys(answers).forEach(k => delete answers[k]);
+  answered = 0; right = 0;
+  const eb = document.getElementById('expBtn');
+  eb.dataset.on = ''; eb.textContent = '显示全部解析';
+  render();
+  updateStats();
+  document.getElementById('result').style.display = 'none';
+  window.scrollTo({top:0});
+}
+
+function setFilter(f, btn){
+  document.querySelectorAll('.filter button').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  document.querySelectorAll('.card').forEach(c=>{
+    c.style.display = (f==='all' || c.dataset.type===f) ? '' : 'none';
+  });
+}
+
+function toggleExpAll(btn){
+  const show = !btn.dataset.on;
+  btn.dataset.on = show ? '1' : '';
+  document.querySelectorAll('.exp').forEach(e=>{
+    if (show) e.classList.add('show'); else e.classList.remove('show');
+  });
+  btn.textContent = show ? '隐藏全部解析' : '显示全部解析';
+}
+
+render();
+updateStats();
+</script>
+</body>
+</html>

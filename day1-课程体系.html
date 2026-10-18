@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>图形化核桃课程体系 培训刷题</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:"PingFang SC","Microsoft YaHei",system-ui,sans-serif; background:#f2f4f8; color:#1f2937; min-height:100vh; }
+  .wrap { max-width:860px; margin:0 auto; padding:24px 16px 80px; }
+  header { background:linear-gradient(135deg,#f97316,#ea580c); color:#fff; border-radius:16px; padding:28px 24px; margin-bottom:20px; }
+  header h1 { font-size:22px; margin-bottom:6px; }
+  header p { font-size:13px; opacity:.9; }
+  .stats { display:flex; gap:12px; margin-top:16px; flex-wrap:wrap; }
+  .stat { background:rgba(255,255,255,.16); border-radius:10px; padding:10px 16px; font-size:13px; min-width:86px; text-align:center; }
+  .stat b { display:block; font-size:20px; margin-top:2px; }
+  .toolbar { display:flex; gap:10px; margin-bottom:10px; flex-wrap:wrap; }
+  .toolbar button { border:none; border-radius:10px; padding:10px 18px; font-size:14px; cursor:pointer; background:#fff; color:#374151; box-shadow:0 1px 3px rgba(0,0,0,.08); transition:.15s; }
+  .toolbar button:hover { transform:translateY(-1px); }
+  .toolbar button.primary { background:#ea580c; color:#fff; }
+  .filter { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px; align-items:center; }
+  .filter .lbl { font-size:13px; color:#6b7280; }
+  .filter button { border:1px solid #d1d5db; background:#fff; border-radius:999px; padding:6px 14px; font-size:13px; cursor:pointer; color:#4b5563; }
+  .filter button.on { background:#ea580c; border-color:#ea580c; color:#fff; }
+  .card { background:#fff; border-radius:14px; padding:20px; margin-bottom:14px; box-shadow:0 1px 3px rgba(0,0,0,.06); }
+  .qtype { display:inline-block; font-size:11px; padding:2px 8px; border-radius:999px; margin-bottom:8px; font-weight:600; }
+  .qtype.single { background:#ffedd5; color:#c2410c; }
+  .qtype.multi { background:#fce7f3; color:#be185d; }
+  .qtype.judge { background:#dcfce7; color:#15803d; }
+  .qtext { font-size:15px; font-weight:600; line-height:1.6; margin-bottom:12px; }
+  .opt { display:block; border:1.5px solid #e5e7eb; border-radius:10px; padding:10px 14px; margin-bottom:8px; cursor:pointer; font-size:14px; line-height:1.5; transition:.12s; user-select:none; }
+  .opt:hover { border-color:#fdba74; }
+  .opt.sel { border-color:#ea580c; background:#fff7ed; }
+  .opt.right { border-color:#16a34a; background:#f0fdf4; }
+  .opt.wrong { border-color:#dc2626; background:#fef2f2; }
+  .opt.disabled { cursor:default; }
+  .exp { display:none; margin-top:10px; padding:10px 14px; border-radius:10px; background:#f9fafb; border-left:3px solid #ea580c; font-size:13px; color:#4b5563; line-height:1.6; }
+  .exp.show { display:block; }
+  .result { display:none; background:#fff; border-radius:16px; padding:28px; text-align:center; box-shadow:0 1px 3px rgba(0,0,0,.06); margin-top:10px; }
+  .result .big { font-size:40px; font-weight:700; }
+  .result .msg { margin:8px 0 18px; color:#6b7280; font-size:14px; }
+  .tip { font-size:12px; color:#9ca3af; margin-bottom:16px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>🧩 图形化核桃课程体系 培训刷题</h1>
+    <p>考核范围：编程语言 / 双线课程安排 / 后续衔接 / 三大支柱 / 三层保障 / 时间轴 / 异议应答 / 集训营 ｜ 共 38 题</p>
+    <div class="stats">
+      <div class="stat">已答<b id="s-answered">0</b></div>
+      <div class="stat">答对<b id="s-right">0</b></div>
+      <div class="stat">答错<b id="s-wrong">0</b></div>
+    </div>
+  </header>
+
+  <div class="toolbar">
+    <button class="primary" onclick="submitAll()">交卷并评分</button>
+    <button onclick="resetAll()">重新开始</button>
+    <button id="expBtn" onclick="toggleExpAll(this)">显示全部解析</button>
+  </div>
+  <div class="filter">
+    <span class="lbl">题型筛选：</span>
+    <button class="on" data-f="all" onclick="setFilter('all',this)">全部</button>
+    <button data-f="single" onclick="setFilter('single',this)">单选 16</button>
+    <button data-f="multi" onclick="setFilter('multi',this)">多选 10</button>
+    <button data-f="judge" onclick="setFilter('judge',this)">判断 12</button>
+  </div>
+  <div class="tip">💡 干扰项均来自培训内容中的易混知识点，价格/课时/证书数最易混，请认真审题。单选/判断点击选项即判分；多选点选后点「确认答案」判分；交卷时未作答按错误计。</div>
+
+  <div id="list"></div>
+
+  <div class="result" id="result">
+    <div class="big" id="r-score">--</div>
+    <div class="msg" id="r-msg"></div>
+    <button class="primary" style="border:none;border-radius:10px;padding:10px 18px;background:#ea580c;color:#fff;cursor:pointer" onclick="resetAll()">再刷一遍</button>
+  </div>
+</div>
+
+<script>
+const DATA = [
+  // ===== 单选 16 =====
+  {t:"single", q:"低龄零基础孩子不直接学代码、先学图形化的原因是？", o:["图形化考试更容易通过","家长只认可图形化","图形化学费更便宜","直接学代码太枯燥，低龄零基础孩子易放弃"], a:[3],
+   e:"低龄零基础直接学代码太枯燥、易放弃；图形化拖拽积木、成就感易获得，先培养兴趣和编程思维。同时国家重视编程教育、信息科技进课标、科特招生比例逐年扩大。"},
+  {t:"single", q:"三种编程语言中，信奥赛 CSP-J/S 唯一指定语言是？", o:["图形化","Python","C++","Scratch"], a:[2],
+   e:"C++ 是竞赛语言、含金量最高——信奥赛（CSP-J/S）唯一指定语言，锻炼底层逻辑，升学加分硬通货。"},
+  {t:"single", q:"Python 相对图形化的定位是？", o:["代码入门、语法简单，从图形化平滑过渡","只做硬件控制","替代 C++ 参加信奥赛","竞赛专用语言"], a:[0],
+   e:"Python 一句话特点：代码入门、语法简单——从图形化过渡到代码，语法简洁、应用广。"},
+  {t:"single", q:"思维线的价格与课时是？", o:["3299 元、48 课时","3299 元、60 课时","2699 元、48 课时","2699 元、60 课时"], a:[2],
+   e:"思维线：优惠后 2699 元/阶段、48 课时（42 软编 + 6 硬编）、1 年 3 张证书。注意与科特线 3299 元、60 课时区分。"},
+  {t:"single", q:"科特线的价格与课时是？", o:["3299 元、48 课时","4199 元、60 课时","2699 元、48 课时","3299 元、60 课时"], a:[3],
+   e:"科特线：优惠后 3299 元/阶段、60 课时（30 软编 + 12 硬编 + 12 赛事直播）、1 年 4 张证书——科特线赛事更重。4199 是后续科特 Python 的价格。"},
+  {t:"single", q:"科特线 60 课时的构成是？", o:["30 软编 + 12 硬编 + 12 赛事直播","36 软编 + 8 硬编 + 4 赛事 + 12 赛事直播","48 软编 + 12 硬编","42 软编 + 6 硬编"], a:[0],
+   e:"科特线每阶段：30 课时软编课 + 12 课时硬编课 + 12 课时赛事直播课 = 60 课时。A 是思维线构成，C 是科特 Python 的构成。"},
+  {t:"single", q:"思维线 48 课时的构成是？", o:["42 软编 + 6 赛事直播","36 软编 + 12 硬编","30 软编 + 12 硬编 + 6 赛事","42 软编 + 6 硬编"], a:[3],
+   e:"思维线每阶段：42 课时软编课 + 6 课时硬编课 = 48 课时。注意思维线没有赛事直播课的独立课时构成。"},
+  {t:"single", q:"思维线学 1 年可拿到几张国家级证书？", o:["6 张","2 张","3 张","4 张"], a:[2],
+   e:"思维线学 1 年 3 张国家级证书（含半年 YCL1 级水平）。科特线才是学 1 年 4 张。"},
+  {t:"single", q:"科特线学 1 年可拿到几张国家级证书？", o:["4 张","5 张","6 张","3 张"], a:[0],
+   e:"科特线学 1 年具备 4 张国家级证书竞赛水平——科特线赛事更重，这也是两条线的核心差异。"},
+  {t:"single", q:"科特线后续衔接路径正确的是？", o:["Python → 图形化 → C++","图形化 → 科特 Python → C++","C++ → Python → 图形化","图形化 → C++ → Python"], a:[1],
+   e:"后续衔接：图形化（3299 元，2 个阶段共 1 年）→ 科特 Python（4199 元，2 个阶段共 1 年）→ C++（4399 元，6 个阶段共 3 年）。"},
+  {t:"single", q:"与家长沟通课程名称时的统一规范是？", o:["统一说图形化、Python、C++，不主动区分趣味 C++/常规 C++","只说课程代号不说话术名","按孩子水平随口称呼","主动介绍趣味 C++ 和常规 C++ 的区别"], a:[0],
+   e:"必背规则：与家长沟通统一说「图形化」「Python」「C++」，不主动区分趣味 C++/常规 C++；课导不主动提及两者区别。"},
+  {t:"single", q:"家长主动提出跨级/跨线时，课导的正确做法是？", o:["直接答应家长要求","婉拒并让家长找班主任","第一时间报备组长，根据需求判断是否需要调整","让家长自行联系客服"], a:[2],
+   e:"必背规则：家长主动提出跨级/跨线，第一时间报备组长，根据需求判断是否需要调整——不能私自答应也不能直接回绝。"},
+  {t:"single", q:"三大支柱指的是？", o:["愿意学、学得会、额外价值","课程模式、因材施教、学练考一体","直播、实操、监课","剧情闯关、金币激励、软硬件结合"], a:[1],
+   e:"三大支柱（决定课程专业高度）：课程模式（直播+实操+实时监课）、因材施教（分支关卡+课前自动复习）、学练考一体（对标真实赛考题型）。A 是三层保障。"},
+  {t:"single", q:"三层保障指的是？", o:["课程模式、因材施教、学练考一体","直播、实操、硬件","愿意学、学得会、额外价值","共情、归因、亮方案"], a:[2],
+   e:"三层保障（决定学习效果）：①愿意学（剧情闯关+金币激励+软硬件结合）②学得会（60 分钟科学时间轴+专注力训练）③额外价值（科普+校内学科结合+英语跟读）。"},
+  {t:"single", q:"每次 60 分钟课的时间轴设计中，0-5 分钟的环节是？", o:["实操练习","总结跟读","新知讲解","课前复习"], a:[3],
+   e:"60 分钟时间轴：0-5 分钟课前复习（自动推送上节课重点）→ 5-20 分钟新知讲解 → 20-45 分钟实操练习 → 45-55 分钟关卡挑战 → 55-60 分钟总结跟读。"},
+  {t:"single", q:"家长异议应答的四步万能框架顺序是？", o:["共情/认同 → 归因/转观点 → 亮方案/亮证据 → 给信心/给效果","亮方案 → 共情 → 给信心 → 归因","归因 → 亮方案 → 共情 → 给效果","给信心 → 共情 → 亮证据 → 转观点"], a:[0],
+   e:"四步万能框架：①共情/认同 → ②归因/转观点 → ③亮方案/亮证据 → ④给信心/给效果。顺序不能乱，先接住情绪再给方案。"},
+
+  // ===== 多选 10 =====
+  {t:"multi", q:"课程模式的三大组成包括？", o:["直播课","实操课","实时跟课","线下游园会"], a:[0,1,2],
+   e:"课程模式 = 直播 + 实操 + 实时跟课：直播课含课前直播和赛考直播；实操课以闯关形式边学边练；实时跟课即实时监课+视频/语音/文字连麦。"},
+  {t:"multi", q:"因材施教的体现包括？", o:["学得快触发隐藏关卡拔高","学得慢薄弱知识点多次练习","忘了自动回放，剧情中设置回顾环节","全班统一进度统一关卡"], a:[0,1,2],
+   e:"因材施教 = 分支关卡 + 课前自动复习：每个孩子的关卡都不一样。D 错误——统一进度恰恰违背因材施教。"},
+  {t:"multi", q:"三层保障中「愿意学」依靠哪些设计？", o:["剧情闯关","金币激励","软硬件结合","学费打折促销"], a:[0,1,2],
+   e:"愿意学三件套：剧情闯关（每次课是侦探剧情，写代码就是找线索）+ 金币激励（解锁隐藏关卡、排行榜）+ 软硬件结合（每阶段 6 次硬件课）。D 错误——打折不是课程设计。"},
+  {t:"multi", q:"三层保障中「额外价值」包括？", o:["科普知识","校内学科结合","英语跟读","赠送实体教材"], a:[0,1,2],
+   e:"额外价值三件套：科普知识（每次课融入科普小知识）、校内学科结合（编程题打通校内知识，报一门顶两门）、英语跟读（为读英文文档打基础）。"},
+  {t:"multi", q:"关于思维线与科特线的对比，正确的有？", o:["思维线优惠后 2699 元/阶段，科特线 3299 元/阶段","思维线 48 课时，科特线 60 课时","两条线周期都是共 2 个阶段","科特线赛事更轻，不用参加赛考"], a:[0,1,2],
+   e:"D 错误——科特线赛事更重（12 课时赛事直播），学 1 年 4 张证书，正是与思维线（3 张证书）的核心差异。"},
+  {t:"multi", q:"短期集训营包括哪些？", o:["小核桃营","语法速通班","算法提优班","CSP-J 满分班、CSP-S 满分班"], a:[0,1,2,3],
+   e:"五大短期集训营：小核桃营（SC/PY/QC，三四年级）、语法速通班（QC1/QC2，四年级以上）、算法提优班（L3-L6）、CSP-J 满分班（需测试）、CSP-S 满分班——集中冲刺、快速提升。"},
+  {t:"multi", q:"60 分钟时间轴中的环节包括？", o:["课前复习","新知讲解","实操练习","关卡挑战+ 总结跟读"], a:[0,1,2,3],
+   e:"五段式时间轴：课前复习 0-5 分钟 → 新知讲解 5-20 分钟 → 实操练习 20-45 分钟 → 关卡挑战 45-55 分钟（赛考题型当堂检验）→ 总结跟读 55-60 分钟，符合孩子注意力曲线。"},
+  {t:"multi", q:"家长问「孩子学不会怎么办」，四步应答要点包括？", o:["共情：普遍问题，不是孩子的错","找问题：90% 不是智商，是方法和专注力","亮方案：四重保障","给信心：零基础孩子都能学会"], a:[0,1,2,3],
+   e:"四步框架应用：共情（普遍问题，不是孩子的错）→ 找问题（90% 不是智商，是方法和专注力）→ 亮方案（四重保障：课程模式+因材施教+学练考+时间轴）→ 给信心（零基础孩子都能学会）。"},
+  {t:"multi", q:"家长问「专注力差能学吗」，亮方案环节用到的四个手段是？", o:["强互动","监课","剧情闯关","时间轴"], a:[0,1,2,3],
+   e:"专注力问题四手段：强互动（直播每 3-5 分钟一次提问连麦）、监课（实时看屏幕，发现摸鱼立刻提醒）、剧情闯关（侦探故事想知道结局）、时间轴（每 15 分钟一个节奏变化）。"},
+  {t:"multi", q:"核桃的愿景与好课程的标准包括？", o:["愿景：让每个孩子爱学习、会学习，让优质的教育触手可及","好的课程：让孩子愿意学、学得会","把枯燥的代码，变成孩子愿意玩的游戏","三大支柱决定专业高度，三层保障决定学习效果"], a:[0,1,2,3],
+   e:"这是课程体系的记忆框架：愿景 + 好课程标准 + 三大支柱/三层保障的分工。"},
+
+  // ===== 判断 12 =====
+  {t:"judge", q:"学练考一体的含义是：学什么 → 练什么 → 考什么，全程对标真实赛考题型。", a:[0],
+   e:"学练考一体是三大支柱之一，考的题型就是真实赛考的选择题、编程题。"},
+  {t:"judge", q:"思维线和科特线的学生定位不同，科特线只面向牛娃。", a:[1],
+   e:"两条线都面向大众学员，区别在课时构成与赛考规划，不是学生门槛。"},
+  {t:"judge", q:"科特线学习节奏：每个月都是前三周每周 1 次课、一次 2 课时，第四周加课，半年上完 6 个 LEVEL。", a:[0],
+   e:"科特线共 6 个 LEVEL 半年上完，每月固定节奏：前三周每周 1 次，第四周加密（周日加赛考课/赛事直播课），与带班口径一致。"},
+  {t:"judge", q:"图形化学完后可衔接科特 Python，价格 4199 元，2 个阶段共 1 年。", a:[0],
+   e:"衔接路径：图形化（3299，2 阶段 1 年）→ 科特 Python（4199，2 阶段 1 年）→ C++（4399，6 阶段 3 年）。"},
+  {t:"judge", q:"C++ 课程分趣味 C++ 和常规 C++，价格不同，要与家长讲清楚区别。", a:[1],
+   e:"两者都是 4399 元；规范要求课导【不主动】与用户提及趣味 C++ 和常规 C++ 区别，沟通时统一说 C++。"},
+  {t:"judge", q:"学得快的孩子在课程中可以触发隐藏关卡拔高。", a:[0],
+   e:"因材施教的分支关卡设计：学得快触发隐藏关卡拔高，学得慢薄弱知识点多次练习，每个孩子的关卡都不一样。"},
+  {t:"judge", q:"60 分钟时间轴的设计依据是孩子的注意力曲线：前 5 分钟唤醒、中间高专注学练、最后 5 分钟收束。", a:[0],
+   e:"时间轴符合孩子注意力曲线，配合专注力训练，这是「学得会」保障的核心。"},
+  {t:"judge", q:"实操课以闯关形式边学边练，老师实时监课，孩子卡壳即介入。", a:[0],
+   e:"课程模式中实操课的设计：闯关形式边学边练 + 实时监课，20-45 分钟实操环节老师卡壳即介入。"},
+  {t:"judge", q:"家长说「全是动画太简单」时，第一步应该澄清动画只是外壳。", a:[1],
+   e:"这一问的第一步是【认同】——动画是特点，目的是让孩子愿意学；第二步才澄清（动画只是外壳，内容有深度）。先接住再纠正，顺序不能乱。"},
+  {t:"judge", q:"编程题跟校内知识打通，数学思维和编程能力互相促进，家长会觉得报一门顶两门。", a:[0],
+   e:"这是「额外价值」中校内学科结合的卖点表述，与科普知识、英语跟读共同构成额外价值。"},
+  {t:"judge", q:"每次 60 分钟课的最后 5 分钟环节是布置考试通知。", a:[1],
+   e:"55-60 分钟是总结跟读：知识点总结、英语词汇跟读、布置作业，不是考试通知。"},
+  {t:"judge", q:"短期集训营的定位是替代长期班，学集训营就不用上长期课了。", a:[1],
+   e:"短期集训营是「不止有长期班」的补充——集中冲刺、快速提升，与长期班是搭配关系，不是替代关系。"},
+];
+
+const TYPE_LABEL = {single:"单选", multi:"多选", judge:"判断"};
+const JOPTS = ["√ 正确","× 错误"];
+let answered = 0, right = 0;
+const answers = {};
+
+function esc(s){ return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+function letters(arr){ return arr.map(i=>String.fromCharCode(65+i)).sort().join(""); }
+
+function render(){
+  const list = document.getElementById('list');
+  list.innerHTML = '';
+  DATA.forEach((item, idx) => {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.dataset.idx = idx;
+    card.dataset.type = item.t;
+    const opts = item.t === 'judge' ? JOPTS : item.o;
+    let html = `<span class="qtype ${item.t}">${idx+1}. ${TYPE_LABEL[item.t]}${item.t==='multi'?'（多选）':''}</span>
+      <div class="qtext">${esc(item.q)}</div>`;
+    opts.forEach((opt, oi) => {
+      html += `<div class="opt" data-oi="${oi}" data-idx="${idx}">${String.fromCharCode(65+oi)}. ${esc(opt)}</div>`;
+    });
+    if (item.t === 'multi') {
+      html += `<div style="text-align:right;margin-top:4px"><button class="confirm-btn" data-idx="${idx}" style="border:none;border-radius:8px;padding:7px 16px;background:#ea580c;color:#fff;cursor:pointer;font-size:13px">确认答案</button></div>`;
+    }
+    html += `<div class="exp" id="exp-${idx}">💡 解析：${esc(item.e)}</div>`;
+    card.innerHTML = html;
+    list.appendChild(card);
+  });
+  bind();
+}
+
+function bind(){
+  document.querySelectorAll('.opt').forEach(el => {
+    el.addEventListener('click', () => {
+      const idx = +el.dataset.idx;
+      if (answers[idx] !== undefined) return;
+      const item = DATA[idx];
+      if (item.t === 'multi') {
+        el.classList.toggle('sel');
+      } else {
+        document.querySelectorAll(`.opt[data-idx="${idx}"]`).forEach(o=>o.classList.remove('sel'));
+        el.classList.add('sel');
+        check(idx);
+      }
+    });
+  });
+  document.querySelectorAll('.confirm-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = +btn.dataset.idx;
+      if (answers[idx] === undefined) check(idx);
+    });
+  });
+}
+
+function getSel(idx){
+  return [...document.querySelectorAll(`.opt[data-idx="${idx}"].sel`)].map(e=>+e.dataset.oi);
+}
+
+function check(idx){
+  const item = DATA[idx];
+  const sel = getSel(idx);
+  const selKey = letters(sel), ansKey = letters(item.a);
+  const correct = selKey === ansKey && sel.length === item.a.length;
+  answers[idx] = correct;
+  answered++; if (correct) right++;
+  document.querySelectorAll(`.opt[data-idx="${idx}"]`).forEach(o=>{
+    o.classList.add('disabled');
+    const oi = +o.dataset.oi;
+    if (item.a.includes(oi)) o.classList.add('right');
+    else if (o.classList.contains('sel')) o.classList.add('wrong');
+  });
+  document.getElementById(`exp-${idx}`).classList.add('show');
+  updateStats();
+  if (answered === DATA.length) setTimeout(showResult, 400);
+}
+
+function updateStats(){
+  document.getElementById('s-answered').textContent = answered;
+  document.getElementById('s-right').textContent = right;
+  document.getElementById('s-wrong').textContent = answered - right;
+}
+
+function submitAll(){
+  DATA.forEach((item, idx) => { if (answers[idx] === undefined) check(idx); });
+  showResult();
+}
+
+function showResult(){
+  const p = Math.round(right / DATA.length * 100);
+  const el = document.getElementById('r-score');
+  el.textContent = `${right} / ${DATA.length}（${p}分）`;
+  el.style.color = p>=80 ? '#16a34a' : p>=60 ? '#d97706' : '#dc2626';
+  document.getElementById('r-msg').textContent =
+    p>=90 ? '🎉 太棒了！双线价格课时、三大支柱三层保障已烂熟于心！' :
+    p>=80 ? '👍 很不错，把错题解析再看一遍就稳了！' :
+    p>=60 ? '💪 及格了，重点复习双线对比、三大支柱/三层保障和四步应答框架。' :
+            '📖 建议重读课后熟读手册的双线对比表、三大支柱、三层保障、四步框架后再刷一遍。';
+  const r = document.getElementById('result');
+  r.style.display = 'block';
+  r.scrollIntoView({behavior:'smooth'});
+}
+
+function resetAll(){
+  Object.keys(answers).forEach(k => delete answers[k]);
+  answered = 0; right = 0;
+  const eb = document.getElementById('expBtn');
+  eb.dataset.on = ''; eb.textContent = '显示全部解析';
+  render();
+  updateStats();
+  document.getElementById('result').style.display = 'none';
+  window.scrollTo({top:0});
+}
+
+function setFilter(f, btn){
+  document.querySelectorAll('.filter button').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  document.querySelectorAll('.card').forEach(c=>{
+    c.style.display = (f==='all' || c.dataset.type===f) ? '' : 'none';
+  });
+}
+
+function toggleExpAll(btn){
+  const show = !btn.dataset.on;
+  btn.dataset.on = show ? '1' : '';
+  document.querySelectorAll('.exp').forEach(e=>{
+    if (show) e.classList.add('show'); else e.classList.remove('show');
+  });
+  btn.textContent = show ? '隐藏全部解析' : '显示全部解析';
+}
+
+render();
+updateStats();
+</script>
+</body>
+</html>

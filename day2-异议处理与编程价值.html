@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>异议处理 × 为什么学少儿编程 Day2 培训刷题</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:"PingFang SC","Microsoft YaHei",system-ui,sans-serif; background:#f2f4f8; color:#1f2937; min-height:100vh; }
+  .wrap { max-width:860px; margin:0 auto; padding:24px 16px 80px; }
+  header { background:linear-gradient(135deg,#059669,#0d9488); color:#fff; border-radius:16px; padding:28px 24px; margin-bottom:20px; }
+  header h1 { font-size:22px; margin-bottom:6px; }
+  header p { font-size:13px; opacity:.9; }
+  .stats { display:flex; gap:12px; margin-top:16px; flex-wrap:wrap; }
+  .stat { background:rgba(255,255,255,.16); border-radius:10px; padding:10px 16px; font-size:13px; min-width:86px; text-align:center; }
+  .stat b { display:block; font-size:20px; margin-top:2px; }
+  .toolbar { display:flex; gap:10px; margin-bottom:10px; flex-wrap:wrap; }
+  .toolbar button { border:none; border-radius:10px; padding:10px 18px; font-size:14px; cursor:pointer; background:#fff; color:#374151; box-shadow:0 1px 3px rgba(0,0,0,.08); transition:.15s; }
+  .toolbar button:hover { transform:translateY(-1px); }
+  .toolbar button.primary { background:#059669; color:#fff; }
+  .filter { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px; align-items:center; }
+  .filter .lbl { font-size:13px; color:#6b7280; }
+  .filter button { border:1px solid #d1d5db; background:#fff; border-radius:999px; padding:6px 14px; font-size:13px; cursor:pointer; color:#4b5563; }
+  .filter button.on { background:#059669; border-color:#059669; color:#fff; }
+  .card { background:#fff; border-radius:14px; padding:20px; margin-bottom:14px; box-shadow:0 1px 3px rgba(0,0,0,.06); }
+  .qtype { display:inline-block; font-size:11px; padding:2px 8px; border-radius:999px; margin-bottom:8px; font-weight:600; }
+  .qtype.single { background:#d1fae5; color:#047857; }
+  .qtype.multi { background:#fce7f3; color:#be185d; }
+  .qtype.judge { background:#dcfce7; color:#15803d; }
+  .qtext { font-size:15px; font-weight:600; line-height:1.6; margin-bottom:12px; }
+  .opt { display:block; border:1.5px solid #e5e7eb; border-radius:10px; padding:10px 14px; margin-bottom:8px; cursor:pointer; font-size:14px; line-height:1.5; transition:.12s; user-select:none; }
+  .opt:hover { border-color:#6ee7b7; }
+  .opt.sel { border-color:#059669; background:#ecfdf5; }
+  .opt.right { border-color:#16a34a; background:#f0fdf4; }
+  .opt.wrong { border-color:#dc2626; background:#fef2f2; }
+  .opt.disabled { cursor:default; }
+  .exp { display:none; margin-top:10px; padding:10px 14px; border-radius:10px; background:#f9fafb; border-left:3px solid #059669; font-size:13px; color:#4b5563; line-height:1.6; }
+  .exp.show { display:block; }
+  .result { display:none; background:#fff; border-radius:16px; padding:28px; text-align:center; box-shadow:0 1px 3px rgba(0,0,0,.06); margin-top:10px; }
+  .result .big { font-size:40px; font-weight:700; }
+  .result .msg { margin:8px 0 18px; color:#6b7280; font-size:14px; }
+  .tip { font-size:12px; color:#9ca3af; margin-bottom:16px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>🛡️ 异议处理 × 为什么学少儿编程 Day2 培训刷题</h1>
+    <p>考核范围：为什么学编程（熟读必考）/ 试学期逻辑 / 流失预警 / 异议解决 / 退费四步法 / 挽单规则 ｜ 共 61 题</p>
+    <div class="stats">
+      <div class="stat">已答<b id="s-answered">0</b></div>
+      <div class="stat">答对<b id="s-right">0</b></div>
+      <div class="stat">答错<b id="s-wrong">0</b></div>
+    </div>
+  </header>
+
+  <div class="toolbar">
+    <button class="primary" onclick="submitAll()">交卷并评分</button>
+    <button onclick="resetAll()">重新开始</button>
+    <button id="expBtn" onclick="toggleExpAll(this)">显示全部解析</button>
+  </div>
+  <div class="filter">
+    <span class="lbl">题型筛选：</span>
+    <button class="on" data-f="all" onclick="setFilter('all',this)">全部</button>
+    <button data-f="single" onclick="setFilter('single',this)">单选 26</button>
+    <button data-f="multi" onclick="setFilter('multi',this)">多选 16</button>
+    <button data-f="judge" onclick="setFilter('judge',this)">判断 19</button>
+  </div>
+  <div class="tip">💡 熟读手册内容为必知晓必考核项；数字类考点（88%、60 分钟、5 个工作日、24 小时）重点记忆。单选/判断点击选项即判分；多选点选后点「确认答案」判分；交卷时未作答按错误计。</div>
+
+  <div id="list"></div>
+
+  <div class="result" id="result">
+    <div class="big" id="r-score">--</div>
+    <div class="msg" id="r-msg"></div>
+    <button class="primary" style="border:none;border-radius:10px;padding:10px 18px;background:#059669;color:#fff;cursor:pointer" onclick="resetAll()">再刷一遍</button>
+  </div>
+</div>
+
+<script>
+const DATA = [
+  // ===== 第一部分 为什么学少儿编程 =====
+  // 单选
+  {t:"single", q:"我国编程教育起步的时间是？", o:["2010 年","2015 年","2017 年","2020 年"], a:[2],
+   e:"我国 2017 年才开始有编程教育；经教育部不断修订，编程学科已成为至关重要的科目，孩子是要考的。"},
+  {t:"single", q:"2022 年新课标改革将编程正式开设为？", o:["校本课程","选修兴趣课","独立科目","课外活动"], a:[2],
+   e:"2022 年「新课标」改革将编程正式开设为独立科目；新课标就是新的课程标准，10 年修改一次，最近一次是 2022 年。"},
+  {t:"single", q:"新课标多少年修改一次？", o:["15 年","5 年","8 年","10 年"], a:[3],
+   e:"新课标即新的课程标准，10 年修改一次，最近一次是 2022 年。新课标将信息科技纳为独立学科，意味着信息科技现在和语数外同等重要。"},
+  {t:"single", q:"科技特长生政策的覆盖率是？", o:["覆盖 22 个省份、4 个自治区、4 个直辖市，超过 88%","覆盖 25 个省份，超过 75%","全国 100% 覆盖","覆盖 18 个省份，超过 60%"], a:[0],
+   e:"科技特长生已覆盖 22 个省份、4 个自治区、4 个直辖市，覆盖率超过 88%；2024 年全面取消艺术特长生，科技特长生成为新赛道。"},
+  {t:"single", q:"强基计划是从哪一年开始的？", o:["2019 年","2020 年","2022 年","2017 年"], a:[1],
+   e:"2020 年取消自主招生、新增「强基计划」。强基计划自 2020 年开始，稳坐清北第二大升学通道。"},
+  {t:"single", q:"强基计划的录取公式是？", o:["70% 高考 + 30% 校测","50% 高考 + 50% 校测","仅看校测","85% 高考 + 15% 校测"], a:[3],
+   e:"强基计划评价方式为 85% 高考 + 15% 校测；对比自主招生的「降分录取」。"},
+  {t:"single", q:"去年通过强基计划进入清华、北大的占比分别是？", o:["清华 30%、北大 35%","清华 26%、北大 26%","清华 20%、北大 25%","清华 26%、北大 29%"], a:[3],
+   e:"强基计划稳坐清北第二大升学通道——去年通过强基进入清华的占比 26%、进入北大的占比 29%。"},
+  {t:"single", q:"关于自主招生与强基计划，下列说法正确的是？", o:["自主招生 2020 年取消，定位「选拔」拔尖创新人才，覆盖 90 所高校","强基计划定位「选拔」，覆盖 90 所高校","自主招生名额没有限制","强基计划全国统一竞争"], a:[0],
+   e:"自主招生（2020 年取消）定位「选拔」拔尖创新人才，参与高校 90 所（含 87 所 211），严控名额 5%，降分录取；强基计划定位「培养」，39 所（全部 985），本省竞争，名额无限制，小班制导师制本硕博培养。"},
+  {t:"single", q:"小升初简历中起关键作用的是？", o:["户口所在地","家庭收入情况","获奖情况","幼儿园经历"], a:[2],
+   e:"小升初大多通过提交简历择校（择校或摇号），简历中的「获奖情况」是关键——有奖项比没奖项录取几率更大。"},
+  {t:"single", q:"一句话向家长说明学编程的升学价值是？", o:["学编程就能保证考上清华北大","学编程能帮孩子多一条进重点的路，分数不够时，特长能补","学编程可以免除中考","学编程就能直接认定科技特长生"], a:[1],
+   e:"给家长的一句话：学编程能帮孩子多一条进重点的路，分数不够时，特长能补。不能用保证升学类表述。"},
+  {t:"single", q:"图形化编程语言的特点是？", o:["需要英语基础和键盘操作","只需拼接代码、有颜色区分，不需要英语基础","代码行数最多","难度最高"], a:[1],
+   e:"三大语言直观区别：图形化只需拼接代码、有颜色区分，不需要英语基础；Python 语法简洁但需要一定英文基础；C++ 代码行数更多、难度更高。"},
+  {t:"single", q:"按语言选择建议，5 岁至 2 年级及以下的孩子适合学？", o:["Scratch 图形化，无需编程基础，入门容易","Python","C++","趣味 C++"], a:[0],
+   e:"语言选择表：Scratch 图形化——无需编程基础、无关英文单词/键盘操作/大量语句记忆，入门容易，适用 5 岁-2 年级及以下；Python 3-6 年级；趣味 C++ 3-6 年级；C++ 要求较高英文水平和扎实编程基础，适用 7 年级及以上。"},
+  {t:"single", q:"为什么学少儿编程的内部因素不包括？", o:["培养习惯","编程思维","提升学科","替代校内主课"], a:[3],
+   e:"为什么学编程总框架——外部因素：时代背景、国家政策；内部因素：培养习惯、编程思维、提升学科。编程是辅助校内学科，不能替代主课。"},
+
+  // 多选
+  {t:"multi", q:"为什么学习少儿编程的内部因素包括哪三大方面？", o:["培养习惯","编程思维","提升学科","快速赚钱"], a:[0,1,2],
+   e:"内部因素三方面：培养习惯（专注力等）、编程思维（分解等四步）、提升学科（数学/语文/英语）。外部因素是时代背景与国家政策。"},
+  {t:"multi", q:"编程学习「培养习惯」具体包括？", o:["提高专注力","改善粗心马虎","增强自制力","减少畏难情绪"], a:[0,1,2,3],
+   e:"培养习惯四项：提高专注力、改善粗心马虎、增强自制力、减少畏难情绪。"},
+  {t:"multi", q:"编程学习「提升学科」具体包括？", o:["提高阅读和写作能力","关联数学学科知识点","知识点对标新课标","提高英语学科兴趣"], a:[0,1,2,3],
+   e:"提升学科四项：提高阅读和写作能力、关联数学学科知识点、知识点对标新课标、提高英语学科兴趣。"},
+  {t:"multi", q:"科技特长生的招生项目包括？", o:["机器人","计算机编程","信息学奥赛","声乐舞蹈"], a:[0,1,2],
+   e:"科技特长生项目包括机器人、计算机编程、信息学奥赛等，主要考查科学兴趣、科学素养和动手实践；2024 年艺术特长生已全面取消。"},
+
+  // 判断
+  {t:"judge", q:"2024 年国家全面取消艺术特长生，科技特长生成为新赛道。", a:[0],
+   e:"2024 年全面取消艺术特长生，科技特长生成为新赛道——这是和家长沟通编程升学价值的重要政策依据。"},
+  {t:"judge", q:"新课标将信息科技纳为独立学科，意味着信息科技现在和语数外同等重要。", a:[0],
+   e:"新课标解读：将信息科技纳入为独立学科，意味着信息科技现在和语数外同等重要。"},
+  {t:"judge", q:"科技特长生初升高可参与重点学校特殊招生通道申报，同等条件下升入重点高中机率大大提升。", a:[0],
+   e:"科技特长生在初升高阶段可参与重点学校特殊招生通道申报，同等条件下升入重点高中机率大大提升。"},
+  {t:"judge", q:"强基计划的录取批次比国家专项、国防生都早。", a:[0],
+   e:"强基计划录取批次最早（如今年 7 月 5 日），比国家专项、国防生等都早。"},
+  {t:"judge", q:"现在奥数、英语竞赛受限，而教育部白名单竞赛中编程类项目占比很高，孩子通过编程拿省级以上奖项的机会比其他类别大得多。", a:[0],
+   e:"小升初逻辑：奥数、英语竞赛受限，白名单竞赛中编程类项目占比很高，通过编程参加权威竞赛拿省级以上奖项的机会比其他类别大得多。"},
+  {t:"judge", q:"C++ 适合 3-6 年级的孩子作为编程入门语言。", a:[1],
+   e:"C++ 要求较高英文水平和扎实编程基础（如数据结构、算法），适用 7 年级及以上；3-6 年级对应 Python 和趣味 C++。"},
+
+  // ===== 第二部分 异议处理 =====
+  // 单选
+  {t:"single", q:"L1 试学期设计的初衷是？", o:["体现产品信心、给家长灵活选择空间、降低决策门槛","为了筛选优质学员","为了延长服务周期","为了降低课程价格"], a:[0],
+   e:"试学期设计初衷：体现产品信心、给家长灵活选择空间、降低决策门槛；但首月也是退费风险最集中的窗口期，家长会「零成本」全面考察。"},
+  {t:"single", q:"试学期家长可以全额退课时费的范围是？", o:["前四次课","前 10 课时","前两个月","全程随时"], a:[1],
+   e:"L1 试学期前 10 课时全额退课时费；PPT 口径为前四次课全额退课时费（1 个月试学期），退费核算表标准为「L1 试学期：全额退课时费（前 10 课时）」。"},
+  {t:"single", q:"首月最高风险的信号是？", o:["孩子提前交作业","孩子上课积极提问","课后反馈消息不回复","家长主动问进度"], a:[2],
+   e:"课后反馈消息不回复是首月最高风险信号，必须多频次触达、立即电话建立沟通。"},
+  {t:"single", q:"扒轨迹时危险程度最高的报名时间节点是？", o:["开卖首日报名","直播中途报名","追单期报名","提前预约报名"], a:[2],
+   e:"报名时间节点风险：追单期报名危险程度最高，危险程度依次上升，报名越晚（直播结束后被「硬盘」进班）风险越高。"},
+  {t:"single", q:"家长长期不回复消息时，提高回复率的技巧是？", o:["以疑问句结尾追问","群发优惠信息","停止联系等家长主动","连环拨打语音通话"], a:[0],
+   e:"Tip2：家长长期不回复消息时，以疑问句结尾追问提高回复率，避免陈述句结尾。"},
+  {t:"single", q:"哪个时间节点下单的家长退费风险最高？", o:["见面会后","追单期最后下单","提前批下单","开卖首日"], a:[1],
+   e:"Tip1：追单期（最后）下单的家长风险最高——临时冲动报名、缺乏深入了解，重点核查订单支付时间点，越晚下单 = 退费概率越高。"},
+  {t:"single", q:"编程学习每周占用的平均时长是？", o:["不超过 60 分钟","不超过 120 分钟","3 小时以上","不超过 30 分钟"], a:[0],
+   e:"核心价值传递话术：编程学习每周占用的平均时长不超过 60 分钟，不会额外占用孩子大量时间，还能提升逻辑思维能力，反哺校内学科学习效率。"},
+  {t:"single", q:"家长提出「时间太长」异议时，灵活调整上课方案可以怎么做？", o:["直接停课一个月","将完整课程拆分为两个独立课时，约定固定时段分次学习","换成录播课","减半课时数"], a:[1],
+   e:"灵活调整方案：将完整课程拆分为两个独立课时（如周四周五或周四周六 19 点固定时段分次学习）；课程自带护眼模式，每半小时播放护眼视频 + 5 分钟远眺放松。"},
+  {t:"single", q:"L2 开始后退费的核算标准是？", o:["退一半","全额退课时费","按已上课时比例扣除","一概不退"], a:[2],
+   e:"退费核算三阶段：开课前全额退课时费；L1 试学期全额退课时费（前 10 课时）；L2 开始后按已上课时比例扣除。注意：任何节点拆随材都要扣费。"},
+  {t:"single", q:"超全额退费期的二次挽单由谁负责？", o:["客服","班主任","课导组长","教务"], a:[2],
+   e:"挽单责任划分——超全额退费期：课导首挽 → 课导组长二挽 → 课导提交 CRM 退费，审批链为课导组长 / — / 课导教务。"},
+  {t:"single", q:"未进入正课班级前，CRM 退费提交人是？", o:["课导组长","家长自己","课导","班主任"], a:[3],
+   e:"未进入正课班级前：首挽班主任、二挽班主任组长、CRM 退费提交人是班主任——课导提交就违规。"},
+  {t:"single", q:"整体退费挽单的时效是？", o:["10 个工作日","3 个自然日","5 个工作日","5 个自然日"], a:[3],
+   e:"整体退费挽单时效为 5 个自然日，确定挽单失败的当日必须提交 CRM 流程，不得拖延。（挽单及退费申请需在 5 个工作日内完成。）"},
+  {t:"single", q:"客服侧高危用户的退费反馈处理时效是？", o:["一周内","无时限要求","3 个工作日内","当日、最晚不超过 24 小时"], a:[3],
+   e:"客服侧高危用户退费反馈：处理时效当日、最晚不超过 24 小时——24 小时内要么挽单成功，要么提交退费流程。"},
+
+  // 多选
+  {t:"multi", q:"退费应对四步法包括？", o:["强调「孩子成长」：说明本 Level 学习收获","与孩子沟通：确认问题根源在家长还是孩子","落回试学期框架：告知具体日期前有退费权益，鼓励再给一次机会","包装课程：不拆随材，课时费退费规则一致"], a:[0,1,2,3],
+   e:"退费应对四步法：①强调孩子成长（本 Level 学习收获）②与孩子沟通（定位根源）③落回试学期框架（退费权益 + 再给机会）④包装课程（不拆随材规则一致，已上课时的额外收获无法退回）。"},
+  {t:"multi", q:"退费处理的核心原则包括？", o:["第一时间报备给组长","不急于答应退费，先了解真实原因","让家长感受到被重视","话术保持专业和温度"], a:[0,1,2,3],
+   e:"四大核心原则：第一时间报备组长、不急于答应退费先了解真实原因、让家长感受到被重视、话术专业且有温度。"},
+  {t:"multi", q:"5 种常见异议的正确应对方案包括？", o:["不认可课程——展示具体学习成果，用作品和进步说话","学不会——提供小灶辅导，拆解难点建立信心","意见不统一——邀请双方共同沟通，用试学期降低压力","对比竞品——突出独特优势，不贬低竞品"], a:[0,1,2,3],
+   e:"5 种常见异议：不认可课程（作品说话）、时间太长（系统学习必要性）、学不会（小灶辅导建信心）、意见不统一（双方沟通+试学期降压力）、对比竞品（突出优势不贬低）。"},
+  {t:"multi", q:"「时间太长」异议的五步应对包括？", o:["核心价值传递","了解实际情况精准应对","突出课程长期不可替代性","灵活调整上课方案 + 结合试学期权益降低决策压力"], a:[0,1,2,3],
+   e:"时间太长五步：①核心价值传递 ②了解实际情况精准应对 ③突出长期不可替代性 ④灵活调整上课方案 ⑤结合试学期权益降低决策压力。"},
+  {t:"multi", q:"家长侧归因的正确处理动作包括？", o:["电话沟通了解需求","聊孩子未来规划","发朋友圈维系","直接上门家访"], a:[0,1,2],
+   e:"家长侧归因：电话沟通了解需求、聊孩子未来规划、发朋友圈维系，前提是多利用「轨迹」信息；避免盲目一对一开家长会（性价比不高）。"},
+  {t:"multi", q:"孩子侧归因的正确处理动作包括？", o:["点名表扬、发小奖状","金币激励","提前预告拆硬件内容、小灶带孩子实操拆硬件","批评孩子要大胆"], a:[0,1,2],
+   e:"孩子侧归因：课堂认可（点名表扬、发小奖状、金币激励）+ 外化硬件课吸引力（提前预告拆硬件内容、小灶带孩子实操拆硬件），提升参与感和期待感。"},
+  {t:"multi", q:"判断原则「先看轨迹，再定方向」的正确理解包括？", o:["家长无异议 → 问题在孩子侧，重点做孩子侧激励","家长有疑虑→ 先做家长侧重要性沟通","家长侧沟通：电话沟通、聊规划、建立信任","不用看轨迹，直接开家长会"], a:[0,1,2],
+   e:"判断原则：先看轨迹再定方向。家长无异议 → 孩子侧激励（课堂认可、点名表扬、硬件课吸引力外化）；家长有疑虑 → 先家长侧重要性沟通再处理孩子侧问题；不要盲目一对一开家长会。"},
+  {t:"multi", q:"接班期扒轨迹要重点识别的风险包括？", o:["孩子兴趣不足","被前端「硬盘」进班试学","报名时间节点风险","孩子太多奖状"], a:[0,1,2],
+   e:"接班期扒轨迹三风险：孩子兴趣不足、被前端「硬盘」进班试学、报名时间节点风险（追单期报名），危险程度依次上升。"},
+  {t:"multi", q:"首通阶段的高风险信号包括？", o:["家长态度敷衍","追问退费细则","抵触拆硬件","孩子抵触上课"], a:[0,1,2,3],
+   e:"首通阶段四大高风险信号：家长态度敷衍、追问退费细则、抵触拆硬件、孩子抵触上课——以上均属高风险信号。"},
+  {t:"multi", q:"课中和课后的高风险信号包括？", o:["频繁掉线、退出，完课时长异常","孩子抵触情绪、随堂测试成绩差","课后反馈不回复","作业不提交"], a:[0,1,2,3],
+   e:"课中：频繁掉线退出、完课时长异常、孩子抵触情绪、随堂测试成绩差；课后：反馈不回复（首月最高风险）、作业不提交——需立即电话触达建立沟通。"},
+  {t:"multi", q:"全流程控流失的优先级排序正确的是？", o:["课前预防＞课中维稳＞课后跟进＞退费挽单","退费挽单＞课后跟进＞课中维稳＞课前预防","课中维稳＞课前预防＞退费挽单＞课后跟进","无所谓顺序"], a:[0],
+   e:"执行总结：全程围绕提升孩子上课兴趣做事；优先级：课前预防＞课中维稳＞课后跟进＞退费挽单；沟通原则：全程利他主义。"},
+  {t:"multi", q:"挽单五条硬规定包括？", o:["涉及共同挽单的，收到退费消息后第一时间私信同步至另一方","未得到另一方最终结果前，不得擅自告知用户可直接联系对方办理退费或答应提交退费","确定挽单失败当日必须提交 CRM 流程，不得拖延","对退费金额不认可的用户正常解释核算规则，仍不认可需提交《特殊退费审批》OA"], a:[0,1,2,3],
+   e:"五条硬规定：①第一时间同步另一方 ②不得擅自告知用户联系对方办退费 ③5 个自然日时效、失败当日提交 CRM ④金额争议先解释规则、再提交特殊退费审批 OA ⑤客服侧高危用户当日处理、最晚不超 24 小时。"},
+
+  // 判断
+  {t:"judge", q:"试学期家长是「零成本」全面考察，所以首月退费管控是核心理念。", a:[0],
+   e:"首月是退费风险最集中窗口期，家长「零成本」全面考察；新人要理解课程逻辑而非机械执行规则，逐一关注每个孩子的问题。"},
+  {t:"judge", q:"见面会阶段约不上、家长会约不上都是流失预警信号。", a:[0],
+   e:"见面会阶段预警：约不上见面会（孩子忙）、约不上家长会（家长不在意）、上课时间不合适——都要提高警惕。"},
+  {t:"judge", q:"课前直播孩子拒绝参加、评论区不互动不发言，属于正常现象不用管。", a:[1],
+   e:"课前直播预警：拒绝参加直播、评论区不互动、不发言不参与——都是流失预警信号，需重点关注。"},
+  {t:"judge", q:"孩子拒绝拆随材、询问随材退费规则，属于高风险信号。", a:[0],
+   e:"硬件相关预警：拒绝拆随材、询问随材退费规则、孩子不喜欢硬件——都是风险信号，需持续关注。"},
+  {t:"judge", q:"处理异议时，不管什么情况都可以直接约一对一家长会解决。", a:[1],
+   e:"判断原则是先看轨迹再定方向，不要盲目一对一开家长会——家长无异议时做孩子侧激励即可，家长有疑虑才先做家长侧沟通。"},
+  {t:"judge", q:"与竞品对比时，应突出我们的独特优势，不贬低竞品。", a:[0],
+   e:"对比竞品的应对：突出独特优势、不贬低竞品——贬低竞品会显得不专业，也容易引起家长反感。"},
+  {t:"judge", q:"进班后-全额退费期内退费，用户先找谁谁先挽，另一方必须参与共同挽单。", a:[0],
+   e:"进班后-全额退费期内（共同挽单双方必须参与）：用户先找谁谁先挽 → 另一方（班主任/课导）二挽 → 课导提交 CRM。"},
+  {t:"judge", q:"未得到另一方最终结果前，可以告知用户直接联系对方办理退费。", a:[1],
+   e:"硬规定：未得到另一方最终结果前，不得擅自告知用户可直接联系对方办理退费或答应提交退费——此处切记换位思考。"},
+  {t:"judge", q:"下班后收到客户退费消息，可在第二日上班后一小时内同步至另一方。", a:[0],
+   e:"涉及共同挽单的，收到退费消息后第一时间私信同步至另一方；下班后收到的可在第二日上班后一小时内同步。"},
+  {t:"judge", q:"对退费金额不认可的用户，直接按公司核算金额执行，无需解释。", a:[1],
+   e:"对退费金额不认可的用户：正常解释核算规则；仍不认可需提交《特殊退费审批》OA，以 OA 审批结果为准，极特殊情况可私信审批质检老师。"},
+  {t:"judge", q:"若家长在第四次课后提出退费，需要在第 5 次课开课前处理完退费流程，避免扣费。", a:[0],
+   e:"L1 全额退课时费期注意事项：若家长在第四次课后提出退费，需要在第 5 次课开课前处理完退费流程，避免扣费。"},
+  {t:"judge", q:"开课前来不及挽单的，了解用户退费主要原因并进行一次挽单，若失败需当日同步班主任，由班主任进行挽单。", a:[0],
+   e:"开课前流程：用户提出退费，课导了解退费主要原因并进行一次挽单（若失败）→ 当日内同步班主任微信沟通记录或首通通话录音 → 由班主任进行挽单，换单失败由班主任提交退费申请，课导跟进（5 个工作日内完成）。"},
+  {t:"judge", q:"退费情况在所难免，遇到时要放平心态、从容应对。", a:[0],
+   e:"培训最后的话：退费情况在所难免，请大家放平心态，从容应对——按流程、按话术、按硬规定处理即可。"},
+];
+
+const TYPE_LABEL = {single:"单选", multi:"多选", judge:"判断"};
+const JOPTS = ["√ 正确","× 错误"];
+let answered = 0, right = 0;
+const answers = {};
+
+function esc(s){ return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+function letters(arr){ return arr.map(i=>String.fromCharCode(65+i)).sort().join(""); }
+
+function render(){
+  const list = document.getElementById('list');
+  list.innerHTML = '';
+  DATA.forEach((item, idx) => {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.dataset.idx = idx;
+    card.dataset.type = item.t;
+    const opts = item.t === 'judge' ? JOPTS : item.o;
+    let html = `<span class="qtype ${item.t}">${idx+1}. ${TYPE_LABEL[item.t]}${item.t==='multi'?'（多选）':''}</span>
+      <div class="qtext">${esc(item.q)}</div>`;
+    opts.forEach((opt, oi) => {
+      html += `<div class="opt" data-oi="${oi}" data-idx="${idx}">${String.fromCharCode(65+oi)}. ${esc(opt)}</div>`;
+    });
+    if (item.t === 'multi') {
+      html += `<div style="text-align:right;margin-top:4px"><button class="confirm-btn" data-idx="${idx}" style="border:none;border-radius:8px;padding:7px 16px;background:#059669;color:#fff;cursor:pointer;font-size:13px">确认答案</button></div>`;
+    }
+    html += `<div class="exp" id="exp-${idx}">💡 解析：${esc(item.e)}</div>`;
+    card.innerHTML = html;
+    list.appendChild(card);
+  });
+  bind();
+}
+
+function bind(){
+  document.querySelectorAll('.opt').forEach(el => {
+    el.addEventListener('click', () => {
+      const idx = +el.dataset.idx;
+      if (answers[idx] !== undefined) return;
+      const item = DATA[idx];
+      if (item.t === 'multi') {
+        el.classList.toggle('sel');
+      } else {
+        document.querySelectorAll(`.opt[data-idx="${idx}"]`).forEach(o=>o.classList.remove('sel'));
+        el.classList.add('sel');
+        check(idx);
+      }
+    });
+  });
+  document.querySelectorAll('.confirm-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = +btn.dataset.idx;
+      if (answers[idx] === undefined) check(idx);
+    });
+  });
+}
+
+function getSel(idx){
+  return [...document.querySelectorAll(`.opt[data-idx="${idx}"].sel`)].map(e=>+e.dataset.oi);
+}
+
+function check(idx){
+  const item = DATA[idx];
+  const sel = getSel(idx);
+  const selKey = letters(sel), ansKey = letters(item.a);
+  const correct = selKey === ansKey && sel.length === item.a.length;
+  answers[idx] = correct;
+  answered++; if (correct) right++;
+  document.querySelectorAll(`.opt[data-idx="${idx}"]`).forEach(o=>{
+    o.classList.add('disabled');
+    const oi = +o.dataset.oi;
+    if (item.a.includes(oi)) o.classList.add('right');
+    else if (o.classList.contains('sel')) o.classList.add('wrong');
+  });
+  document.getElementById(`exp-${idx}`).classList.add('show');
+  updateStats();
+  if (answered === DATA.length) setTimeout(showResult, 400);
+}
+
+function updateStats(){
+  document.getElementById('s-answered').textContent = answered;
+  document.getElementById('s-right').textContent = right;
+  document.getElementById('s-wrong').textContent = answered - right;
+}
+
+function submitAll(){
+  DATA.forEach((item, idx) => { if (answers[idx] === undefined) check(idx); });
+  showResult();
+}
+
+function showResult(){
+  const p = Math.round(right / DATA.length * 100);
+  const el = document.getElementById('r-score');
+  el.textContent = `${right} / ${DATA.length}（${p}分）`;
+  el.style.color = p>=80 ? '#16a34a' : p>=60 ? '#d97706' : '#dc2626';
+  document.getElementById('r-msg').textContent =
+    p>=90 ? '🎉 太棒了！熟读手册和异议处理全流程已烂熟于心！' :
+    p>=80 ? '👍 很不错，把错题解析再看一遍就稳了！' :
+    p>=60 ? '💪 及格了，重点复习退费核算标准、挽单硬规定和熟读手册数字。' :
+            '📖 建议重读两份熟读手册后再刷一遍。';
+  const r = document.getElementById('result');
+  r.style.display = 'block';
+  r.scrollIntoView({behavior:'smooth'});
+}
+
+function resetAll(){
+  Object.keys(answers).forEach(k => delete answers[k]);
+  answered = 0; right = 0;
+  const eb = document.getElementById('expBtn');
+  eb.dataset.on = ''; eb.textContent = '显示全部解析';
+  render();
+  updateStats();
+  document.getElementById('result').style.display = 'none';
+  window.scrollTo({top:0});
+}
+
+function setFilter(f, btn){
+  document.querySelectorAll('.filter button').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  document.querySelectorAll('.card').forEach(c=>{
+    c.style.display = (f==='all' || c.dataset.type===f) ? '' : 'none';
+  });
+}
+
+function toggleExpAll(btn){
+  const show = !btn.dataset.on;
+  btn.dataset.on = show ? '1' : '';
+  document.querySelectorAll('.exp').forEach(e=>{
+    if (show) e.classList.add('show'); else e.classList.remove('show');
+  });
+  btn.textContent = show ? '隐藏全部解析' : '显示全部解析';
+}
+
+render();
+updateStats();
+</script>
+</body>
+</html>
