@@ -43,6 +43,15 @@
 3. Branch 选择 `main` / `(root)` → Save
 4. 等待 1-2 分钟后即可通过 `https://<用户名>.github.io/<仓库名>/` 访问
 
+
+## 已对外发出的固定链接（不可失效）
+
+以下页面链接已发给团队，永久保持在当前地址可访问：
+
+- 专业刷题：`quiz_light.html`
+- 趣C通识：`tongshi.html`
+- 性格测试：`canyu.html`（配套数据 quiz_day1/2/3/6/7.json）
+
 ## 相关站点
 
 - **趣C刷题 · C++ 培训题库**已独立部署：https://zhuqiannan101.github.io/qiannan-quc/ （本站仅保留课导培训刷题中心）
