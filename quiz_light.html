@@ -287,7 +287,7 @@ function renderQuestion() {
   tagEl.className = 'q-tag' + (isExam ? ' exam' : '');
   document.getElementById('q-text').textContent = q.q;
   const img = document.getElementById('q-img');
-  var src = q.imgB64 || q.imgUrl;
+  var src = q.imgB64 || q.imgUrl || q.img;
   if (src) { img.src = src; img.style.display = 'block'; }
   else { img.style.display = 'none'; img.src = ''; }
 
@@ -424,7 +424,7 @@ function showResult() {
     wl.innerHTML = '<h3>本次错题回顾（点击"再刷一组"重点练习）：</h3>' + wrongList.map(q =>
       `<div class="wrong-item">
         <div class="wq">${escapeHtml(q.q)}</div>
-        ${q.imgB64 ? `<img class="q-img" src="${q.imgB64}" style="max-height:220px;">` : ''}
+        ${(q.imgB64 || q.imgUrl || q.img) ? `<img class="q-img" src="${q.imgB64 || q.imgUrl || q.img}" style="max-height:220px;">` : ''}
         <div class="wa">正确答案：${q.type === 'blank' ? escapeHtml(q.answer.split('|')[0]) : LETTERS[q.ans] + '. ' + escapeHtml(q.opts[q.ans])}</div>
         <div style="margin-top:4px;color:#666;">${escapeHtml(q.exp)}</div>
       </div>`).join('');
@@ -436,13 +436,13 @@ function quitQuiz() {
   if (confirm('确定退出本次刷题吗？当前进度不会保存。')) showPage('page-home');
 }
 
-TOPICS = [{"id": 1, "num": "Day1", "name": "初识图形化·外观·运动·事件·控制·侦测·运算", "count": 156, "sizeKB": 50, "questions": []}, {"id": 2, "num": "Day2", "name": "控制+克隆+侦测+运算（进阶）", "count": 120, "sizeKB": 40, "questions": []}, {"id": 3, "num": "Day3", "name": "变量+列表", "count": 131, "sizeKB": 45, "questions": []}, {"id": 6, "num": "Day6", "name": "画笔模块", "count": 97, "sizeKB": 30, "questions": []}, {"id": 7, "num": "Day7", "name": "冒泡排序", "count": 92, "sizeKB": 27, "questions": []}];
+TOPICS = [{"id": 1, "num": "Day1", "name": "初识图形化·外观·运动·事件·控制·侦测·运算", "count": 175, "sizeKB": 768, "questions": []}, {"id": 2, "num": "Day2", "name": "控制+克隆+侦测+运算（进阶）", "count": 115, "sizeKB": 834, "questions": []}, {"id": 3, "num": "Day3", "name": "变量+列表", "count": 103, "sizeKB": 1205, "questions": []}, {"id": 6, "num": "Day6", "name": "画笔模块", "count": 31, "sizeKB": 609, "questions": []}, {"id": 7, "num": "Day7", "name": "冒泡排序", "count": 48, "sizeKB": 973, "questions": []}];
 function loadTopic(topicId) {
   var t = TOPICS.find(function(x){ return x.id === topicId; });
   if (t.questions && t.questions.length) { askName(topicId); return; }
   var el = document.getElementById('topic-list');
   el.innerHTML = '<div style="color:#666;padding:24px;font-size:15px;">⏳ 正在加载 ' + t.num + ' 的题库…</div>';
-  fetch('quiz_day' + topicId + '.json?v=20261018151800').then(function(r){
+  fetch('quiz_day' + topicId + '.json?v=20261021154745').then(function(r){
     if (!r.ok) throw new Error('HTTP ' + r.status);
     return r.json();
   }).then(function(day){
