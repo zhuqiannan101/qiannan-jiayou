@@ -436,7 +436,7 @@ function quitQuiz() {
   if (confirm('确定退出本次刷题吗？当前进度不会保存。')) showPage('page-home');
 }
 
-TOPICS = [{"id": 1, "num": "Day1", "name": "初识图形化·外观·运动·事件·控制·侦测·运算", "count": 175, "sizeKB": 768, "questions": []}, {"id": 2, "num": "Day2", "name": "控制+克隆+侦测+运算（进阶）", "count": 115, "sizeKB": 834, "questions": []}, {"id": 3, "num": "Day3", "name": "变量+列表", "count": 103, "sizeKB": 1205, "questions": []}, {"id": 6, "num": "Day6", "name": "画笔模块", "count": 31, "sizeKB": 609, "questions": []}, {"id": 7, "num": "Day7", "name": "冒泡排序", "count": 48, "sizeKB": 973, "questions": []}];
+TOPICS = [{"id": 1, "num": "Day1", "name": "初识图形化·外观·运动·事件·控制·侦测·运算", "count": 175, "sizeMB": 0.7, "questions": []}, {"id": 2, "num": "Day2", "name": "控制+克隆+侦测+运算（进阶）", "count": 115, "sizeMB": 0.8, "questions": []}, {"id": 3, "num": "Day3", "name": "变量+列表", "count": 103, "sizeMB": 1.1, "questions": []}, {"id": 6, "num": "Day6", "name": "画笔模块", "count": 31, "sizeMB": 0.6, "questions": []}, {"id": 7, "num": "Day7", "name": "冒泡排序", "count": 48, "sizeMB": 0.7, "questions": []}]
 function loadTopic(topicId) {
   var t = TOPICS.find(function(x){ return x.id === topicId; });
   if (t.questions && t.questions.length) { askName(topicId); return; }
