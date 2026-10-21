@@ -121,14 +121,14 @@
 <div class="container">
   <div class="header">
     <h1>图形化专业刷题</h1>
-    <p>新人训图形化题库 · 每天 5 个知识点 · 每次随机 25 题 · 即时判分</p>
+    <p>新人训图形化题库 · 每天 5 个知识点 · 每次随机 30 题 · 即时判分</p>
   </div>
 
   <!-- 首页 -->
   <div id="page-home" class="page active">
     <div class="card">
       <div style="font-size:16px;font-weight:bold;margin-bottom:4px;">今天想刷哪个知识点？</div>
-      <div style="font-size:13px;color:#999;margin-bottom:14px;">点击卡片开始，每次从该题库中随机抽取 25 题</div>
+      <div style="font-size:13px;color:#999;margin-bottom:14px;">点击卡片开始，每次从该题库中随机抽取 30 题</div>
       <div id="topic-list" class="topic-list"></div>
     </div>
   </div>
@@ -215,7 +215,7 @@ function renderTopics() {
     `<div class="topic-card" onclick="loadTopic(${t.id})">
       <div class="num">${t.num}</div>
       <div class="name">${t.name}</div>
-      <div class="cnt">${t.count} 题 · 每次随机 25 题</div>
+      <div class="cnt">${t.count} 题 · 每次随机 30 题</div>
     </div>`).join('');
 }
 
@@ -237,7 +237,7 @@ function pickQuestions(pool) {
   const blanks = shuffle(pool.filter(q => q.type === 'blank'));
   const choices = shuffle(pool.filter(q => q.type !== 'blank'));
   const nBlank = Math.min(blanks.length, 5);
-  const nChoice = 25 - nBlank;
+  const nChoice = 30 - nBlank;
   const picked = choices.slice(0, nChoice).concat(blanks.slice(0, nBlank));
   return shuffle(picked);
 }
@@ -436,7 +436,7 @@ function quitQuiz() {
   if (confirm('确定退出本次刷题吗？当前进度不会保存。')) showPage('page-home');
 }
 
-TOPICS = [{"id": 1, "num": "Day1", "name": "初识图形化·外观·运动·事件·控制·侦测·运算", "count": 175, "sizeMB": 0.7, "questions": []}, {"id": 2, "num": "Day2", "name": "控制+克隆+侦测+运算（进阶）", "count": 115, "sizeMB": 0.8, "questions": []}, {"id": 3, "num": "Day3", "name": "变量+列表", "count": 103, "sizeMB": 1.1, "questions": []}, {"id": 6, "num": "Day6", "name": "画笔模块", "count": 31, "sizeMB": 0.6, "questions": []}, {"id": 7, "num": "Day7", "name": "冒泡排序", "count": 48, "sizeMB": 0.7, "questions": []}]!DOCTYPE html>
+TOPICS = [{"id": 1, "num": "Day1", "name": "图形化基础·外观·运动·事件·控制", "count": 78, "sizeMB": 1.7, "questions": []}, {"id": 2, "num": "Day2", "name": "控制+克隆+侦测+运算（进阶）", "count": 115, "sizeMB": 0.8, "questions": []}, {"id": 3, "num": "Day3", "name": "变量+列表", "count": 103, "sizeMB": 1.1, "questions": []}, {"id": 6, "num": "Day6", "name": "画笔模块", "count": 31, "sizeMB": 0.6, "questions": []}, {"id": 7, "num": "Day7", "name": "冒泡排序", "count": 48, "sizeMB": 0.7, "questions": []}]!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -559,14 +559,14 @@ TOPICS = [{"id": 1, "num": "Day1", "name": "初识图形化·外观·运动·事
 <div class="container">
   <div class="header">
     <h1>图形化专业刷题</h1>
-    <p>新人训图形化题库 · 每天 5 个知识点 · 每次随机 25 题 · 即时判分</p>
+    <p>新人训图形化题库 · 每天 5 个知识点 · 每次随机 30 题 · 即时判分</p>
   </div>
 
   <!-- 首页 -->
   <div id="page-home" class="page active">
     <div class="card">
       <div style="font-size:16px;font-weight:bold;margin-bottom:4px;">今天想刷哪个知识点？</div>
-      <div style="font-size:13px;color:#999;margin-bottom:14px;">点击卡片开始，每次从该题库中随机抽取 25 题</div>
+      <div style="font-size:13px;color:#999;margin-bottom:14px;">点击卡片开始，每次从该题库中随机抽取 30 题</div>
       <div id="topic-list" class="topic-list"></div>
     </div>
   </div>
@@ -653,7 +653,7 @@ function renderTopics() {
     `<div class="topic-card" onclick="loadTopic(${t.id})">
       <div class="num">${t.num}</div>
       <div class="name">${t.name}</div>
-      <div class="cnt">${t.count} 题 · 每次随机 25 题</div>
+      <div class="cnt">${t.count} 题 · 每次随机 30 题</div>
     </div>`).join('');
 }
 
@@ -675,7 +675,7 @@ function pickQuestions(pool) {
   const blanks = shuffle(pool.filter(q => q.type === 'blank'));
   const choices = shuffle(pool.filter(q => q.type !== 'blank'));
   const nBlank = Math.min(blanks.length, 5);
-  const nChoice = 25 - nBlank;
+  const nChoice = 30 - nBlank;
   const picked = choices.slice(0, nChoice).concat(blanks.slice(0, nBlank));
   return shuffle(picked);
 }
@@ -874,13 +874,13 @@ function quitQuiz() {
   if (confirm('确定退出本次刷题吗？当前进度不会保存。')) showPage('page-home');
 }
 
-TOPICS = [{"id": 1, "num": "Day1", "name": "初识图形化·外观·运动·事件·控制·侦测·运算", "count": 175, "sizeMB": 0.7, "questions": []}, {"id": 2, "num": "Day2", "name": "控制+克隆+侦测+运算（进阶）", "count": 115, "sizeMB": 0.8, "questions": []}, {"id": 3, "num": "Day3", "name": "变量+列表", "count": 103, "sizeMB": 1.1, "questions": []}, {"id": 6, "num": "Day6", "name": "画笔模块", "count": 31, "sizeMB": 0.6, "questions": []}, {"id": 7, "num": "Day7", "name": "冒泡排序", "count": 48, "sizeMB": 0.7, "questions": []}]
+TOPICS = [{"id": 1, "num": "Day1", "name": "图形化基础·外观·运动·事件·控制", "count": 78, "sizeMB": 1.7, "questions": []}, {"id": 2, "num": "Day2", "name": "控制+克隆+侦测+运算（进阶）", "count": 115, "sizeMB": 0.8, "questions": []}, {"id": 3, "num": "Day3", "name": "变量+列表", "count": 103, "sizeMB": 1.1, "questions": []}, {"id": 6, "num": "Day6", "name": "画笔模块", "count": 31, "sizeMB": 0.6, "questions": []}, {"id": 7, "num": "Day7", "name": "冒泡排序", "count": 48, "sizeMB": 0.7, "questions": []}]
 function loadTopic(topicId) {
   var t = TOPICS.find(function(x){ return x.id === topicId; });
   if (t.questions && t.questions.length) { askName(topicId); return; }
   var el = document.getElementById('topic-list');
   el.innerHTML = '<div style="color:#666;padding:24px;font-size:15px;">⏳ 正在加载 ' + t.num + ' 的题库…</div>';
-  fetch('quiz_day' + topicId + '.json?v=20261021190432').then(function(r){
+  fetch('quiz_day' + topicId + '.json?v=20261021210000').then(function(r){
     if (!r.ok) throw new Error('HTTP ' + r.status);
     return r.json();
   }).then(function(day){
