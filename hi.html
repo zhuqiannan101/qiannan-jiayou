@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hi 你好~</title>
+<style>
+:root{
+  --primary:#6358e8;--primary-2:#9a7bf7;--primary-soft:#efedff;--primary-line:#d8d3fb;
+  --ink:#262a3f;--muted:#7a7e94;--line:#e8e7f4;--bg:#f5f4fd;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Segoe UI",sans-serif;color:var(--ink);line-height:1.65;min-height:100vh;background:linear-gradient(160deg,#f2f0ff 0%,#faf8ff 38%,#fdf6f2 100%);background-attachment:fixed;position:relative}
+body::before,body::after{content:'';position:fixed;border-radius:50%;filter:blur(70px);pointer-events:none;z-index:0}
+body::before{width:340px;height:340px;left:-110px;top:-90px;background:rgba(129,110,247,.16)}
+body::after{width:300px;height:300px;right:-100px;bottom:-70px;background:rgba(250,180,140,.14)}
+.wrap{max-width:680px;margin:0 auto;padding:32px 18px 64px;position:relative;z-index:1}
+.card{background:rgba(255,255,255,.88);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.9);border-radius:22px;box-shadow:0 12px 36px rgba(80,70,160,.09),0 2px 8px rgba(80,70,160,.05)}
+.badge{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:700;color:var(--primary);background:linear-gradient(135deg,#efedff,#f6f0ff);border:1px solid var(--primary-line);border-radius:99px;padding:5px 15px;margin-bottom:16px;box-shadow:0 2px 8px rgba(99,88,232,.09)}
+h1{font-size:29px;letter-spacing:.5px;font-weight:800;background:linear-gradient(120deg,#3f3868,#6358e8 55%,#9a7bf7);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.sub{color:var(--muted);font-size:14.5px;margin-top:8px}
+.tips{margin:22px 0;padding:22px 22px 24px;font-size:14.5px}
+.tips p{margin-bottom:9px}
+.tips p:last-child{margin-bottom:0}
+.tips b{color:var(--primary)}
+.btn{appearance:none;border:0;border-radius:14px;padding:13px 26px;font-size:15.5px;font-weight:700;cursor:pointer;transition:.2s;font-family:inherit}
+.btn-primary{background:linear-gradient(135deg,#6358e8,#9a7bf7);color:#fff;box-shadow:0 8px 20px rgba(99,88,232,.35),inset 0 1px 0 rgba(255,255,255,.25)}
+.btn-primary:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 12px 26px rgba(99,88,232,.42),inset 0 1px 0 rgba(255,255,255,.25)}
+.btn-primary:active:not(:disabled){transform:translateY(0)}
+.btn-primary:disabled{opacity:.45;cursor:not-allowed;box-shadow:none}
+.btn-ghost{background:#fff;color:#6b6f86;border:1.5px solid var(--line)}
+.btn-ghost:hover:not(:disabled){border-color:var(--primary-line);color:var(--primary)}
+.btn-ghost:disabled{opacity:.4;cursor:not-allowed}
+.btn-sm{font-size:13.5px;padding:9px 18px;border-radius:12px}
+.btn-xl{font-size:16.5px;padding:15px 52px;border-radius:16px}
+.center{text-align:center}
+.tiny{font-size:12.5px;color:var(--muted);margin-top:14px;text-align:center}
+.namebox{margin:20px 0 0}
+.namebox label{display:block;font-size:14px;font-weight:700;margin-bottom:8px}
+.namebox input{width:100%;border:1.5px solid var(--line);border-radius:14px;padding:13px 16px;font-size:16px;font-family:inherit;background:#fff;transition:.2s}
+.namebox input:focus{outline:0;border-color:var(--primary);box-shadow:0 0 0 4px rgba(99,88,232,.1)}
+.err{color:#d24545;font-size:12.5px;margin-top:8px;display:none;text-align:left}
+
+.top{margin-bottom:18px}
+.top-row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px}
+.brand{font-size:13.5px;font-weight:800;color:var(--primary)}
+.count{font-size:13px;color:var(--muted);font-weight:650}
+.bar{height:8px;background:rgba(99,88,232,.1);border-radius:99px;overflow:hidden;box-shadow:inset 0 1px 2px rgba(80,70,160,.08)}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,#6358e8,#9a7bf7,#f0a58f);background-size:200% 100%;border-radius:99px;transition:width .35s cubic-bezier(.4,0,.2,1);animation:shimmer 2.4s linear infinite}
+@keyframes shimmer{to{background-position:-200% 0}}
+.dots{display:flex;gap:7px;flex-wrap:wrap;justify-content:center;margin-top:13px}
+.dot{width:10px;height:10px;border-radius:50%;background:#ddd9f0;border:0;cursor:pointer;padding:0;transition:.18s}
+.dot:hover{transform:scale(1.25)}
+.dot.done{background:linear-gradient(135deg,#6358e8,#9a7bf7)}
+.dot.cur{transform:scale(1.5);box-shadow:0 0 0 4px rgba(99,88,232,.18);background:linear-gradient(135deg,#6358e8,#9a7bf7)}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes popIn{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:scale(1)}}
+.qcard{padding:26px 24px;animation:fadeUp .3s ease}
+.qnum{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:800;color:var(--primary);letter-spacing:1px;margin-bottom:10px;background:var(--primary-soft);border-radius:99px;padding:3px 12px}
+.qtext{font-size:18px;font-weight:700;line-height:1.6;margin-bottom:20px}
+.opts{display:flex;flex-direction:column;gap:11px}
+.opt{display:flex;gap:12px;align-items:flex-start;width:100%;text-align:left;padding:14px 16px;border:1.5px solid var(--line);border-radius:15px;background:#fff;cursor:pointer;transition:.16s;font-size:15px;line-height:1.55;font-family:inherit;color:var(--ink)}
+.opt:hover{border-color:var(--primary-line);transform:translateY(-2px);box-shadow:0 6px 16px rgba(99,88,232,.11)}
+.opt.sel{border-color:var(--primary);background:linear-gradient(150deg,#efedff,#f7f3ff);box-shadow:0 6px 16px rgba(99,88,232,.14)}
+.opt .key{flex:0 0 27px;height:27px;border-radius:9px;background:#f1f0fa;color:#6b6f86;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;margin-top:1px;transition:.16s}
+.opt.sel .key{background:linear-gradient(135deg,#6358e8,#9a7bf7);color:#fff;box-shadow:0 3px 8px rgba(99,88,232,.35)}
+
+.nav{display:flex;justify-content:space-between;gap:12px;margin-top:20px}
+.nav .btn{flex:1}
+.hint{font-size:12px;color:var(--muted);margin-top:14px;text-align:center}
+
+.codebox{margin:18px 0;padding:26px 22px;background:rgba(255,255,255,.9);border:1.5px solid var(--primary-line);border-radius:20px;text-align:center;box-shadow:0 12px 32px rgba(99,88,232,.1)}
+.codebox .code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:16.5px;font-weight:700;letter-spacing:1px;word-break:break-all;color:var(--primary);background:#f7f6ff;border:1px solid var(--primary-line);border-radius:13px;padding:13px 15px;margin:12px 0}
+.done-ill{font-size:44px;margin-bottom:8px;animation:popIn .45s ease}
+.confetti{font-size:20px;letter-spacing:10px;margin:2px 0 6px}
+@media (max-width:480px){
+  .wrap{padding:22px 13px 50px}
+  h1{font-size:24px}
+  .qcard{padding:21px 17px}
+  .qtext{font-size:16.5px}
+  .btn-xl{padding:14px 40px}
+}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+
+<script>
+'use strict';
+var LETTERS = ['A','B','C','D'];
+
+/* 16 道日常场景题，仅保留题目与选项文案。 */
+var QUESTIONS = {
+  1:{text:'朋友组局唱K或聚餐，你通常是？',
+     options:[
+       {t:'安静待着刷手机，偶尔搭两句话'},
+       {t:'麦霸担当、张罗游戏，嗨起来才尽兴'},
+       {t:'能推就推，一群人闹哄哄的累'},
+       {t:'跟着热闹，有人带头就一起玩'}]},
+  2:{text:'跟朋友讲一件特别好笑的事，你通常？',
+     options:[
+       {t:'平铺直叙讲清楚就行'},
+       {t:'朋友常说「你讲完了我都没反应」，明明事很好笑'},
+       {t:'绘声绘色连比带划，对方不笑不罢休'},
+       {t:'讲得起劲，偶尔比划两下'}]},
+  3:{text:'手机里存了特别好笑的图或视频，你会？',
+     options:[
+       {t:'自己乐完就划走'},
+       {t:'立马发群里，独乐乐不如众乐乐'},
+       {t:'基本不发，也没觉得有啥好发的'},
+       {t:'挑着发给合得来的朋友'}]},
+  4:{text:'买了件需要自己组装的家具（书架、置物架之类），你会？',
+     options:[
+       {t:'直接开拼，装错了拆了重来也挺有乐趣'},
+       {t:'找出说明书，从头到尾跟着装'},
+       {t:'谁拼家具还看说明书，装完多几个螺丝是常态'},
+       {t:'先扫一眼步骤图，卡住了再翻说明书'}]},
+  5:{text:'开车或骑车用导航时，导航突然提示「前方拥堵，建议改道」，你会？',
+     options:[
+       {t:'直接按新路线走，它看得到实时路况'},
+       {t:'导航一改道就烦，感觉从来没听对过'},
+       {t:'大差不差，还是走自己熟悉的路'},
+       {t:'先看两眼地图，真堵得厉害就听它的'}]},
+  6:{text:'聊天聊得正起劲，朋友突然指出：「你刚才有个词读错了」，你会？',
+     options:[
+       {t:'当场反驳：「不对吧，你才读错了」'},
+       {t:'嘴上说「对对对」，心里并不服气'},
+       {t:'「这样啊，学到了」，顺手把它记住'},
+       {t:'「哦哦这样」，应一声接着聊自己的'}]},
+  7:{text:'教家里长辈用手机，同一个操作教了五六遍还是不会，你会？',
+     options:[
+       {t:'语气重起来：「不是！那样按！」'},
+       {t:'换个更简单的办法接着教，急不来'},
+       {t:'直接说我来吧，别学了'},
+       {t:'有点急，但还能好好说'}]},
+  8:{text:'朋友第三次问你一件你早就说过、群里也发过的事，你会？',
+     options:[
+       {t:'怼一句「不是早说了吗」'},
+       {t:'再说一遍，顺手把聊天记录翻给他'},
+       {t:'简短回一句，心里有点无奈'},
+       {t:'回复时明显带着不耐烦'}]},
+  9:{text:'你报了个为期半年的课程或健身打卡，第三个月又累又腻，你会？',
+     options:[
+       {t:'调整节奏接着来，都坚持一半了'},
+       {t:'直接放弃，钱就当打水漂'},
+       {t:'拖一拖，但最后会啃完'},
+       {t:'先放一个月再说，大概率不回来了'}]},
+  10:{text:'公司或学校组织户外拓展，大太阳下走了一上午还没到饭点，你会？',
+     options:[
+       {t:'挺来劲，边走边唠，晒点太阳算啥'},
+       {t:'全程心里骂骂咧咧，下次再也不来'},
+       {t:'找个树荫蹲着不动了，爱咋咋地'},
+       {t:'有点累，但跟着走完没问题'}]},
+  11:{text:'朋友跟你吐槽「最近太难受了，班不想上了」，你会？',
+     options:[
+       {t:'先让他倒完苦水，问问具体怎么了'},
+       {t:'一边听一边帮他分析问题出在哪'},
+       {t:'心里嘀咕「谁不累啊，就他事多」'},
+       {t:'安慰一句「都会好的」，然后聊点别的'}]},
+  12:{text:'同事兴冲冲给你看他自己做的方案，你一看毛病不少，你会？',
+     options:[
+       {t:'先肯定用心的地方，再说哪里能更好'},
+       {t:'光夸不错的地方，毛病就不提了'},
+       {t:'直接说问题在哪，有用比好听重要'},
+       {t:'「这做的啥呀」，想到啥说啥'}]},
+  13:{text:'聊天时对方明显情绪不高，但嘴上说「没事」，你会？',
+     options:[
+       {t:'他说没事那就没事，接着聊自己的'},
+       {t:'先陪着聊会儿，找机会问问是不是遇到事了'},
+       {t:'最烦这种口是心非的，懒得猜'},
+       {t:'关心一句「有事随时说」，不多追问'}]},
+  14:{text:'路边一只奶乎乎的小柯基冲你摇尾巴、凑过来闻你，你会？',
+     options:[
+       {t:'蹲下来逗逗它，走的时候还有点舍不得'},
+       {t:'被萌到，站着看一会儿再走'},
+       {t:'笑一笑继续走，没什么特别感觉'},
+       {t:'有点躲，不太喜欢小动物往自己身上凑'}]},
+  15:{text:'一大家子或朋友聚餐，桌边坐着几个小孩，通常是什么情形？',
+     options:[
+       {t:'小孩总爱围着我转，拉着我陪他玩'},
+       {t:'我会主动逗他们玩，逗得咯咯笑'},
+       {t:'大人聊大人的，小孩玩小孩的'},
+       {t:'小孩基本不来找我，正好清静'}]},
+  16:{text:'你手机相册或社交账号里，小动物、小朋友相关的内容多吗？',
+     options:[
+       {t:'不少，看到可爱的就想拍下来存着'},
+       {t:'有一些，偶尔拍到就留着'},
+       {t:'基本没有，相册里全是吃的和风景'},
+       {t:'一张都没有，也不爱看别人发的'}]}
+};
+
+var QUESTION_ORDER = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16];
+
+function b32(n){
+  var chars = 'ABCDEFGHJKMNPQRSTUVWXYZ3456789';
+  return chars.charAt(n % chars.length);
+}
+function encodeResultCode(name, answers, elapsedSec){
+  var digits = QUESTION_ORDER.map(function(n){
+    var i = answers[n];
+    return i == null ? 'x' : String(i);
+  }).join('');
+  if (digits.indexOf('x') >= 0) return null;
+  var sum = 0;
+  for (var i = 0; i < digits.length; i++) sum += (+digits[i]) * (i + 3);
+  var enc = encodeURIComponent(name || '');
+  while (enc.length > 120) {
+    var chars = Array.from(name);
+    chars.pop();
+    name = chars.join('');
+    enc = encodeURIComponent(name);
+  }
+  return 'K6-' + enc + '-' + (elapsedSec || 0) + '-' + digits + '-' + b32(sum);
+}
+
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;'); }
+
+var QS = QUESTION_ORDER.map(function(n){ return {n:n, text:QUESTIONS[n].text, options:QUESTIONS[n].options}; });
+
+var app = null;
+var state = {mode:null, idx:0, answers:{}, startedAt:null, elapsed:null, name:'', resultCode:null};
+
+function render(){
+  if (state.mode === null) renderStart();
+  else if (state.mode === 'quiz') renderQuiz();
+  else renderSubmitDone();
+}
+
+function renderStart(){
+  app.innerHTML =
+    '<div class="center">' +
+      '<h1>Hi 你好~</h1>' +
+      '<p class="sub">就是想了解了解你，轻松作答就好</p>' +
+    '</div>' +
+    '<div class="card tips">' +
+      '<p>下面有一份小测试：都是些日常小场景，没有标准答案，凭第一感觉选你真正会做的就行。</p>' +
+      '<p>共 <b>16 题</b>，大约 <b>3 分钟</b>。点击选项即进入下一题，可随时点上方圆点返回修改。</p>' +
+      '<div class="namebox">' +
+        '<label for="candName">你的姓名</label>' +
+        '<input id="candName" type="text" maxlength="20" placeholder="怎么称呼你" autocomplete="name">' +
+      '</div>' +
+      '<p class="err" id="nameErr">先写个称呼，再开始哦</p>' +
+    '</div>' +
+    '<div class="center"><button class="btn btn-primary btn-xl" id="startBtn">开始 →</button></div>';
+  document.getElementById('startBtn').onclick = function(){
+    var name = document.getElementById('candName').value.trim();
+    if (!name) {
+      document.getElementById('nameErr').style.display = 'block';
+      document.getElementById('candName').focus();
+      return;
+    }
+    state.mode = 'quiz'; state.idx = 0; state.answers = {};
+    state.startedAt = Date.now(); state.elapsed = null; state.name = name;
+    window.scrollTo(0,0); render();
+  };
+  document.getElementById('candName').addEventListener('keydown', function(e){
+    if (e.key === 'Enter') document.getElementById('startBtn').click();
+  });
+}
+
+function answeredCount(){ return Object.keys(state.answers).length; }
+
+function renderQuiz(){
+  var q = QS[state.idx];
+  var isLast = state.idx === QS.length - 1;
+  var all = answeredCount() === QS.length;
+  var dots = QS.map(function(qq, i){
+    var cls = 'dot' + (state.answers[qq.n] != null ? ' done' : '') + (i === state.idx ? ' cur' : '');
+    return '<button class="' + cls + '" data-i="' + i + '" title="第' + qq.n + '题"></button>';
+  }).join('');
+  var opts = q.options.map(function(o, i){
+    var sel = state.answers[q.n] === i ? ' sel' : '';
+    return '<button class="opt' + sel + '" data-i="' + i + '"><span class="key">' + LETTERS[i] + '</span><span>' + esc(o.t) + '</span></button>';
+  }).join('');
+  var rightBtn;
+  if (!isLast) rightBtn = '<button class="btn btn-primary" id="nextBtn"' + (state.answers[q.n] != null ? '' : ' disabled') + '>下一题</button>';
+  else if (all) rightBtn = '<button class="btn btn-primary" id="submitBtn">提交完成</button>';
+  else rightBtn = '<button class="btn btn-primary" disabled>还有 ' + (QS.length - answeredCount()) + ' 题未作答</button>';
+
+  app.innerHTML =
+    '<div class="top">' +
+      '<div class="top-row"><span class="brand">👋 Hi 你好~ · ' + esc(state.name) + '</span><span class="count">第 ' + (state.idx+1) + ' / ' + QS.length + ' 题 · 已答 ' + answeredCount() + '</span></div>' +
+      '<div class="bar"><i style="width:' + (answeredCount()/QS.length*100).toFixed(1) + '%"></i></div>' +
+      '<div class="dots">' + dots + '</div>' +
+    '</div>' +
+    '<div class="card qcard">' +
+      '<div class="qnum">Q' + q.n + ' · 共 ' + QS.length + ' 题</div>' +
+      '<div class="qtext">' + esc(q.text) + '</div>' +
+      '<div class="opts">' + opts + '</div>' +
+    '</div>' +
+    '<div class="nav">' +
+      '<button class="btn btn-ghost" id="prevBtn"' + (state.idx === 0 ? ' disabled' : '') + '>上一题</button>' + rightBtn +
+    '</div>' +
+    '<p class="hint">点击选项即选择，可点击上方圆点跳转修改任意题目。</p>';
+
+  app.querySelectorAll('.opt').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      state.answers[q.n] = +btn.dataset.i;
+      app.querySelectorAll('.opt').forEach(function(b){ b.classList.toggle('sel', b === btn); });
+      app.querySelector('.bar i').style.width = (answeredCount()/QS.length*100).toFixed(1) + '%';
+      app.querySelectorAll('.dot').forEach(function(d, i){ d.classList.toggle('done', state.answers[QS[i].n] != null); });
+      var cnt = document.querySelector('.count');
+      if (cnt) cnt.textContent = '第 ' + (state.idx+1) + ' / ' + QS.length + ' 题 · 已答 ' + answeredCount();
+      setTimeout(function(){
+        if (state.idx < QS.length - 1) { state.idx++; render(); }
+        else { render(); }
+      }, 260);
+    });
+  });
+  app.querySelectorAll('.dot').forEach(function(d){
+    d.addEventListener('click', function(){ state.idx = +d.dataset.i; render(); });
+  });
+  var prev = document.getElementById('prevBtn');
+  if (prev) prev.onclick = function(){ if (state.idx > 0) { state.idx--; render(); } };
+  var next = document.getElementById('nextBtn');
+  if (next) next.onclick = function(){ if (state.answers[q.n] != null && state.idx < QS.length-1) { state.idx++; render(); } };
+  var submit = document.getElementById('submitBtn');
+  if (submit) submit.onclick = function(){
+    state.elapsed = Math.round((Date.now() - state.startedAt) / 1000);
+    state.resultCode = encodeResultCode(state.name, state.answers, state.elapsed);
+    state.mode = 'done';
+    window.scrollTo(0,0); render();
+  };
+}
+
+function renderSubmitDone(){
+  app.innerHTML =
+    '<div class="center">' +
+      '<div class="badge">✨ 作答完成</div>' +
+      '<h1>Hi，' + esc(state.name) + '，你好！</h1>' +
+      '<p class="sub">感谢你完成全部题目，辛苦啦</p>' +
+    '</div>' +
+    '<div class="codebox">' +
+      '<div class="done-ill">🎉</div>' +
+      '<div class="confetti">🎊 🎈 ✨</div>' +
+      '<p><b>请点击下方按钮复制结果码，并粘贴到运营表中</b>：</p>' +
+      '<div class="code" id="resultCode">' + esc(state.resultCode || '生成失败，请重试') + '</div>' +
+      '<button class="btn btn-primary btn-sm" id="copyBtn">📋 一键复制结果码</button>' +
+      '<p class="tiny" style="margin-top:10px">复制 → 粘贴到运营表，然后就完成啦。</p>' +
+    '</div>';
+  document.getElementById('copyBtn').onclick = function(){
+    var text = state.resultCode || '';
+    var btn = this;
+    function ok(){ btn.textContent = '✓ 已复制'; setTimeout(function(){ btn.textContent = '📋 一键复制结果码'; }, 2000); }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(ok, function(){ fallbackCopy(text); ok(); });
+    } else { fallbackCopy(text); ok(); }
+  };
+}
+
+function fallbackCopy(text){
+  var ta = document.createElement('textarea');
+  ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+  document.body.appendChild(ta); ta.select();
+  try { document.execCommand('copy'); } catch(e) {}
+  document.body.removeChild(ta);
+}
+
+function boot(){
+  app = document.getElementById('app');
+  render();
+}
+if (typeof document !== 'undefined') boot();
+</script>
+</body>
+</html>
