@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>脑筋急转弯 · 倩楠老师</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    min-height: 100vh;
+    background: linear-gradient(180deg, #9775fa 0%, #d0bfff 42%, #ffe8b0 100%);
+    font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+    padding: 24px 14px 60px; position: relative; overflow-x: hidden;
+    display: flex; flex-direction: column; align-items: center;
+  }
+  .deco { position: fixed; z-index: 0; font-size: 46px; opacity: .45; user-select: none; }
+  .d1 { top: 34px; left: 22px; animation: float 6s ease-in-out infinite; }
+  .d2 { top: 70px; right: 26px; animation: float 7s ease-in-out infinite reverse; }
+  .d3 { bottom: 90px; left: 30px; animation: float 8s ease-in-out infinite; }
+  .d4 { bottom: 130px; right: 34px; animation: float 5s ease-in-out infinite; }
+  @keyframes float { 0%,100% { transform: translateY(0);} 50% { transform: translateY(-18px);} }
+
+  .back-link {
+    position: fixed; top: 16px; left: 16px; z-index: 100;
+    font-size: 13px; font-weight: 700; text-decoration: none; color: #5c4160;
+    background: rgba(255,255,255,0.85); padding: 8px 16px; border-radius: 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  }
+  .back-link:hover { background: #fff; }
+
+  .hero { position: relative; z-index: 5; text-align: center; margin-bottom: 20px; padding-top: 6px; }
+  .hero .mascot {
+    width: 76px; height: 76px; margin: 0 auto 10px; border-radius: 22px;
+    background: linear-gradient(135deg, #9775fa, #7048e8); display: flex; align-items: center; justify-content: center;
+    font-size: 42px; box-shadow: 0 8px 22px rgba(112,72,232,.4); animation: rock 2.6s ease-in-out infinite;
+  }
+  @keyframes rock { 0%,100%{ transform: rotate(-6deg);} 50%{ transform: rotate(6deg);} }
+  .hero h1 { font-size: 30px; font-weight: 900; letter-spacing: 1px;
+    background: linear-gradient(90deg, #7048e8, #9775fa, #ff922b); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .hero p { color: #5c4160; margin-top: 6px; font-size: 14px; font-weight: 600; }
+
+  .card { position: relative; z-index: 5; width: 100%; max-width: 560px;
+    background: rgba(255,255,255,0.93); border-radius: 28px; padding: 28px 24px 24px;
+    text-align: center; box-shadow: 0 18px 44px rgba(0,0,0,0.12); border: 1px solid rgba(255,255,255,0.9); }
+  .card h2 { font-size: 20px; font-weight: 900; color: #7048e8; margin-bottom: 6px; }
+  .card .sub { font-size: 13px; color: #9a8fae; margin-bottom: 10px; }
+
+  .riddle-q { font-size: 20px; font-weight: 800; color: #5c4160; line-height: 1.75; margin: 16px 0 4px; min-height: 62px; }
+  .riddle-a { font-size: 18px; font-weight: 900; color: #ff6b6b; line-height: 1.7; margin: 8px 0 0; min-height: 30px;
+    opacity: 0; transform: translateY(6px); transition: all .4s; }
+  .riddle-a.visible { opacity: 1; transform: none; }
+  .riddle-feedback { margin-top: 12px; font-size: 15px; font-weight: 800; color: #6a5c7e; line-height: 1.7; min-height: 26px; }
+  .riddle-feedback.win { color: #e8590c; }
+  .riddle-hint { font-size: 13px; color: #adb5bd; margin-top: 14px; }
+
+  .action-row { display: flex; gap: 10px; justify-content: center; margin-top: 10px; flex-wrap: wrap; }
+  .btn-riddle { margin-top: 14px; padding: 13px 30px; border: none; border-radius: 50px;
+    background: linear-gradient(135deg, #9775fa, #7048e8); color: #fff; font-size: 15px; font-weight: 800;
+    cursor: pointer; font-family: inherit; box-shadow: 0 6px 18px rgba(112,72,232,0.4); transition: transform .15s; }
+  .btn-riddle:hover { transform: translateY(-2px); }
+  .btn-riddle:active { transform: scale(.96); }
+  .btn-riddle.secondary { background: linear-gradient(135deg, #4dabf7, #339af0); box-shadow: 0 6px 18px rgba(51,154,240,0.4); }
+  .btn-riddle.guess { background: linear-gradient(135deg, #ffc94d, #ff922b); box-shadow: 0 6px 18px rgba(255,146,43,.4); }
+  .btn-riddle.right { background: linear-gradient(135deg, #51cf66, #37b24d); box-shadow: 0 6px 18px rgba(55,178,77,.4); }
+  .btn-riddle.wrong { background: linear-gradient(135deg, #ff8787, #fa5252); box-shadow: 0 6px 18px rgba(250,82,82,.4); }
+  .btn-riddle:disabled { opacity: .5; cursor: not-allowed; }
+  .guess-box { display: none; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 10px; }
+  .guess-box.show { display: flex; }
+
+  .coin { position: fixed; top: -40px; z-index: 210; font-size: 34px; pointer-events: none; animation: coinFall 1.4s ease-in forwards; }
+  @keyframes coinFall { to { transform: translateY(110vh) rotate(360deg); opacity: 0; } }
+  .popup { position: fixed; z-index: 200; font-size: 46px; font-weight: 900; pointer-events: none; animation: popUp 1.4s ease-out forwards; }
+  @keyframes popUp { 0% { transform: translateY(0) scale(.6) rotate(-8deg); opacity: 0; } 20% { opacity: 1; } 100% { transform: translateY(-120px) scale(1.1) rotate(6deg); opacity: 0; } }
+</style>
+</head>
+<body>
+
+<div class="deco d1">💡</div>
+<div class="deco d2">🤔</div>
+<div class="deco d3">🎈</div>
+<div class="deco d4">🧠</div>
+
+<a href="index.html" class="back-link">← 返回入口</a>
+
+<div class="hero">
+  <div class="mascot">🤔</div>
+  <h1>脑筋急转弯</h1>
+  <p>每天 10 题，动动小脑筋，猜对了找倩楠老师领金币哦！</p>
+</div>
+
+<div class="card">
+  <h2>倩楠老师的脑筋急转弯</h2>
+  <p class="sub" id="riddleSub">每天 10 题，看看今天你能答对几个～</p>
+  <div class="riddle-q" id="riddleQ">点击下面按钮，看老师给你出什么题～</div>
+  <div class="riddle-a" id="riddleA"></div>
+  <div class="riddle-feedback" id="riddleFeedback"></div>
+  <div class="action-row">
+    <button class="btn-riddle" id="btnRiddle" onclick="riddle()">🎲 来一题</button>
+    <button class="btn-riddle secondary" id="btnAns" onclick="showAnswer()">📖 看答案</button>
+    <button class="btn-riddle guess" id="btnGuess" onclick="openGuess()" disabled>🤔 你猜对了吗？</button>
+  </div>
+  <div class="guess-box" id="guessBox">
+    <button class="btn-riddle right" onclick="answer(true)">🎉 我猜对啦！</button>
+    <button class="btn-riddle wrong" onclick="answer(false)">🙈 没猜对～</button>
+  </div>
+  <p class="riddle-hint">先看答案，再告诉老师，你猜对了吗？</p>
+</div>
+
+<script>
+// ---- 脑筋急转弯（每天用日期做种子，固定 10 题）----
+const riddles = [
+  { q: '什么东西越洗越脏？', a: '水' },
+  { q: '什么门永远关不上？', a: '球门' },
+  { q: '什么东西有脚却不会走路？', a: '桌椅' },
+  { q: '什么车没有轮子也能跑？', a: '风车' },
+  { q: '什么牛不会吃草？', a: '蜗牛' },
+  { q: '什么马不会跑？', a: '海马' },
+  { q: '什么鱼不会游泳？', a: '木鱼' },
+  { q: '什么花不会结果？', a: '烟花' },
+  { q: '什么鸟不会飞？', a: '企鹅' },
+  { q: '什么灯不能照明？', a: '红绿灯' },
+  { q: '什么路不能走人？', a: '电路' },
+  { q: '什么蛋不能吃？', a: '脸蛋' },
+  { q: '什么东西越用越小？', a: '橡皮擦' },
+  { q: '什么东西越擦越脏？', a: '黑板' },
+  { q: '小明的妈妈有三个孩子，老大叫大毛、老二叫二毛，老三叫什么？', a: '小明' },
+  { q: '什么东西越分享越多？', a: '快乐' },
+  { q: '什么东西倒挂树上也会飞？', a: '蝙蝠' },
+  { q: '什么水不能喝？', a: '墨水' },
+  { q: '什么伞不能挡雨？', a: '降落伞' },
+  { q: '什么东西没有嘴却会说话？', a: '电话' },
+  { q: '什么书不能读？', a: '秘书' },
+  { q: '什么东西有头没有脚？', a: '枕头' },
+  { q: '什么猫不会抓老鼠？', a: '熊猫' },
+  { q: '什么东西越冷越往上爬？', a: '温度计里的水银' },
+  { q: '什么池子没有水？', a: '电池' },
+  { q: '什么人一年只上一天班？', a: '圣诞老人' },
+  { q: '什么球不能拍？', a: '眼球' },
+  { q: '什么东西白天有、晚上没有？', a: '太阳' },
+  { q: '什么东西晚上有、白天没有？', a: '星星和月亮' },
+  { q: '什么袋子不能装东西？', a: '脑袋' },
+  { q: '什么东西越剪越大？', a: '洞' },
+  { q: '什么东西有翅膀却飞不起来？', a: '家鸡' },
+  { q: '什么车坐的人最多？', a: '公交车' },
+  { q: '什么东西没有脚却能走遍天下？', a: '邮票' },
+  { q: '什么米不能做饭？', a: '虾米' },
+  { q: '什么东西越煮越硬？', a: '鸡蛋' },
+  { q: '什么东西一碰就碎？', a: '泡泡' },
+  { q: '什么东西没有骨头却站得直？', a: '影子' },
+  { q: '什么东西越洗越小？', a: '肥皂' },
+  { q: '什么桥不能走人？', a: '彩虹' },
+  { q: '什么东西有眼睛却看不见？', a: '针' },
+  { q: '什么山没有石头？', a: '火山' },
+  { q: '什么东西有十个头？', a: '手指头' },
+  { q: '什么东西越老越值钱？', a: '古董' },
+  { q: '什么东西越生气越大？', a: '气球' },
+  { q: '什么东西越晒越湿？', a: '冰' },
+  { q: '什么东西只有你有，但别人用得比你还多？', a: '你的名字' },
+  { q: '什么车子不载人？', a: '水车' },
+  { q: '一个小球从飞机上掉下来，为什么没摔碎？', a: '因为飞机还没起飞' },
+];
+
+function todaySeed() {
+  const d = new Date();
+  return d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
+}
+function seededRnd(seed) {
+  let a = seed >>> 0;
+  return function () {
+    a |= 0; a = a + 0x6D2B79F5 | 0;
+    let t = Math.imul(a ^ a >>> 15, 1 | a);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+function makeDaily() {
+  const r = seededRnd(todaySeed());
+  const arr = riddles.slice();
+  for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]]; }
+  return arr.slice(0, 10);
+}
+let daily = makeDaily(), dailyPos = 0, currentRiddle = null;
+
+function popup(ch) {
+  const el = document.createElement('div');
+  el.className = 'popup'; el.textContent = ch;
+  el.style.left = (20 + Math.random()*60) + 'vw';
+  el.style.top = (25 + Math.random()*30) + 'vh';
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 1400);
+}
+function coinRain() {
+  for (let i = 0; i < 12; i++) {
+    const el = document.createElement('div');
+    el.className = 'coin'; el.textContent = '🪙';
+    el.style.left = (10 + Math.random()*80) + 'vw';
+    el.style.animationDelay = (Math.random()*0.4) + 's';
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 1500);
+  }
+}
+
+let doneToday = false;
+function riddle() {
+  if (dailyPos >= daily.length) {
+    document.getElementById('riddleQ').textContent = '🎉 今天的 10 个脑筋急转弯都玩完啦！明天再来哦～';
+    const a = document.getElementById('riddleA'); a.textContent = ''; a.classList.remove('visible');
+    document.getElementById('riddleFeedback').textContent = '';
+    document.getElementById('guessBox').classList.remove('show');
+    document.getElementById('btnAns').disabled = true;
+    const g = document.getElementById('btnGuess'); g.disabled = true; g.textContent = '🤔 你猜对了吗？';
+    document.getElementById('btnRiddle').textContent = '🌙 明天再来';
+    doneToday = true;
+    return;
+  }
+  currentRiddle = daily[dailyPos];
+  document.getElementById('riddleQ').textContent = '(' + (dailyPos + 1) + '/10）🤔 ' + currentRiddle.q;
+  const a = document.getElementById('riddleA');
+  a.textContent = '👉 ' + currentRiddle.a; a.classList.remove('visible');
+  document.getElementById('riddleFeedback').textContent = '';
+  document.getElementById('guessBox').classList.remove('show');
+  document.getElementById('btnAns').textContent = '📖 看答案';
+  document.getElementById('btnAns').disabled = false;
+  const g = document.getElementById('btnGuess'); g.disabled = true; g.textContent = '🤔 你猜对了吗？';
+  document.getElementById('btnRiddle').textContent = '🎲 下一题';
+  popup(['💡', '🎈', '😄'][Math.floor(Math.random()*3)]);
+  dailyPos++;
+}
+function showAnswer() {
+  const a = document.getElementById('riddleA');
+  a.textContent = '👉 ' + currentRiddle.a; a.classList.add('visible');
+  document.getElementById('btnAns').disabled = true;
+  document.getElementById('btnGuess').disabled = false;
+  document.getElementById('riddleFeedback').textContent = '👀 这就是答案啦，告诉老师：你猜对了吗？';
+  document.getElementById('riddleFeedback').classList.remove('win');
+}
+function openGuess() {
+  document.getElementById('guessBox').classList.add('show');
+  popup(['🤔', '🎈'][Math.floor(Math.random()*2)]);
+}
+function answer(correct) {
+  const fb = document.getElementById('riddleFeedback');
+  if (correct) {
+    fb.innerHTML = '🎉 太棒啦！被你轻松猜对！快去<strong>发消息告诉倩楠老师</strong>：你答对啦！记得去领 <strong>10 枚金币</strong> 哦～';
+    fb.classList.add('win');
+    coinRain();
+  } else {
+    fb.textContent = '💡 没关系，下次再试！能勇敢地一起玩，你已经超棒啦～';
+    fb.classList.remove('win');
+  }
+  document.getElementById('guessBox').classList.remove('show');
+  document.getElementById('btnGuess').disabled = true;
+}
+</script>
+</body>
+</html>
