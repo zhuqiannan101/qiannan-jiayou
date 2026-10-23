@@ -204,7 +204,7 @@
 
 <script>
 const TOPICS = [
-  { id: 1, num: "01", name: "Day1", color: "#2a5298", questions: [
+  { id: 1, num: "01", name: "Day1通识刷题", color: "#2a5298", questions: [
     {"q": "信奥赛（CSP-J/S）唯一指定的编程语言是？", "opts": ["图形化编程", "Python", "C++", "Java"], "ans": 2, "exp": "C++是竞赛语言、含金量最高，是信奥赛（CSP-J/S）唯一指定语言，也是升学加分硬通货。", "type": "single"},
     {"q": "图形化编程、Python、C++三种语言的定位，下列说法正确的是？", "opts": ["图形化拖拽积木培养兴趣，Python语法简单应用广，C++是信奥赛唯一指定语言", "Python是信奥赛唯一指定语言", "C++语法最简单、最适合零基础入门", "图形化编程可直接对接信奥赛"], "ans": 0, "exp": "图形化=拖拽积木、培养兴趣；Python=代码入门、语法简单、应用广；C++=竞赛语言、信奥赛唯一指定。", "type": "single"},
     {"q": "科特C1入口的班型价格是？", "opts": ["4399元/阶段", "4999元/阶段", "4899元/阶段", "12999元/期"], "ans": 0, "exp": "科特C1入口为4399元/阶段（三年6个阶段）。", "type": "single"},
@@ -328,7 +328,7 @@ const TOPICS = [
     {"q": "L1试学期共计几个课时？", "opts": ["8个课时", "12个课时", "40个课时", "60个课时"], "ans": 0, "exp": "L1试学期共计8个课时。", "type": "single"},
     {"q": "趣味C++第一个阶段（趣味C1）的考级目标是？", "opts": ["CTL 1级", "CTL 2级", "GESP 1级", "GESP 2级"], "ans": 0, "exp": "趣味C++第一阶段（趣味C1）的考级目标是 CTL 1级；科特C1（竞赛线）才是 CTL 2级。", "type": "single"}
   ] },
-  { id: 2, num: "02", name: "Day2", color: "#7c3aed", questions: [
+  { id: 2, num: "02", name: "Day2通识刷题", color: "#7c3aed", questions: [
     {"q": "开直播的目的有哪三大点？", "opts": ["强化老师形象+个性化服务", "增强学员粘性", "顺应市场模式"], "ans": [0, 1, 2], "exp": "直播的3大目的：强化老师形象+个性化服务、增强学员粘性、顺应市场模式。", "type": "multi"},
     {"q": "见面会直播的三大特点（面向对象与目标），正确的有？", "opts": ["开课前开展，面向孩子", "核心目标是让孩子喜欢、氛围轻松愉快", "拉近师生关系、提升学习兴趣", "核心目标是让家长信任、当场促续报"], "ans": [0, 1, 2], "exp": "见面会三大特点：开课前、面向孩子、目标是孩子喜欢/氛围轻松/拉近关系提升兴趣；\"家长信任当场促续报\"是家长会的目标。", "type": "multi"},
     {"q": "家长会直播的面向对象和核心目标是？", "opts": ["孩子 / 孩子喜欢", "家长 / 家长信任", "家长 / 个性辅导", "孩子 / 专业负责"], "ans": 1, "exp": "家长会：开课前、面向家长、核心目标是家长信任、氛围专业负责。", "type": "single"},
@@ -430,7 +430,7 @@ const TOPICS = [
     {"q": "时代背景下，编程被比喻为？", "opts": ["新的读写能力（像语文数学一样的基础能力）", "少数天才才需要学的技能", "替代所有学科的课程", "纯兴趣娱乐"], "ans": 0, "exp": "时代背景：编程已成为像读写一样的基础能力，孩子越早接触越受益。", "type": "single"},
     {"q": "学编程对学科的直接帮助是？", "opts": ["提升数学逻辑、语文理解、英语等多学科能力", "只对数学有帮助", "与学科学习无关", "只提升记忆能力"], "ans": 0, "exp": "编程培养的逻辑与抽象能力可迁移到数学、语文、英语等多学科，不是只帮数学。", "type": "single"}
   ] },
-  { id: 3, num: "03", name: "Day6", color: "#0e7490", questions: [
+  { id: 3, num: "03", name: "Day6通识刷题", color: "#0e7490", questions: [
     {"q": "规划电访必须在什么时间前完成？", "opts": ["L2-4前", "L1-2前", "L3-2前", "开课前"], "ans": 0, "exp": "规划电访（约一个月）L2-4前必须完成，对应L2-4/L3-2赛事招报开始。", "type": "single"},
     {"q": "规划电访的电话定位是？", "opts": ["摸底意向，不催报名", "直接促成报名", "催缴费用", "通知开课"], "ans": 0, "exp": "规划电访定位：摸底意向，不催报名。", "type": "single"},
     {"q": "规划电访对家长的作用有哪些？", "opts": ["清楚孩子当前水平", "知道接下来学什么", "看到课程对孩子的帮助", "对编程学习有明确预期"], "ans": [0, 1, 2, 3], "exp": "对家长四作用：清楚当前水平、知道接下来学什么、看到课程帮助、对编程学习有明确预期。", "type": "multi"},
@@ -529,7 +529,7 @@ function renderHome(){
   const el = document.getElementById('topic-list');
   el.innerHTML = TOPICS.map(t =>
     '<div class="topic-card" style="--c:'+t.color+'" onclick="openTopic('+t.id+')">'
-    + '<div class="num">'+t.num+'</div><div class="name">'+esc(t.name)+'</div>'
+    + '<div class="name">'+esc(t.name)+'</div>'
     + '<div class="desc">'+esc(t.desc||'')+'</div>'
     + '<div class="cnt">'+t.questions.length+' 题</div></div>').join('')
 ;
@@ -567,7 +567,7 @@ function renderQuestion(){
   const tcls = {single:'tt-single',multi:'tt-multi',judge:'tt-judge'}[q.type] || 'tt-single';
   document.getElementById('q-type').textContent = tname;
   document.getElementById('q-type').className = 'type-tag '+tcls;
-  document.getElementById('q-tag').textContent = esc(currentTopic.num+' · '+currentTopic.name);
+  document.getElementById('q-tag').textContent = esc(currentTopic.name);
   document.getElementById('q-text').textContent = q.q;
   const multi = q.type === 'multi';
   document.getElementById('options').innerHTML = q.opts.map((o,i)=>
@@ -661,7 +661,7 @@ function showResult(quitEarly){
   const right = rightCnt;
   const score = Math.round(right/total*100);
   endTime = endTime || new Date();
-  document.getElementById('result-topic').textContent = currentTopic.num+' · '+currentTopic.name;
+  document.getElementById('result-topic').textContent = currentTopic.name;
   document.getElementById('result-student').textContent = studentName ? '答题人：'+studentName : '';
   document.getElementById('stat-total').textContent = total;
   document.getElementById('stat-right').textContent = right;
