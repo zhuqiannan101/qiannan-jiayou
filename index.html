@@ -656,7 +656,6 @@ function renderTopics() {
   const list = document.getElementById('topic-list');
   list.innerHTML = TOPICS.map(t =>
     `<div class="topic-card" onclick="askName(${t.id})">
-      <div class="t-id">${String(t.id).padStart(2, '0')}</div>
       <div class="t-body">
         <div class="t-name">${t.name}</div>
         <div class="t-meta">${t.questions.length} 题 · 每次抽 25 题</div>
