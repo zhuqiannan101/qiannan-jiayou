@@ -1,0 +1,1216 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>6宫数独训练营</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=ZCOOL+KuaiLe&display=swap" media="print" onload="this.media='all'">
+<style>
+/* 布局：方格作业本底纹 + 一块大棋盘为中心，左右分栏，窄屏上下堆叠 */
+:root {
+  --paper: #F3F6FB; --rule: #E2E8F2; --card: #FFFFFF; --ink: #1C2640; --muted: #5C6782; --line: #CBD4E4;
+  --accent: #2A57DD; --accent-soft: #E3EAFF; --peer: #EEF2F9;
+  --marker: #FFF3BF; --marker-strong: #E3AE00;
+  --ok: #13855A; --ok-soft: #D9F3E6; --bad: #CF3434; --bad-soft: #FCE2E2; --bad-line: rgba(207,52,52,.42);
+  --tint: #EDF1FA;
+  --display: "ZCOOL KuaiLe", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --body: -apple-system, "PingFang SC", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+  --num: "Fredoka", "Arial Rounded MT Bold", "PingFang SC", sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --paper: #0F1522; --rule: #172034; --card: #162035; --ink: #E6EBF5; --muted: #98A3BC; --line: #2B3853;
+  --accent: #88A3FF; --accent-soft: #1F2B4E; --peer: #1A2540;
+  --marker: #3B3416; --marker-strong: #E8C64A;
+  --ok: #4ACB93; --ok-soft: #12382A; --bad: #FF7F7F; --bad-soft: #401D21; --bad-line: rgba(255,127,127,.45);
+  --tint: #1B2741; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --paper: #0F1522; --rule: #172034; --card: #162035; --ink: #E6EBF5; --muted: #98A3BC; --line: #2B3853;
+  --accent: #88A3FF; --accent-soft: #1F2B4E; --peer: #1A2540;
+  --marker: #3B3416; --marker-strong: #E8C64A;
+  --ok: #4ACB93; --ok-soft: #12382A; --bad: #FF7F7F; --bad-soft: #401D21; --bad-line: rgba(255,127,127,.45);
+  --tint: #1B2741; color-scheme: dark; }
+
+* { box-sizing: border-box; }
+body {
+  background: var(--paper); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.7;
+  background-image: linear-gradient(var(--rule) 1px, transparent 1px), linear-gradient(90deg, var(--rule) 1px, transparent 1px);
+  background-size: 26px 26px;
+}
+.wrap { max-width: 1060px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+/* 顶部 */
+.top { padding-block: 22px 8px; }
+.top .wrap { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 14px; }
+.brand h1 { font-family: var(--display); font-weight: 400; font-size: clamp(28px, 6vw, 40px); line-height: 1.1; margin: 0; letter-spacing: .02em; text-wrap: balance; }
+.back-link { display: inline-block; margin-bottom: 6px; color: var(--muted); text-decoration: none; font-weight: 600; font-size: 14px; }
+.back-link:hover { color: var(--accent); }
+.brand h1 .six { font-family: var(--num); font-weight: 700; color: var(--accent); }
+.brand p { margin: 6px 0 0; color: var(--muted); font-size: 14px; }
+.tabs { display: flex; gap: 4px; background: var(--card); border: 1.5px solid var(--line); border-radius: 14px; padding: 4px; }
+.tabs button { border: 0; background: transparent; padding: 8px 16px; border-radius: 10px; cursor: pointer; font-weight: 600; color: var(--muted); white-space: nowrap; }
+.tabs button[aria-selected="true"] { background: var(--ink); color: var(--card); }
+main { padding-block: 10px 48px; }
+section[data-view] { display: grid; gap: 16px; }
+
+.card { background: var(--card); border: 1.5px solid var(--line); border-radius: 18px; padding: 20px; }
+h2 { font-family: var(--display); font-weight: 400; font-size: 26px; line-height: 1.25; margin: 0 0 6px; text-wrap: balance; }
+h3 { font-size: 16px; margin: 18px 0 4px; }
+p { margin: 8px 0; }
+ol, ul { margin: 8px 0; padding-left: 1.4em; }
+li { margin: 4px 0; }
+.muted { color: var(--muted); }
+.eyebrow { font-size: 12px; letter-spacing: .12em; color: var(--muted); font-weight: 600; }
+
+.btn { border: 1.5px solid var(--line); background: var(--card); border-radius: 12px; padding: 9px 16px; cursor: pointer; font-weight: 600; white-space: nowrap; }
+.btn:hover { border-color: var(--accent); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+:root[data-theme="dark"] .btn.primary { color: #0F1522; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .btn.primary { color: #0F1522; } }
+.btn:disabled { opacity: .45; cursor: default; }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+
+.chip { display: inline-block; font-size: 12px; font-weight: 700; padding: 2px 10px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); white-space: nowrap; }
+.rhyme { font-family: var(--display); font-size: 18px; line-height: 1.6; background: var(--marker); border-radius: 12px; padding: 10px 14px; margin: 10px 0; }
+
+.say { border-radius: 14px; padding: 12px 14px; background: var(--peer); min-height: 52px; }
+.say.ok { background: var(--ok-soft); }
+.say.bad { background: var(--bad-soft); }
+.say .chip { margin-right: 6px; }
+
+/* 棋盘 */
+.board { display: grid; grid-template-columns: 18px minmax(0, 1fr); grid-template-rows: 18px auto; gap: 4px; width: min(100%, 440px); margin: 0 auto; }
+.lbl-top { grid-column: 2; display: grid; grid-template-columns: repeat(6, 1fr); text-align: center; }
+.lbl-side { grid-column: 1; grid-row: 2; display: grid; grid-template-rows: repeat(6, 1fr); align-items: center; text-align: center; }
+.lbl-top span, .lbl-side span { font: 600 11px/1 var(--num); color: var(--muted); }
+.grid { grid-column: 2; grid-row: 2; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); border: 3px solid var(--ink); border-radius: 10px; overflow: hidden; background: var(--card); }
+.cell { aspect-ratio: 1; border: 0; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); background: transparent; position: relative; padding: 0; cursor: pointer; display: grid; place-items: center; min-width: 0; font: 600 clamp(22px, 7vw, 34px)/1 var(--num); }
+.cell:nth-child(6n) { border-right: 0; }
+.cell:nth-child(n+31) { border-bottom: 0; }
+.cell.br { border-right: 3px solid var(--ink); }
+.cell.bb { border-bottom: 3px solid var(--ink); }
+.tint .t { background: var(--tint); }
+.cell.peer { background: var(--peer); }
+.cell.o-line { background: var(--marker); }
+.cell.o-unit { background: var(--accent-soft); }
+.cell.same { background: var(--marker); }
+.cell.err { background: var(--bad-soft); }
+.cell.o-target { background: var(--ok-soft); box-shadow: inset 0 0 0 3px var(--ok); }
+.cell.sel { box-shadow: inset 0 0 0 3px var(--accent); }
+.cell.o-x { background-image: linear-gradient(to top right, transparent calc(50% - 1.5px), var(--bad-line) calc(50% - 1.5px), var(--bad-line) calc(50% + 1.5px), transparent calc(50% + 1.5px)); }
+.cell.o-block::after { content: ""; position: absolute; inset: 13%; border: 3px solid var(--marker-strong); border-radius: 50%; }
+.cell .v { color: var(--ink); }
+.cell.user .v { color: var(--accent); }
+.cell.err .v { color: var(--bad); }
+.cell .v.ghost { color: var(--ok); animation: pop .5s ease-out; }
+@keyframes pop { from { transform: scale(.4); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.notes { display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(2, 1fr); width: 100%; height: 100%; padding: 4px 3px; font: 500 clamp(10px, 2.6vw, 13px)/1 var(--num); color: var(--muted); }
+.notes i { font-style: normal; display: grid; place-items: center; border-radius: 4px; }
+.notes i.k { color: var(--ok); background: var(--ok-soft); font-weight: 700; }
+.notes i.x { color: var(--bad); text-decoration: line-through; text-decoration-thickness: 2px; font-weight: 700; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 12px; color: var(--muted); justify-content: center; margin-top: 10px; }
+.legend span::before { content: ""; display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 5px; vertical-align: -2px; background: var(--sw); border: 1px solid var(--line); }
+
+/* 数字键盘 */
+.pad { width: min(100%, 440px); margin: 12px auto 0; display: grid; gap: 8px; }
+.nums { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; }
+.num { border: 1.5px solid var(--line); background: var(--card); border-radius: 12px; padding: 6px 0 4px; cursor: pointer; display: grid; justify-items: center; line-height: 1.1; }
+.num b { font: 600 24px/1.1 var(--num); color: var(--accent); }
+.num small { font-size: 11px; color: var(--muted); }
+.num.done { opacity: .4; }
+.num:active { transform: translateY(1px); }
+.tools { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.tools .btn { padding: 7px 0; font-size: 14px; }
+.tools .btn[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+
+/* 学技巧 */
+.lesson-nav { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; }
+.lesson-nav button { border: 1.5px solid var(--line); background: var(--card); border-radius: 999px; padding: 6px 14px; cursor: pointer; white-space: nowrap; font-weight: 600; }
+.lesson-nav button[aria-selected="true"] { border-color: var(--ink); background: var(--ink); color: var(--card); }
+.lesson-nav button .n { font-family: var(--num); margin-right: 4px; opacity: .6; }
+.split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 440px); gap: 24px; align-items: start; }
+.split > * { min-width: 0; }
+@media (max-width: 820px) { .split { grid-template-columns: minmax(0, 1fr); } }
+.lesson-text { max-width: 62ch; }
+.task { margin-top: 14px; display: grid; gap: 10px; }
+
+/* 练一练 */
+.seg { display: inline-flex; border: 1.5px solid var(--line); border-radius: 12px; overflow: hidden; background: var(--card); }
+.seg button { border: 0; background: transparent; padding: 7px 14px; cursor: pointer; font-weight: 600; color: var(--muted); }
+.seg button + button { border-left: 1.5px solid var(--line); }
+.seg button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); }
+.clock { font: 600 22px/1 var(--num); font-variant-numeric: tabular-nums; }
+.side { display: grid; gap: 14px; }
+.toggle { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; }
+.toggle input { width: 18px; height: 18px; accent-color: var(--accent); }
+.walk.split { grid-template-columns: minmax(0, 440px) minmax(0, 1fr); }
+@media (max-width: 820px) { .walk.split { grid-template-columns: minmax(0, 1fr); } }
+.walk input[type=range] { width: 100%; accent-color: var(--accent); }
+.tally { display: flex; flex-wrap: wrap; gap: 6px; }
+
+/* 比赛 */
+.bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+.big-clock { font: 700 40px/1 var(--num); font-variant-numeric: tabular-nums; }
+.big-clock.warn { color: var(--bad); }
+.qtabs { display: flex; gap: 6px; flex-wrap: wrap; }
+.qtabs button { border: 1.5px solid var(--line); background: var(--card); border-radius: 12px; padding: 6px 12px; cursor: pointer; display: grid; text-align: left; line-height: 1.3; }
+.qtabs button b { font-size: 14px; }
+.qtabs button small { color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+.qtabs button[aria-selected="true"] { border-color: var(--accent); box-shadow: inset 0 0 0 1.5px var(--accent); }
+.score { font: 700 64px/1 var(--num); color: var(--accent); }
+.results { display: grid; gap: 8px; margin: 14px 0; }
+.results .r { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; justify-content: space-between; padding: 10px 14px; border-radius: 12px; background: var(--peer); }
+.r .good { color: var(--ok); font-weight: 700; }
+.r .badx { color: var(--bad); font-weight: 700; }
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 14px 0; }
+.facts div { background: var(--peer); border-radius: 12px; padding: 10px 14px; }
+.facts b { display: block; font: 600 22px/1.2 var(--num); }
+.facts span { font-size: 12px; color: var(--muted); }
+
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+@media (max-width: 520px) {
+  .card { padding: 16px; }
+  .tabs { width: 100%; }
+  .tabs button { flex: 1; padding: 8px 6px; }
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <div class="brand">
+      <a href="index.html" class="back-link">← 返回能量站</a>
+      <h1><span class="six">6</span>宫数独训练营</h1>
+    </div>
+    <nav class="tabs" role="tablist" aria-label="功能">
+      <button role="tab" data-go="learn" aria-selected="true">学技巧</button>
+      <button role="tab" data-go="practice" aria-selected="false">练一练</button>
+      <button role="tab" data-go="contest" aria-selected="false">模拟比赛</button>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <!-- 学技巧 -->
+  <section data-view="learn">
+    <div class="lesson-nav" id="lessonNav" role="tablist" aria-label="技巧课"></div>
+    <div class="card split" id="lessonCard">
+      <div class="lesson-text">
+        <div class="eyebrow" id="lsEyebrow"></div>
+        <h2 id="lsTitle"></h2>
+        <div class="rhyme" id="lsRhyme"></div>
+        <div id="lsBody"></div>
+        <div class="task" id="lsTask">
+          <div class="say" id="lsSay" aria-live="polite"></div>
+          <div class="row">
+            <button class="btn" id="lsHint">给点提示</button>
+            <button class="btn" id="lsShow">看讲解</button>
+            <button class="btn primary" id="lsNext">下一步</button>
+            <button class="btn" id="lsNew">换一题</button>
+          </div>
+        </div>
+      </div>
+      <div id="lsBoardArea">
+        <div id="lsBoard"></div>
+        <div id="lsPad"></div>
+        <div class="legend" id="lsLegend">
+          <span style="--sw: var(--accent-soft)">要看的区域</span>
+          <span style="--sw: var(--marker)">被“管住”的线</span>
+          <span style="--sw: var(--ok-soft)">答案格</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 练一练 -->
+  <section data-view="practice" hidden>
+    <div class="card split">
+      <div>
+        <div id="prBoard"></div>
+        <div id="prPad"></div>
+      </div>
+      <div class="side">
+        <div>
+          <div class="eyebrow">选难度</div>
+          <div class="row" style="margin-top:6px">
+            <div class="seg" id="prDiff"></div>
+            <button class="btn primary" id="prNew">换一道新题</button>
+          </div>
+          <p class="muted" id="prTip" style="margin:6px 0 0"></p>
+        </div>
+        <div class="bar">
+          <div><div class="eyebrow">用时</div><div class="clock" id="prClock">00:00</div></div>
+          <div class="muted" id="prBest" style="font-size:13px"></div>
+        </div>
+        <div class="say" id="prSay" aria-live="polite">点一个空格，再点下面的数字。卡住了就点「提示」：第一次告诉你用哪一招、看哪里，第二次告诉你为什么。</div>
+        <div class="row">
+          <button class="btn primary" id="prHint">提示</button>
+          <button class="btn" id="prCheck">检查一下</button>
+          <button class="btn" id="prWalkBtn">看完整讲解</button>
+        </div>
+        <div class="row" style="gap:16px">
+          <label class="toggle"><input type="checkbox" id="prErr" checked> 填错马上标红</label>
+          <label class="toggle"><input type="checkbox" id="prCand"> 显示候选数</label>
+        </div>
+      </div>
+    </div>
+    <div class="card" id="prWalkCard" hidden>
+      <div class="bar" style="margin-bottom:12px">
+        <div><div class="eyebrow">完整讲解</div><h2 style="margin:0">一步一步看这道题怎么解</h2></div>
+        <button class="btn" id="prWalkClose">收起</button>
+      </div>
+      <div id="prWalk"></div>
+    </div>
+  </section>
+
+  <!-- 模拟比赛 -->
+  <section data-view="contest" hidden>
+    <div class="card" id="ctStart">
+      <div class="split">
+        <div class="lesson-text">
+          <div class="eyebrow">模拟比赛</div>
+          <h2>10 分钟 · 4 道 6 宫数独</h2>
+          <p>和活力杯数独项目一样：前两题简单，后两题比较难，比<b>正确率</b>和<b>用时</b>。</p>
+          <ul>
+            <li>比赛中没有提示，也不会标出错误，和真比赛一样。</li>
+            <li>可以随时切换题目，不会的先跳过。</li>
+            <li>时间到会自动交卷，做完也可以提前交卷。</li>
+            <li>交卷后每道题都能看一步一步的讲解。</li>
+          </ul>
+          <div class="row" style="margin-top:14px">
+            <button class="btn primary" id="ctGo">开始比赛</button>
+            <span class="muted" id="ctBest"></span>
+          </div>
+        </div>
+        <div class="facts" style="align-content:start">
+          <div><b>1～2 分钟</b><span>第 1 题 · 入门</span></div>
+          <div><b>1～2 分钟</b><span>第 2 题 · 简单</span></div>
+          <div><b>约 3 分钟</b><span>第 3 题 · 中等</span></div>
+          <div><b>约 3 分钟</b><span>第 4 题 · 困难</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="card" id="ctRun" hidden>
+      <div class="bar">
+        <div><div class="eyebrow">剩余时间</div><div class="big-clock" id="ctClock">10:00</div></div>
+        <div class="qtabs" id="ctTabs" role="tablist" aria-label="题目"></div>
+        <button class="btn primary" id="ctSubmit">交卷</button>
+      </div>
+      <div style="margin-top:16px">
+        <div id="ctBoards"></div>
+        <div id="ctPad"></div>
+      </div>
+    </div>
+    <div class="card" id="ctResult" hidden>
+      <div class="bar">
+        <div><div class="eyebrow">比赛成绩</div><div class="score" id="ctScore">0</div></div>
+        <div class="row"><button class="btn primary" id="ctAgain">再比一次</button></div>
+      </div>
+      <div class="facts" id="ctFacts"></div>
+      <div class="results" id="ctRows"></div>
+      <div id="ctWalkWrap" hidden>
+        <h3 id="ctWalkTitle"></h3>
+        <div id="ctWalk"></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script src="record.js"></script>
+<script>
+// ===== 6宫数独引擎：出题、分级、逐步讲解 =====
+const SD = (() => {
+  const ALL = 0b1111110;
+  const R = i => Math.floor(i / 6), C = i => i % 6;
+  const B = i => Math.floor(R(i) / 2) * 2 + Math.floor(C(i) / 3);
+  const rows = [], cols = [], boxes = [];
+  for (let k = 0; k < 6; k++) { rows.push([]); cols.push([]); boxes.push([]); }
+  for (let i = 0; i < 36; i++) { rows[R(i)].push(i); cols[C(i)].push(i); boxes[B(i)].push(i); }
+  const U = {
+    box: boxes.map((cells, k) => ({ type: 'box', k, cells })),
+    row: rows.map((cells, k) => ({ type: 'row', k, cells })),
+    col: cols.map((cells, k) => ({ type: 'col', k, cells })),
+  };
+  const peers = [];
+  for (let i = 0; i < 36; i++) {
+    const s = new Set([...rows[R(i)], ...cols[C(i)], ...boxes[B(i)]]);
+    s.delete(i); peers.push([...s]);
+  }
+  const bit = d => 1 << d;
+  const pc = m => { let n = 0; while (m) { n += m & 1; m >>= 1; } return n; };
+  const digits = m => { const a = []; for (let d = 1; d <= 6; d++) if (m & bit(d)) a.push(d); return a; };
+  const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  const pos = i => `第${R(i) + 1}行第${C(i) + 1}列`;
+  const uname = u => `第${u.k + 1}${{ box: '宫', row: '行', col: '列' }[u.type]}`;
+
+  function cand(g, i, elim) {
+    if (g[i]) return 0;
+    let m = ALL;
+    for (const p of peers[i]) if (g[p]) m &= ~bit(g[p]);
+    if (elim) m &= ~elim[i];
+    return m;
+  }
+
+  function count(g0, limit = 2) {
+    const g = g0.slice(); let n = 0;
+    (function rec() {
+      if (n >= limit) return;
+      let best = -1, bm = 0, bc = 9;
+      for (let i = 0; i < 36; i++) if (!g[i]) {
+        const m = cand(g, i), c = pc(m);
+        if (c < bc) { bc = c; best = i; bm = m; if (!c) return; }
+      }
+      if (best < 0) { n++; return; }
+      for (const d of digits(bm)) { g[best] = d; rec(); if (n >= limit) break; }
+      g[best] = 0;
+    })();
+    return n;
+  }
+
+  function randomSolution() {
+    const g = new Array(36).fill(0);
+    (function rec(i) {
+      if (i === 36) return true;
+      for (const d of shuffle(digits(cand(g, i)))) { g[i] = d; if (rec(i + 1)) return true; }
+      g[i] = 0; return false;
+    })(0);
+    return g;
+  }
+
+  // ---------- 技巧（等级：1宫排除 2行列排除 3唯一余数 4区块 5数对） ----------
+  const NAME = { box: '宫排除法', line: '行列排除法', naked: '唯一余数法', pointing: '区块排除法', claiming: '区块排除法', pair: '数对排除法' };
+  const LEVEL = { box: 1, line: 2, naked: 3, pointing: 4, claiming: 4, pair: 5 };
+  const mk = (tech, o) => Object.assign({ tech, name: NAME[tech], level: LEVEL[tech] }, o);
+
+  function findHidden(g, elim, types, tech, minCrossed = 0) {
+    for (const t of types) for (const u of U[t]) for (let d = 1; d <= 6; d++) {
+      if (u.cells.some(i => g[i] === d)) continue;
+      const spots = u.cells.filter(i => cand(g, i, elim) & bit(d));
+      if (spots.length !== 1) continue;
+      const target = spots[0];
+      const crossed = u.cells.filter(i => !g[i] && i !== target);
+      if (crossed.length < minCrossed) continue;
+      const blockers = new Set(); let viaElim = false;
+      for (const e of crossed) {
+        const p = peers[e].find(p => g[p] === d && !u.cells.includes(p));
+        if (p !== undefined) blockers.add(p); else viaElim = true;
+      }
+      const bl = [...blockers];
+      const lines = [], said = [];
+      for (const p of bl) {
+        // 这个数字是顺着哪条线“管住”本区域的
+        const hit = crossed.find(e => peers[e].includes(p));
+        if (R(hit) === R(p) && u.type !== 'row') { lines.push(...rows[R(p)]); said.push(`${pos(p)}的 ${d} 管住了第${R(p) + 1}行`); }
+        else if (C(hit) === C(p) && u.type !== 'col') { lines.push(...cols[C(p)]); said.push(`${pos(p)}的 ${d} 管住了第${C(p) + 1}列`); }
+        else { lines.push(...boxes[B(p)]); said.push(`${pos(p)}的 ${d} 管住了第${B(p) + 1}宫`); }
+      }
+      const where = uname(u);
+      let text;
+      if (!crossed.length) text = `${where}只剩这一个空格，缺的数字就是 ${d}。`;
+      else {
+        text = bl.length
+          ? `看${where}，找数字 ${d}：${said.join('，')}。这样${where}里其它空格都不能填 ${d}`
+          : `看${where}：其它空格都已经被排除`;
+        if (viaElim) text += '（有的格子是前面用区块/数对排除掉的）';
+        text += `，所以 ${d} 只能填在 ${pos(target)}。`;
+      }
+      return mk(tech, {
+        place: { cell: target, d }, unit: u, blockers: bl, lines: [...new Set(lines)], crossed,
+        short: tech === 'box'
+          ? `试试【宫排除法】：盯住第${u.k + 1}宫，想想数字 ${d} 能放在哪儿？`
+          : `试试【行列排除法】：看${where}，数字 ${d} 只剩一个位置。`,
+        text,
+      });
+    }
+    return null;
+  }
+
+  function findNaked(g, elim) {
+    for (let i = 0; i < 36; i++) {
+      if (g[i]) continue;
+      const m = cand(g, i, elim);
+      if (pc(m) !== 1) continue;
+      const d = digits(m)[0];
+      const list = cells => cells.map(j => g[j]).filter(Boolean).sort().join('、') || '（还没有数字）';
+      const seen = [...new Set(peers[i].map(j => g[j]).filter(Boolean))].sort();
+      let text = `看 ${pos(i)} 这一格：所在的第${R(i) + 1}行有 ${list(rows[R(i)])}，第${C(i) + 1}列有 ${list(cols[C(i)])}，第${B(i) + 1}宫有 ${list(boxes[B(i)])}。`;
+      if (pc(cand(g, i)) === 1) text += `合起来出现过 ${seen.join('、')}，1～6 里只剩 ${d} 没出现，所以这格填 ${d}。`;
+      else text += `再加上前面用区块/数对排除掉的数字，这格只剩 ${d} 能填。`;
+      return mk('naked', {
+        place: { cell: i, d }, unit: { type: 'cross', cells: [i, ...peers[i]] },
+        blockers: peers[i].filter(j => g[j]), lines: [], crossed: [],
+        short: `试试【唯一余数法】：高亮的十字区域中间有一格，只剩一个数字能填。`,
+        text,
+      });
+    }
+    return null;
+  }
+
+  function findPointing(g, elim) {
+    for (const bx of U.box) for (let d = 1; d <= 6; d++) {
+      if (bx.cells.some(i => g[i] === d)) continue;
+      const spots = bx.cells.filter(i => cand(g, i, elim) & bit(d));
+      if (spots.length < 2) continue;
+      for (const [t, f] of [['row', R], ['col', C]]) {
+        if (!spots.every(i => f(i) === f(spots[0]))) continue;
+        const line = U[t][f(spots[0])];
+        const el = line.cells.filter(i => !bx.cells.includes(i) && cand(g, i, elim) & bit(d));
+        if (!el.length) continue;
+        return mk('pointing', {
+          elims: el.map(cell => ({ cell, d })), d, unit: bx, line, spots,
+          short: `试试【区块排除法】：看看第${bx.k + 1}宫里，数字 ${d} 可能在哪几格？`,
+          text: `第${bx.k + 1}宫里，数字 ${d} 只可能在 ${spots.map(pos).join('、')}，它们都在${uname(line)}。不管 ${d} 最后落在哪一格，${uname(line)}的 ${d} 一定在第${bx.k + 1}宫里。所以${uname(line)}在别的宫里的格子（${el.map(pos).join('、')}）都不能填 ${d}，把它划掉。`,
+        });
+      }
+    }
+    return null;
+  }
+
+  function findClaiming(g, elim) {
+    for (const t of ['row', 'col']) for (const line of U[t]) for (let d = 1; d <= 6; d++) {
+      if (line.cells.some(i => g[i] === d)) continue;
+      const spots = line.cells.filter(i => cand(g, i, elim) & bit(d));
+      if (spots.length < 2 || !spots.every(i => B(i) === B(spots[0]))) continue;
+      const bx = U.box[B(spots[0])];
+      const el = bx.cells.filter(i => !line.cells.includes(i) && cand(g, i, elim) & bit(d));
+      if (!el.length) continue;
+      return mk('claiming', {
+        elims: el.map(cell => ({ cell, d })), d, unit: line, line: bx, spots,
+        short: `试试【区块排除法】：看看${uname(line)}里，数字 ${d} 可能在哪几格？`,
+        text: `${uname(line)}里，数字 ${d} 只可能在 ${spots.map(pos).join('、')}，它们都在第${bx.k + 1}宫。所以第${bx.k + 1}宫的 ${d} 一定在${uname(line)}上，第${bx.k + 1}宫里别的格子（${el.map(pos).join('、')}）都不能填 ${d}。`,
+      });
+    }
+    return null;
+  }
+
+  function findPair(g, elim) {
+    for (const t of ['box', 'row', 'col']) for (const u of U[t]) {
+      const two = u.cells.filter(i => pc(cand(g, i, elim)) === 2);
+      for (let a = 0; a < two.length; a++) for (let b = a + 1; b < two.length; b++) {
+        const m = cand(g, two[a], elim);
+        if (m !== cand(g, two[b], elim)) continue;
+        const el = [];
+        for (const i of u.cells) {
+          if (i === two[a] || i === two[b]) continue;
+          for (const d of digits(cand(g, i, elim) & m)) el.push({ cell: i, d });
+        }
+        if (!el.length) continue;
+        const [x, y] = digits(m);
+        const cells = [...new Set(el.map(e => e.cell))];
+        return mk('pair', {
+          elims: el, unit: u, spots: [two[a], two[b]], mask: m,
+          short: `试试【数对排除法】：${uname(u)}里有两格，都只能填同样的两个数。`,
+          text: `${uname(u)}里，${pos(two[a])} 和 ${pos(two[b])} 都只能填 ${x} 或 ${y}。这两格一个是 ${x}、一个是 ${y}，正好把 ${x}、${y} 用掉了。所以${uname(u)}里别的格子（${cells.map(pos).join('、')}）都不能再填 ${x} 和 ${y}。`,
+        });
+      }
+    }
+    return null;
+  }
+
+  function nextStep(g, elim, maxLevel = 5) {
+    return findHidden(g, elim, ['box'], 'box')
+      || (maxLevel >= 2 && findHidden(g, elim, ['row', 'col'], 'line'))
+      || (maxLevel >= 3 && findNaked(g, elim))
+      || (maxLevel >= 4 && (findPointing(g, elim) || findClaiming(g, elim)))
+      || (maxLevel >= 5 && findPair(g, elim))
+      || null;
+  }
+
+  function apply(st, g, elim) {
+    if (st.place) g[st.place.cell] = st.place.d;
+    else for (const e of st.elims) elim[e.cell] |= bit(e.d);
+  }
+
+  function grade(puz) {
+    const g = puz.slice(), elim = new Array(36).fill(0), steps = [];
+    let level = 0;
+    while (g.includes(0)) {
+      const st = nextStep(g, elim, 5);
+      if (!st) return { level: 9, steps };
+      st.grid = g.slice(); st.elim = elim.slice();
+      level = Math.max(level, st.level);
+      apply(st, g, elim); steps.push(st);
+    }
+    return { level, steps };
+  }
+
+  // 难度 -> 需要用到的技巧等级范围
+  const DIFF = [
+    { name: '入门', lo: 1, hi: 1, minClues: 14, tip: '只用宫排除法' },
+    { name: '简单', lo: 2, hi: 2, minClues: 0, tip: '宫排除 + 行列排除' },
+    { name: '中等', lo: 3, hi: 3, minClues: 0, tip: '还要用唯一余数法' },
+    { name: '困难', lo: 4, hi: 5, minClues: 0, tip: '要用区块或数对' },
+  ];
+
+  // 难题：先挖成最少提示数的题，技巧解不动的就从答案里补回提示数，直到刚好需要区块/数对
+  function generateHard(cfg, diff, maxTries) {
+    for (let tries = 0; tries < maxTries; tries++) {
+      const sol = randomSolution(), puz = sol.slice();
+      for (const i of shuffle([...Array(36).keys()])) {
+        const v = puz[i]; puz[i] = 0;
+        if (count(puz) !== 1) puz[i] = v;
+      }
+      let lv = grade(puz).level;
+      if (lv > cfg.hi) for (const i of shuffle([...Array(36).keys()].filter(i => !puz[i]))) {
+        puz[i] = sol[i]; lv = grade(puz).level;
+        if (lv <= cfg.hi) break;
+      }
+      if (lv >= cfg.lo && lv <= cfg.hi) return { puz, sol, diff };
+    }
+    return null;
+  }
+
+  function generate(diff) {
+    const cfg = DIFF[diff];
+    if (cfg.lo >= 3) { const h = generateHard(cfg, diff, cfg.lo >= 4 ? 3000 : 400); if (h) return h; }
+    let fallback = null;
+    for (let tries = 0; tries < 150; tries++) {
+      const sol = randomSolution(), puz = sol.slice();
+      let clues = 36;
+      for (const i of shuffle([...Array(36).keys()])) {
+        if (clues <= cfg.minClues) break;
+        const v = puz[i]; puz[i] = 0;
+        if (count(puz) !== 1 || grade(puz).level > cfg.hi) puz[i] = v; else clues--;
+      }
+      const lv = grade(puz).level;
+      if (lv >= cfg.lo && lv <= cfg.hi) return { puz, sol, diff };
+      if (lv <= cfg.hi && (!fallback || lv > fallback.lv)) fallback = { puz: puz.slice(), sol, diff, lv };
+    }
+    return fallback;
+  }
+
+  // 找一个能用上这一招的局面，给技巧课用
+  function lessonState(tech) {
+    const diff = { box: 0, line: 1, naked: 2, pointing: 3, pair: 3 }[tech];
+    const finder = {
+      box: (g, e) => findHidden(g, e, ['box'], 'box', 3),
+      line: (g, e) => findHidden(g, e, ['row', 'col'], 'line', 2),
+      naked: (g, e) => !findHidden(g, e, ['box', 'row', 'col'], 'box') && findNaked(g, e),
+      pointing: (g, e) => findPointing(g, e) || findClaiming(g, e),
+      pair: (g, e) => findPair(g, e),
+    }[tech];
+    for (let t = 0; t < 40; t++) {
+      const p = generate(diff);
+      const g = p.puz.slice(), elim = new Array(36).fill(0);
+      const seen = [];
+      while (g.includes(0)) {
+        const hit = finder(g, elim);
+        if (hit) seen.push({ g: g.slice(), elim: elim.slice(), sol: p.sol, step: hit });
+        const st = nextStep(g, elim, 5);
+        if (!st) break;
+        apply(st, g, elim);
+      }
+      if (seen.length) return seen[Math.floor(Math.random() * Math.min(seen.length, 3))];
+    }
+    return null;
+  }
+
+  return { R, C, B, rows, cols, boxes, peers, bit, pc, digits, pos, cand, count, grade, generate, nextStep, apply, lessonState, DIFF, NAME };
+})();
+if (typeof module !== 'undefined') module.exports = SD;
+
+// ===== 界面 =====
+const $ = s => document.querySelector(s);
+function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+const store = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { } },
+};
+const fmt = s => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
+const later = fn => setTimeout(fn, 30);
+
+class Board {
+  constructor(host, opt = {}) {
+    this.opt = Object.assign({ readOnly: false, showErrors: false, autoCands: false, tint: false }, opt);
+    host.innerHTML = '';
+    const root = el('div', 'board');
+    const top = el('div', 'lbl-top'); for (let c = 1; c <= 6; c++) top.append(el('span', '', c));
+    const side = el('div', 'lbl-side'); for (let r = 1; r <= 6; r++) side.append(el('span', '', r));
+    this.grid = el('div', 'grid');
+    if (this.opt.tint) this.grid.classList.add('tint');
+    this.cells = [];
+    for (let i = 0; i < 36; i++) {
+      const b = el('button', 'cell'); b.type = 'button'; b.dataset.i = i;
+      this.grid.append(b); this.cells.push(b);
+    }
+    root.append(el('span'), top, side, this.grid);
+    host.append(root);
+    this.grid.addEventListener('click', e => { const b = e.target.closest('.cell'); if (b) this.select(+b.dataset.i); });
+    this.load(new Array(36).fill(0), new Array(36).fill(0));
+  }
+  load(puz, sol) {
+    this.giv = puz.slice(); this.val = puz.slice(); this.sol = sol.slice();
+    this.notes = new Array(36).fill(0); this.elim = null; this.hist = [];
+    this.sel = -1; this.overlay = null; this.noteMode = false; this.flashErr = false;
+    this.render();
+  }
+  select(i) { this.sel = i; this.render(); }
+  move(dr, dc) { const i = this.sel < 0 ? 0 : this.sel; this.select(((SD.R(i) + dr + 6) % 6) * 6 + (SD.C(i) + dc + 6) % 6); }
+  canEdit() { return !this.opt.readOnly && this.sel >= 0 && !this.giv[this.sel]; }
+  snap() { this.hist.push({ val: this.val.slice(), notes: this.notes.slice() }); if (this.hist.length > 300) this.hist.shift(); }
+  input(d) {
+    if (!this.canEdit()) return;
+    const i = this.sel; this.snap();
+    if (this.noteMode && !this.val[i]) this.notes[i] ^= SD.bit(d);
+    else {
+      this.val[i] = this.val[i] === d ? 0 : d; this.notes[i] = 0;
+      if (this.val[i]) for (const p of SD.peers[i]) this.notes[p] &= ~SD.bit(d);
+    }
+    this.changed(i);
+  }
+  setValue(i, d) {
+    this.snap(); this.val[i] = d; this.notes[i] = 0;
+    for (const p of SD.peers[i]) this.notes[p] &= ~SD.bit(d);
+    this.changed(i);
+  }
+  erase() { if (!this.canEdit()) return; this.snap(); this.val[this.sel] = 0; this.notes[this.sel] = 0; this.changed(this.sel); }
+  undo() { if (this.opt.readOnly) return; const h = this.hist.pop(); if (!h) return; this.val = h.val; this.notes = h.notes; this.changed(-1); }
+  toggleNotes() { this.noteMode = !this.noteMode; this.render(); }
+  changed(i) { this.flashErr = false; this.render(); this.opt.onChange && this.opt.onChange(this, i); }
+  wrong() { return this.val.map((v, i) => (v && !this.giv[i] && v !== this.sol[i] ? i : -1)).filter(i => i >= 0); }
+  solved() { return this.val.every((v, i) => v === this.sol[i]); }
+  setOverlay(o) { this.overlay = o; this.render(); }
+  render() {
+    const o = this.overlay, sel = this.sel, sv = sel >= 0 ? this.val[sel] : 0;
+    const has = (k, i) => o && o[k] && o[k].has(i);
+    for (let i = 0; i < 36; i++) {
+      const b = this.cells[i], v = this.val[i], cl = ['cell'], r = SD.R(i), c = SD.C(i);
+      if (this.giv[i]) cl.push('given'); else if (v) cl.push('user');
+      if (c === 2) cl.push('br');
+      if (r === 1 || r === 3) cl.push('bb');
+      if ((Math.floor(r / 2) + Math.floor(c / 3)) % 2 === 0) cl.push('t');
+      if (o) {
+        if (has('lines', i)) cl.push('o-line');
+        if (has('unit', i)) cl.push('o-unit');
+        if (has('crossed', i)) cl.push('o-x');
+        if (has('blockers', i)) cl.push('o-block');
+        if (o.target === i) cl.push('o-target');
+      } else if (sel >= 0) {
+        if (i !== sel && (r === SD.R(sel) || c === SD.C(sel) || SD.B(i) === SD.B(sel))) cl.push('peer');
+        if (sv && v === sv) cl.push('same');
+      }
+      if (i === sel && !this.opt.readOnly) cl.push('sel');
+      if ((this.opt.showErrors || this.flashErr) && v && !this.giv[i] && v !== this.sol[i]) cl.push('err');
+      b.className = cl.join(' ');
+      let html = '';
+      if (v) html = `<span class="v">${v}</span>`;
+      else if (o && o.target === i && o.ghost) html = `<span class="v ghost">${o.ghost}</span>`;
+      else {
+        const m = o && o.cands && o.cands[i] != null ? o.cands[i] : this.opt.autoCands ? SD.cand(this.val, i, this.elim) : this.notes[i];
+        if (m) {
+          html = '<span class="notes">';
+          for (let d = 1; d <= 6; d++) {
+            const k = o && o.keep && o.keep[i] & SD.bit(d) ? ' class="k"' : o && o.del && o.del[i] & SD.bit(d) ? ' class="x"' : '';
+            html += m & SD.bit(d) ? `<i${k}>${d}</i>` : '<i></i>';
+          }
+          html += '</span>';
+        }
+      }
+      if (b._h !== html) { b.innerHTML = html; b._h = html; }
+      b.setAttribute('aria-label', `${SD.pos(i)}：${v || '空'}`);
+    }
+    this.opt.onRender && this.opt.onRender(this);
+  }
+}
+
+class Pad {
+  constructor(host, getBoard) {
+    host.innerHTML = '';
+    this.getBoard = getBoard;
+    const pad = el('div', 'pad'), nums = el('div', 'nums'), tools = el('div', 'tools');
+    this.nums = [];
+    for (let d = 1; d <= 6; d++) {
+      const b = el('button', 'num'); b.type = 'button';
+      b.innerHTML = `<b>${d}</b><small></small>`;
+      b.setAttribute('aria-label', `填 ${d}`);
+      b.onclick = () => { const bd = getBoard(); bd && bd.input(d); };
+      nums.append(b); this.nums.push(b);
+    }
+    const tool = (t, fn) => { const b = el('button', 'btn', t); b.type = 'button'; b.onclick = () => { const bd = getBoard(); bd && fn(bd); }; tools.append(b); return b; };
+    this.noteBtn = tool('笔记', b => b.toggleNotes());
+    this.noteBtn.title = '笔记模式：在空格里写小字候选数（键盘 N）';
+    tool('擦除', b => b.erase());
+    tool('撤销', b => b.undo());
+    pad.append(nums, tools); host.append(pad);
+  }
+  update(b) {
+    for (let d = 1; d <= 6; d++) {
+      const left = 6 - b.val.filter(v => v === d).length;
+      this.nums[d - 1].querySelector('small').textContent = left > 0 ? `剩 ${left}` : '齐了';
+      this.nums[d - 1].classList.toggle('done', left <= 0);
+    }
+    this.noteBtn.setAttribute('aria-pressed', b.noteMode ? 'true' : 'false');
+    this.noteBtn.textContent = b.noteMode ? '笔记：开' : '笔记';
+  }
+}
+
+function overlayFor(st, stage, g, elim) {
+  const o = { unit: new Set(st.unit.cells), lines: new Set(), blockers: new Set(), crossed: new Set(), target: -1, ghost: 0 };
+  if (stage < 2) return o;
+  if (st.place) {
+    o.target = st.place.cell; o.ghost = st.place.d;
+    st.lines.forEach(i => o.lines.add(i));
+    st.blockers.forEach(i => o.blockers.add(i));
+    st.crossed.forEach(i => o.crossed.add(i));
+  } else {
+    if (st.line) st.line.cells.forEach(i => o.lines.add(i));
+    o.cands = {}; o.keep = {}; o.del = {};
+    for (const i of [...st.spots, ...st.elims.map(e => e.cell)]) o.cands[i] = SD.cand(g, i, elim);
+    for (const i of st.spots) o.keep[i] = st.mask || SD.bit(st.d);
+    for (const e of st.elims) o.del[e.cell] = (o.del[e.cell] || 0) | SD.bit(e.d);
+  }
+  return o;
+}
+function say(box, html, tone) { box.className = 'say' + (tone ? ' ' + tone : ''); box.innerHTML = html; }
+const chip = t => `<span class="chip">${t}</span>`;
+
+// ---------- 一步一步讲解 ----------
+class Walk {
+  constructor(host) {
+    host.innerHTML = `<div class="walk split">
+      <div class="wb"></div>
+      <div class="side">
+        <div class="tally"></div>
+        <div class="row"><b class="wn"></b><span class="chip wt"></span></div>
+        <div class="say wtext"></div>
+        <input type="range" min="0" value="0" aria-label="跳到第几步">
+        <div class="row"><button class="btn wp">上一步</button><button class="btn primary wx">下一步</button></div>
+        <div class="legend" style="justify-content:flex-start">
+          <span style="--sw: var(--accent-soft)">要看的区域</span>
+          <span style="--sw: var(--marker)">被“管住”的线</span>
+          <span style="--sw: var(--ok-soft)">答案格</span>
+        </div>
+      </div></div>`;
+    this.q = s => host.querySelector(s);
+    this.board = new Board(this.q('.wb'), { readOnly: true });
+    this.range = this.q('input');
+    this.text = this.q('.wtext');
+    this.range.oninput = () => this.show(+this.range.value);
+    this.q('.wp').onclick = () => this.show(this.k - 1);
+    this.q('.wx').onclick = () => this.show(this.k + 1);
+  }
+  open(puz, sol) {
+    this.puz = puz; this.sol = sol;
+    this.steps = SD.grade(puz).steps;
+    const t = {};
+    for (const s of this.steps) t[s.name] = (t[s.name] || 0) + 1;
+    this.q('.tally').innerHTML = '<span class="muted" style="font-size:13px">这道题用到：</span>' + Object.entries(t).map(([n, c]) => chip(`${n} ×${c}`)).join('');
+    this.range.max = this.steps.length;
+    this.show(0);
+  }
+  show(k) {
+    const n = this.steps.length;
+    this.k = Math.max(0, Math.min(n, k));
+    this.range.value = this.k;
+    this.q('.wp').disabled = this.k === 0;
+    this.q('.wx').disabled = this.k === n;
+    const b = this.board;
+    b.load(this.puz, this.sol);
+    if (this.k === n) {
+      b.val = this.sol.slice(); b.setOverlay(null);
+      this.q('.wn').textContent = '全部完成';
+      this.q('.wt').hidden = true;
+      say(this.text, `一共 ${n} 步。做完后记得检查：每行、每列、每宫都是 1～6 各一个。`, 'ok');
+      return;
+    }
+    const st = this.steps[this.k];
+    b.val = st.grid.slice(); b.elim = st.elim;
+    b.setOverlay(overlayFor(st, 2, st.grid, st.elim));
+    this.q('.wn').textContent = `第 ${this.k + 1} / ${n} 步`;
+    this.q('.wt').hidden = false;
+    this.q('.wt').textContent = st.name;
+    say(this.text, st.text);
+  }
+}
+
+// ---------- 学技巧 ----------
+const LESSONS = [
+  {
+    id: 'rules', tag: '规则', title: '6 宫数独怎么玩', tech: null,
+    rhyme: '每一行、每一列、每一宫，1～6 各出现一次。',
+    body: `<p>6 宫数独是 6 行 × 6 列的方格。粗线把它分成 6 个「宫」，每个宫是 <b>2 行 3 列</b>。</p>
+      <p>规则只有一条：每一行、每一列、每一宫里，1、2、3、4、5、6 都要出现，而且只能出现一次。</p>
+      <p>右边是一道做完的数独，深浅不同的色块就是不同的宫。宫的编号从左到右、从上到下：上面是第 1、2 宫，中间是第 3、4 宫，下面是第 5、6 宫。</p>
+      <p>说位置时用「第几行第几列」：行从上往下数，列从左往右数，棋盘边上标了数字。</p>
+      <p class="muted">点右边任意一格，会高亮它所在的行、列、宫：这三块区域里不能有重复的数字。</p>`,
+  },
+  {
+    id: 'box', tag: '宫排除', title: '第 1 招：宫排除法', tech: 'box',
+    rhyme: '盯住一个宫，找一个数字，让外面的同一个数字把格子一个个“管住”。',
+    body: `<p>最常用、最快的方法，比赛时大部分格子都靠它。</p>
+      <ol><li>选一个数字，比如 3，找出盘面上所有的 3。</li>
+      <li>每个 3 都会“管住”自己所在的行和列：这条线上不能再有 3。</li>
+      <li>找一个还没有 3 的宫，看看它的空格被哪些线挡住了。</li>
+      <li>只剩一个空格没被挡住，3 就填在那里。</li></ol>
+      <p class="muted">小窍门：先找盘面上出现次数最多的数字，它管住的线最多，最容易排除。</p>`,
+  },
+  {
+    id: 'line', tag: '行列排除', title: '第 2 招：行列排除法', tech: 'line',
+    rhyme: '一行一列也能排：缺哪个数字，就看它能放进哪个空格。',
+    body: `<p>和宫排除一样，只是这次盯住的是某一行或某一列。</p>
+      <ol><li>找一行（或一列）里空格比较少的。</li>
+      <li>看看这一行还缺哪个数字。</li>
+      <li>一个个检查空格：它所在的列和宫里，是不是已经有这个数字了？有就划掉。</li>
+      <li>只剩一个空格能放，就填进去。</li></ol>`,
+  },
+  {
+    id: 'naked', tag: '唯一余数', title: '第 3 招：唯一余数法', tech: 'naked',
+    rhyme: '盯住一个格，把它的行、列、宫里的数字合起来数，出现了 5 个，剩下那个就是答案。',
+    body: `<p>前两招是「拿一个数字找位置」，这一招反过来：「拿一个格子找数字」。</p>
+      <ol><li>找一个“十字路口”很满的空格：它所在的行、列、宫里已经有很多数字。</li>
+      <li>把这三处出现过的数字合在一起（重复的只算一次）。</li>
+      <li>1～6 里已经出现了 5 个，剩下那个就是这格的答案。</li></ol>
+      <p class="muted">排除法找不到下一步时，就换这一招。</p>`,
+  },
+  {
+    id: 'pointing', tag: '区块排除', title: '第 4 招：区块排除法', tech: 'pointing',
+    rhyme: '一个宫里，某个数字只能待在同一行，那这一行在别的宫里就不能再有它。',
+    body: `<p>难题里，排除法常常找不到能填的格子。这时要先在空格里写<b>候选数</b>（这格可能填的数字，右边棋盘里的小数字），再想办法划掉一些。</p>
+      <p>区块的意思是：某个数字在一个宫里虽然还不知道在哪一格，但一定在某一行（或某一列）上。那么这一行在其它宫里的格子，就都不能填这个数字。</p>
+      <p>反过来也成立：一行里某个数字只能在同一个宫里，那这个宫里别的格子也不能填它。</p>
+      <p class="muted">划掉之后，往往就有格子只剩一个数字了。点「下一步」看看。</p>`,
+  },
+  {
+    id: 'pair', tag: '数对', title: '第 5 招：数对排除法', tech: 'pair',
+    rhyme: '两个格子只能填同样的两个数，这两个数就被它们“包”了，同一区域的其它格子都不许再填。',
+    body: `<p>在同一行、同一列或同一宫里，如果有两个格子的候选数都是一样的两个数（比如都是 2 和 5），那 2 和 5 一定被这两格占走了，只是还不知道谁是谁。</p>
+      <p>于是同一区域里别的格子，可以把 2 和 5 都划掉。</p>
+      <p class="muted">这是比赛最后两道难题里常用的一招。</p>`,
+  },
+  {
+    id: 'plan', tag: '比赛攻略', title: '10 分钟 4 题：比赛这样做', tech: null, noBoard: true,
+    rhyme: '先易后难，先排除再余数，填完一定检查。',
+    body: `<h3>每道题的解题顺序</h3>
+      <ol><li>数一数：哪个数字在盘面上出现最多？从它开始。</li>
+      <li>用宫排除扫一遍：1→6 每个数字都把 6 个宫看一遍。</li>
+      <li>再看快填满的行和列，用行列排除。</li>
+      <li>扫不动了，找“十字路口”很满的空格，用唯一余数。</li>
+      <li>还卡住？在空格里写候选数，找区块和数对。</li></ol>
+      <h3>时间怎么分</h3>
+      <p>比赛 10 分钟 4 题，前两题简单、后两题难。建议第 1、2 题各用 1～2 分钟，留 6 分钟给第 3、4 题。</p>
+      <p>比的是正确率和用时：先保证对，再追求快。一道题卡住超过 1 分钟，先去做下一题，回头再来。</p>
+      <p><b>千万别猜。</b>猜错一个数，后面会一路错下去，整道题都白做。</p>
+      <h3>交卷前检查</h3>
+      <p>每一行、每一列、每一宫都看一遍：1～6 是不是各一个，有没有重复。</p>
+      <div class="row" style="margin-top:14px"><button class="btn primary" data-go="contest">去做一套模拟比赛</button><button class="btn" data-go="practice">先练几道</button></div>`,
+  },
+];
+
+const L = { i: 0, board: null, pad: null, st: null, stage: 0, g: null, elim: null, sol: null };
+function initLearn() {
+  const nav = $('#lessonNav');
+  LESSONS.forEach((ls, i) => {
+    const b = el('button'); b.setAttribute('role', 'tab');
+    b.innerHTML = (ls.tech ? `<span class="n">${i}</span>` : '') + ls.tag;
+    b.onclick = () => openLesson(i);
+    nav.append(b);
+  });
+  L.board = new Board($('#lsBoard'), { tint: true, onChange: lessonInput, onRender: b => L.pad && L.pad.update(b) });
+  L.pad = new Pad($('#lsPad'), () => L.board);
+  $('#lsHint').onclick = () => lessonStage(1);
+  $('#lsShow').onclick = () => lessonStage(2);
+  $('#lsNext').onclick = lessonNext;
+  $('#lsNew').onclick = () => openLesson(L.i);
+  openLesson(0);
+}
+function openLesson(i) {
+  L.i = i; const ls = LESSONS[i];
+  [...$('#lessonNav').children].forEach((b, k) => b.setAttribute('aria-selected', k === i ? 'true' : 'false'));
+  $('#lsEyebrow').textContent = ls.tech ? `技巧课 · 第 ${i} 招` : (ls.noBoard ? '备赛' : '开始之前');
+  $('#lsTitle').textContent = ls.title;
+  $('#lsRhyme').textContent = ls.rhyme;
+  $('#lsBody').innerHTML = ls.body;
+  $('#lsBoardArea').hidden = !!ls.noBoard;
+  $('#lessonCard').style.gridTemplateColumns = ls.noBoard ? 'minmax(0,1fr)' : '';
+  $('#lsTask').hidden = !ls.tech;
+  $('#lsPad').hidden = !ls.tech || ls.tech === 'pointing' || ls.tech === 'pair';
+  $('#lsLegend').hidden = !ls.tech;
+  if (ls.noBoard) return;
+  if (!ls.tech) {
+    const p = SD.generate(0);
+    L.board.opt.readOnly = false; L.board.opt.autoCands = false;
+    L.board.load(p.sol, p.sol);
+    return;
+  }
+  say($('#lsSay'), '正在找一道合适的例题…');
+  later(() => {
+    const s = SD.lessonState(ls.tech);
+    if (!s) { say($('#lsSay'), '没找到例题，点「换一题」再试一次。', 'bad'); return; }
+    L.g = s.g.slice(); L.elim = s.elim.slice(); L.sol = s.sol;
+    L.board.opt.autoCands = ls.tech === 'pointing' || ls.tech === 'pair';
+    setLessonStep(s.step);
+  });
+}
+function reloadLessonBoard() {
+  L.board.load(L.g, L.sol);
+  L.board.elim = L.elim;
+}
+function setLessonStep(st) {
+  reloadLessonBoard();
+  L.st = st; L.stage = 0;
+  $('#lsHint').disabled = $('#lsShow').disabled = !st;
+  if (!st) { say($('#lsSay'), '这道题做完啦！点「换一题」再练一道。', 'ok'); $('#lsNext').disabled = true; return; }
+  $('#lsNext').disabled = false;
+  if (st.place) say($('#lsSay'), `${chip(st.name)}轮到你了：找出一格能确定的数字，点那一格，再点下面的数字。`);
+  else say($('#lsSay'), `${chip(st.name)}格子里的小数字是候选数。用这一招，能划掉哪些候选数？想一想，再点「看讲解」。`);
+}
+function lessonStage(n) {
+  if (!L.st) return;
+  L.stage = Math.max(L.stage, n);
+  L.board.setOverlay(overlayFor(L.st, L.stage, L.g, L.elim));
+  say($('#lsSay'), chip(L.st.name) + (L.stage === 1 ? L.st.short : L.st.text), L.stage === 2 ? 'ok' : '');
+}
+function lessonInput(b, i) {
+  if (i < 0 || !L.st) return;
+  const v = b.val[i];
+  if (!v) return;
+  if (v === L.sol[i]) {
+    L.g[i] = v; b.giv[i] = v;
+    const hit = L.st.place && L.st.place.cell === i;
+    L.stage = 2;
+    b.setOverlay(overlayFor(L.st, 2, L.g, L.elim));
+    say($('#lsSay'), hit
+      ? `${chip(L.st.name)}<b>答对了！</b>${L.st.text}`
+      : `<b>这一格填对了！</b>不过这一招要找的是另一格（绿框），看看思路：${L.st.text}`, 'ok');
+  } else {
+    const clash = SD.peers[i].find(p => b.val[p] === v);
+    say($('#lsSay'), clash !== undefined
+      ? `不对哦：${SD.pos(clash)}已经有 ${v} 了，它们在同一${SD.R(clash) === SD.R(i) ? '行' : SD.C(clash) === SD.C(i) ? '列' : '宫'}。`
+      : `这一格现在还不能确定是 ${v}，再想想。需要的话点「给点提示」。`, 'bad');
+    setTimeout(() => { b.val[i] = 0; b.render(); }, 700);
+  }
+}
+function lessonNext() {
+  if (!L.st) return;
+  if (L.st.place) L.g[L.st.place.cell] = L.st.place.d;
+  else SD.apply(L.st, L.g, L.elim);
+  setLessonStep(SD.nextStep(L.g, L.elim, 5));
+}
+
+// ---------- 练一练 ----------
+const P = { diff: 1, board: null, pad: null, p: null, t0: 0, sec: 0, timer: 0, done: false, hint: null, stage: 0, elim: null, walk: null };
+function initPractice() {
+  const seg = $('#prDiff');
+  SD.DIFF.forEach((d, i) => {
+    const b = el('button', '', d.name); b.type = 'button';
+    b.onclick = () => { P.diff = i; newPractice(); };
+    seg.append(b);
+  });
+  P.board = new Board($('#prBoard'), { showErrors: true, onChange: practiceInput, onRender: b => P.pad && P.pad.update(b) });
+  P.pad = new Pad($('#prPad'), () => P.board);
+  $('#prNew').onclick = newPractice;
+  $('#prHint').onclick = practiceHint;
+  $('#prCheck').onclick = practiceCheck;
+  $('#prErr').onchange = e => { P.board.opt.showErrors = e.target.checked; P.board.render(); };
+  $('#prCand').onchange = e => { P.board.opt.autoCands = e.target.checked; P.board.elim = P.elim; P.board.render(); };
+  P.walk = new Walk($('#prWalk'));
+  $('#prWalkBtn').onclick = () => { $('#prWalkCard').hidden = false; P.walk.open(P.p.puz, P.p.sol); $('#prWalkCard').scrollIntoView({ behavior: 'smooth', block: 'start' }); };
+  $('#prWalkClose').onclick = () => { $('#prWalkCard').hidden = true; };
+}
+function newPractice(given) {
+  [...$('#prDiff').children].forEach((b, i) => b.setAttribute('aria-pressed', i === P.diff ? 'true' : 'false'));
+  $('#prTip').textContent = `${SD.DIFF[P.diff].name}：${SD.DIFF[P.diff].tip}`;
+  say($('#prSay'), '出题中…');
+  later(() => {
+    P.p = given || SD.generate(P.diff);
+    P.board.load(P.p.puz, P.p.sol);
+    P.elim = new Array(36).fill(0); P.board.elim = P.elim;
+    P.hint = null; P.stage = 0; P.done = false;
+    $('#prWalkCard').hidden = true;
+    say($('#prSay'), '点一个空格，再点下面的数字。卡住了就点「提示」：第一次告诉你用哪一招、看哪里，第二次讲清楚为什么。');
+    $('#prHint').textContent = '提示';
+    P.sec = 0; clearInterval(P.timer);
+    P.timer = setInterval(() => { if (!P.done && !document.hidden) { P.sec++; $('#prClock').textContent = fmt(P.sec); } }, 1000);
+    $('#prClock').textContent = '00:00';
+    showBest();
+  });
+}
+function showBest() {
+  const best = store.get('sd6-best', {})[P.diff];
+  $('#prBest').textContent = best ? `${SD.DIFF[P.diff].name}最快：${fmt(best)}` : '';
+}
+function practiceInput(b, i) {
+  if (P.hint) { P.hint = null; P.stage = 0; b.overlay = null; b.render(); $('#prHint').textContent = '提示'; }
+  if (P.done || !b.solved()) return;
+  P.done = true;
+  const all = store.get('sd6-best', {});
+  const isBest = !all[P.diff] || P.sec < all[P.diff];
+  if (isBest) { all[P.diff] = P.sec; store.set('sd6-best', all); }
+  showBest();
+  qnRecordStart('6宫数独 · 练习'); qnRecordFinish(`${SD.DIFF[P.diff].name} · 用时 ${fmt(P.sec)}`);
+  say($('#prSay'), `<b>完成了！</b>用时 ${fmt(P.sec)}${isBest ? '，是你这个难度最快的一次' : ''}。点「看完整讲解」对照一下思路，或者换一道新题。`, 'ok');
+}
+function practiceHint() {
+  const b = P.board;
+  if (P.done) return;
+  const wrong = b.wrong();
+  if (wrong.length) {
+    b.flashErr = true; b.render();
+    say($('#prSay'), `有 ${wrong.length} 格填错了，已经标红。先把它们擦掉，再用提示。`, 'bad');
+    return;
+  }
+  if (!P.hint || P.stage >= 3) {
+    P.hint = SD.nextStep(b.val, P.elim, 5); P.stage = 0;
+    if (!P.hint) {
+      const i = b.val.findIndex(v => !v);
+      P.hint = { name: '直接告诉你', place: { cell: i, d: b.sol[i] }, unit: { cells: [i] }, lines: [], blockers: [], crossed: [], short: '这一步比较难，直接告诉你答案。', text: `${SD.pos(i)} 填 ${b.sol[i]}。` };
+    }
+  }
+  P.stage++;
+  const st = P.hint;
+  if (P.stage <= 2) {
+    b.setOverlay(overlayFor(st, P.stage, b.val, P.elim));
+    say($('#prSay'), chip(st.name) + (P.stage === 1 ? st.short : st.text), P.stage === 2 ? 'ok' : '');
+    $('#prHint').textContent = P.stage === 1 ? '再详细点' : st.place ? '帮我填上' : '划掉，继续';
+    return;
+  }
+  // 第 3 下：执行这一步
+  const h = st; P.hint = null; P.stage = 0; b.overlay = null;
+  $('#prHint').textContent = '提示';
+  if (h.place) b.setValue(h.place.cell, h.place.d);
+  else {
+    SD.apply(h, b.val.slice(), P.elim);
+    b.render();
+    say($('#prSay'), `已经在心里划掉这些候选数了${$('#prCand').checked ? '' : '（打开「显示候选数」能看到）'}。再点「提示」看看现在能填哪一格。`);
+  }
+}
+function practiceCheck() {
+  const b = P.board, wrong = b.wrong(), empty = b.val.filter(v => !v).length;
+  b.flashErr = true; b.render();
+  if (wrong.length) say($('#prSay'), `有 ${wrong.length} 格填错了，已经标红。`, 'bad');
+  else say($('#prSay'), empty ? `目前填的都对，还剩 ${empty} 格。` : '全部正确！', 'ok');
+}
+
+// ---------- 模拟比赛 ----------
+const LIMIT = 600;
+const K = { boards: [], hosts: [], pad: null, cur: 0, left: LIMIT, timer: 0, running: false, ps: [], walk: null, armed: false };
+function initContest() {
+  $('#ctGo').onclick = () => qnNameGate('6宫数独', () => { qnRecordStart('6宫数独 · 模拟比赛'); startContest(); });
+  $('#ctAgain').onclick = () => { $('#ctResult').hidden = true; $('#ctStart').hidden = false; showContestBest(); };
+  $('#ctSubmit').onclick = () => {
+    if (!K.armed) { K.armed = true; $('#ctSubmit').textContent = '确定交卷？'; setTimeout(() => { K.armed = false; $('#ctSubmit').textContent = '交卷'; }, 3000); return; }
+    finishContest(false);
+  };
+  K.pad = new Pad($('#ctPad'), () => K.running ? K.boards[K.cur] : null);
+  K.walk = new Walk($('#ctWalk'));
+  showContestBest();
+}
+function showContestBest() {
+  const b = store.get('sd6-contest', null);
+  $('#ctBest').textContent = b ? `最好成绩：${b.score} 分，用时 ${fmt(b.used)}` : '';
+}
+function startContest() {
+  $('#ctGo').disabled = true; $('#ctGo').textContent = '出题中…';
+  later(() => {
+    K.ps = [0, 1, 2, 3].map(d => SD.generate(d));
+    const host = $('#ctBoards'); host.innerHTML = ''; K.boards = []; K.hosts = [];
+    K.ps.forEach((p, i) => {
+      const h = el('div'); h.hidden = i !== 0; host.append(h); K.hosts.push(h);
+      const b = new Board(h, { onChange: contestTabs, onRender: bd => { if (bd === K.boards[K.cur]) K.pad.update(bd); } });
+      b.load(p.puz, p.sol); K.boards.push(b);
+    });
+    const tabs = $('#ctTabs'); tabs.innerHTML = '';
+    K.ps.forEach((p, i) => {
+      const b = el('button'); b.setAttribute('role', 'tab');
+      b.onclick = () => switchQ(i);
+      tabs.append(b);
+    });
+    K.cur = 0; K.left = LIMIT; K.running = true; K.armed = false;
+    $('#ctSubmit').textContent = '交卷';
+    switchQ(0);
+    $('#ctStart').hidden = true; $('#ctResult').hidden = true; $('#ctRun').hidden = false;
+    $('#ctGo').disabled = false; $('#ctGo').textContent = '开始比赛';
+    tick(); clearInterval(K.timer);
+    K.timer = setInterval(() => { K.left--; tick(); if (K.left <= 0) finishContest(true); }, 1000);
+  });
+}
+function tick() {
+  $('#ctClock').textContent = fmt(Math.max(0, K.left));
+  $('#ctClock').classList.toggle('warn', K.left <= 60);
+}
+function switchQ(i) {
+  K.cur = i;
+  K.hosts.forEach((h, k) => { h.hidden = k !== i; });
+  contestTabs();
+  K.pad.update(K.boards[i]);
+}
+function contestTabs() {
+  [...$('#ctTabs').children].forEach((b, i) => {
+    const bd = K.boards[i], empty = bd.giv.filter(v => !v).length, filled = bd.val.filter((v, k) => v && !bd.giv[k]).length;
+    b.innerHTML = `<b>第 ${i + 1} 题</b><small>${SD.DIFF[i].name} · ${filled}/${empty}</small>`;
+    b.setAttribute('aria-selected', i === K.cur ? 'true' : 'false');
+  });
+}
+function finishContest(timeout) {
+  if (!K.running) return;
+  K.running = false; clearInterval(K.timer);
+  const used = LIMIT - Math.max(0, K.left);
+  const res = K.boards.map(b => ({ ok: b.solved(), wrong: b.wrong().length, empty: b.val.filter(v => !v).length }));
+  const score = res.filter(r => r.ok).length * 25;
+  const best = store.get('sd6-contest', null);
+  const isBest = !best || score > best.score || (score === best.score && used < best.used);
+  if (isBest) store.set('sd6-contest', { score, used });
+  qnRecordFinish(`${score} 分 · 用时 ${fmt(used)}`);
+  $('#ctScore').textContent = `${score} 分`;
+  $('#ctFacts').innerHTML = `
+    <div><b>${res.filter(r => r.ok).length} / 4</b><span>做对的题</span></div>
+    <div><b>${fmt(used)}</b><span>${timeout ? '时间到，自动交卷' : '用时'}</span></div>
+    <div><b>${isBest ? '新纪录' : `${best.score} 分`}</b><span>${isBest ? '这是你最好的一次' : `最好成绩，用时 ${fmt(best.used)}`}</span></div>`;
+  const rows = $('#ctRows'); rows.innerHTML = '';
+  res.forEach((r, i) => {
+    const d = el('div', 'r');
+    const status = r.ok ? '<span class="good">全对 +25</span>' : r.wrong ? `<span class="badx">${r.wrong} 格填错</span>${r.empty ? `，${r.empty} 格没填` : ''}` : `<span class="badx">${r.empty} 格没填</span>`;
+    d.innerHTML = `<div><b>第 ${i + 1} 题</b> <span class="muted">${SD.DIFF[i].name}</span>　${status}</div>`;
+    const b = el('button', 'btn', '看讲解');
+    b.onclick = () => {
+      $('#ctWalkWrap').hidden = false;
+      $('#ctWalkTitle').textContent = `第 ${i + 1} 题（${SD.DIFF[i].name}）一步一步讲解`;
+      K.walk.open(K.ps[i].puz, K.ps[i].sol);
+      $('#ctWalkWrap').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
+    d.append(b); rows.append(d);
+  });
+  $('#ctWalkWrap').hidden = true;
+  $('#ctRun').hidden = true; $('#ctResult').hidden = false;
+  showContestBest();
+}
+
+// ---------- 页面切换与键盘 ----------
+let view = 'learn';
+function go(v) {
+  view = v;
+  document.querySelectorAll('section[data-view]').forEach(s => { s.hidden = s.dataset.view !== v; });
+  document.querySelectorAll('.tabs [data-go]').forEach(b => b.setAttribute('aria-selected', b.dataset.go === v ? 'true' : 'false'));
+  if (v === 'practice' && !P.p) newPractice();
+  window.scrollTo({ top: 0 });
+}
+document.addEventListener('click', e => { const b = e.target.closest('[data-go]'); if (b) go(b.dataset.go); });
+function activeBoard() {
+  if (view === 'learn') return LESSONS[L.i].tech || LESSONS[L.i].id === 'rules' ? L.board : null;
+  if (view === 'practice') return P.board;
+  if (view === 'contest') return K.running ? K.boards[K.cur] : null;
+}
+document.addEventListener('keydown', e => {
+  if (e.target.closest && e.target.closest('input, textarea, select')) return;
+  const b = activeBoard(); if (!b) return;
+  const k = e.key;
+  if (k >= '1' && k <= '6') { b.input(+k); e.preventDefault(); }
+  else if (k === 'Backspace' || k === 'Delete' || k === '0') { b.erase(); e.preventDefault(); }
+  else if (k === 'ArrowUp') { b.move(-1, 0); e.preventDefault(); }
+  else if (k === 'ArrowDown') { b.move(1, 0); e.preventDefault(); }
+  else if (k === 'ArrowLeft') { b.move(0, -1); e.preventDefault(); }
+  else if (k === 'ArrowRight') { b.move(0, 1); e.preventDefault(); }
+  else if (k === 'n' || k === 'N') b.toggleNotes();
+  else if ((e.ctrlKey || e.metaKey) && (k === 'z' || k === 'Z')) { b.undo(); e.preventDefault(); }
+});
+
+initLearn(); initPractice(); initContest();
+const start = (location.hash || '').slice(1);
+go(['learn', 'practice', 'contest'].includes(start) ? start : 'learn');
+</script>
+
+</body>
+</html>
