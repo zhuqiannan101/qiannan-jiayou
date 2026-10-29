@@ -69,7 +69,7 @@
   <div class="login" id="login">
     <h2>考生信息</h2>
     <div class="frow"><label>姓名（必填）</label><input id="f-name" placeholder="请输入真实姓名" autocomplete="off"></div>
-    <div class="frow"><label>班级 / 工号（选填）</label><input id="f-cls" placeholder="如：图形化1期 / 8001" autocomplete="off"></div>
+    <div class="frow"><label>工号（必填，HT 开头）</label><div style="display:flex;align-items:stretch;gap:0"><span style="display:flex;align-items:center;padding:0 14px;background:#f3f4f6;border:1.5px solid #e5e7eb;border-right:none;border-radius:10px 0 0 10px;font-weight:700;color:#374151">HT</span><input id="f-cls" placeholder="请输入 HT 后面的编号，如 8001" autocomplete="off" style="flex:1;border:1.5px solid #e5e7eb;border-left:none;border-radius:0 10px 10px 0;padding:11px 14px;font-size:15px;outline:none"></div></div>
     <div class="warn">⚠️ 共 30 题，交卷后立即出分且不可重考（每次进入题目都会重新随机）。请确认时间充裕后开始。</div>
     <button class="btn" id="start-btn" onclick="startExam()">开始考试</button>
   </div>
@@ -108,7 +108,9 @@ function normAns(s){ return String(s).trim().toLowerCase().replace(/\s+/g,"").re
 function startExam(){
   const name = document.getElementById('f-name').value.trim();
   if (!name) { alert('请填写姓名'); return; }
-  student = { name, cls: document.getElementById('f-cls').value.trim() };
+  const no = document.getElementById('f-cls').value.trim();
+  if (!no) { alert('请填写工号（HT 后面的编号）'); return; }
+  student = { name, cls: 'HT' + no };
   // 抽题：题干去重
   const pool = shuffle(BANK);
   const seen = new Set(); PAPER = [];
