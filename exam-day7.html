@@ -143,6 +143,7 @@ function renderQ(){
             '<button class="btn" onclick="nextQ()">' + (cur===PAPER.length-1?'交卷':'下一题') + '</button></div>';
   }
   card.innerHTML = html;
+  card.classList.add('show');
   // 恢复已答
   const a = answers[cur];
   if (a) {
@@ -200,7 +201,7 @@ function submit(){
   const score = Math.round(rightN / PAPER.length * 100);
   // 展示
   document.getElementById('exam-top').classList.remove('show');
-  document.getElementById('card').style.display = 'none';
+  document.getElementById('card').classList.remove('show');
   const sc = document.getElementById('score');
   sc.textContent = score + ' 分';
   sc.style.color = score>=80 ? '#16a34a' : score>=60 ? '#d97706' : '#dc2626';
