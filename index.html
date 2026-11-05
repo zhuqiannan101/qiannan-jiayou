@@ -193,6 +193,7 @@ function confirmIdentity(){
   identity = { name, line: pickedLine };
   try { localStorage.setItem('kd_identity', JSON.stringify(identity)); } catch(e){}
   initIdentity();
+  renderMeta();
 }
 function resetIdentity(){
   if (!confirm('重置后将重新登记姓名和业务线，确定？')) return;
