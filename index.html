@@ -256,6 +256,8 @@ function renderCard(){
   document.getElementById('rightN').textContent = rightN;
   document.getElementById('wrongN').textContent = answeredN - rightN;
   const card = document.getElementById('card');
+  const a = answers[curIdx];
+  const answered = a !== undefined;
   let html = '<div class="qmeta">' +
     '<span class="qtype ' + item.t + '">' + TYPE_LABEL[item.t] + (item.t==='multi'?'（多选）':'') + '</span>' +
     (item.src ? '<span class="qsrc">' + esc(item.src) + '</span>' : '') +
@@ -264,51 +266,67 @@ function renderCard(){
   const qHtml = item.t === 'fill' ? esc(item.q).replace(/____/g,'<span class="blank">＿＿＿</span>') : esc(item.q);
   html += '<div class="qtext">' + qHtml + '</div>';
   if (item.t === 'fill') {
-    for (let i=0;i<item.a.length;i++) html += '<div class="fill-row"><input class="fill-input" data-i="' + i + '" placeholder="第 ' + (i+1) + ' 空" autocomplete="off"></div>';
-    html += '<div style="text-align:right"><button class="confirm-btn" onclick="submitFill()">提交答案</button></div>';
+    for (let i=0;i<item.a.length;i++) {
+      const v = answered ? (a.fillVals[i] || '') : '';
+      const okCls = answered ? (item.a[i].split('|').map(x=>normAns(x)).includes(normAns(v)) ? 'right' : 'wrong') : '';
+      html += '<div class="fill-row"><input class="fill-input ' + okCls + '" data-i="' + i + '" placeholder="第 ' + (i+1) + ' 空" autocomplete="off" value="' + esc(v) + '" ' + (answered?'disabled':'') + '></div>';
+    }
+    if (!answered) html += '<div style="text-align:right;margin-top:8px"><button class="confirm-btn" onclick="submitFill()">提交答案</button></div>';
   } else {
     const opts = item.t === 'judge' ? JOPTS : item.o;
     opts.forEach((opt, oi) => {
-      html += '<div class="opt" data-oi="' + oi + '" data-idx="' + curIdx + '" onclick="pickOpt(this)">' + String.fromCharCode(65+oi) + '. ' + esc(opt) + '</div>';
+      let cls = 'opt';
+      if (answered) {
+        cls += ' disabled';
+        if (item.a.includes(oi)) cls += ' right';
+        else if ((a.picked||[]).includes(oi)) cls += ' wrong';
+      }
+      html += '<div class="opt ' + cls + '" data-oi="' + oi + '" onclick="pickOpt(this)">' + String.fromCharCode(65+oi) + '. ' + esc(opt) + '</div>';
     });
-    if (item.t === 'multi') html += '<div style="text-align:right;margin-top:6px"><button class="confirm-btn" onclick="submitMulti()">确认答案</button></div>';
+    if (item.t === 'multi' && !answered) html += '<div style="text-align:right;margin-top:8px"><button class="confirm-btn" onclick="submitMulti()">确认答案</button></div>';
   }
-  html += '<div class="exp" id="exp"></div>';
+  // 解析：已答则直接展示
+  html += '<div class="exp" id="exp" style="display:' + (answered ? 'block' : 'none') + '">';
+  if (answered) {
+    let ansLine;
+    if (item.t === 'fill') ansLine = '✅ 正确答案：' + esc(item.a.map(x=>x.split('|')[0]).join('；'));
+    else if (item.t === 'judge') ansLine = '✅ 正确答案：' + (item.a[0]===0?'√':'×');
+    else ansLine = '✅ 正确答案：' + item.a.map(i=>String.fromCharCode(65+i)).sort().join('');
+    html += '<div style="color:#15803d;font-weight:700;margin-bottom:4px">' + ansLine + '</div>💡 ' + esc(item.e);
+  }
+  html += '</div>';
+  // 导航：上一题 / 下一题（答不答都能翻页，答题后停留在当前题看解析）
+  const isLast = curIdx === ROUND.length - 1;
+  html += '<div style="display:flex;justify-content:space-between;margin-top:14px">' +
+    '<button class="btn" onclick="prevQ()" ' + (curIdx===0?'disabled style="opacity:.45;cursor:not-allowed"':'') + '>← 上一题</button>' +
+    '<button class="btn primary" onclick="nextQ()">' + (isLast ? '查看成绩' : '下一题 →') + '</button></div>';
   card.innerHTML = html;
-  const a = answers[curIdx];
-  if (a) {
-    if (item.t === 'fill') {
-      document.querySelectorAll('.fill-input').forEach(inp => { inp.value = (a.fillVals||[])[+inp.dataset.i] || ''; });
-    } else {
-      document.querySelectorAll('.opt').forEach(o => { if ((a.picked||[]).includes(+o.dataset.oi)) o.classList.add('sel'); });
-    }
-  }
 }
 
 function pickOpt(el){
   const item = ROUND[curIdx];
   if (answers[curIdx] !== undefined) return;
-  if (item.t === 'multi') { el.classList.toggle('sel'); return; }
   document.querySelectorAll('.opt').forEach(o=>o.classList.remove('sel'));
   el.classList.add('sel');
-  check([+el.dataset.oi]);
-  if (curIdx < ROUND.length - 1) setTimeout(nextQ, 250);
+  const picked = [+el.dataset.oi];
+  grade(picked);
 }
 function submitMulti(){
-  const sel = [...document.querySelectorAll('.opt.sel')].map(e=>+e.dataset.oi);
-  if (!sel.length) return;
-  check(sel);
-  if (curIdx < ROUND.length - 1) setTimeout(nextQ, 250);
+  const item = ROUND[curIdx];
+  if (answers[curIdx] !== undefined) return;
+  const picked = [...document.querySelectorAll('.opt.sel')].map(e=>+e.dataset.oi);
+  if (!picked.length) { alert('请先选择答案'); return; }
+  grade(picked);
 }
 function submitFill(){
   const item = ROUND[curIdx];
+  if (answers[curIdx] !== undefined) return;
   const inputs = [...document.querySelectorAll('.fill-input')];
   const vals = inputs.map(i => i.value);
   if (vals.some(v => !v.trim())) { alert('请填写所有空'); return; }
   let correct = true;
   item.a.forEach((acc, i) => {
-    const ok = acc.split('|').map(x=>normAns(x)).includes(normAns(vals[i]));
-    if (!ok) correct = false;
+    if (!acc.split('|').map(x=>normAns(x)).includes(normAns(vals[i]))) correct = false;
   });
   answers[curIdx] = { fillVals: vals, correct };
   answeredN++; if (correct) rightN++;
@@ -317,12 +335,10 @@ function submitFill(){
     inp.classList.add(ok ? 'right' : 'wrong');
     inp.disabled = true;
   });
-  showExp();
   updateTop();
-  if (curIdx === ROUND.length - 1) setTimeout(showResult, 300);
-  else { const b = document.createElement('div'); b.style.textAlign='right'; b.innerHTML = '<button class="confirm-btn" onclick="nextQ()">下一题 →</button>'; document.getElementById('exp').after(b); }
+  showExp(item);
 }
-function check(picked){
+function grade(picked){
   const item = ROUND[curIdx];
   const correct = letters(picked) === letters(item.a) && picked.length === item.a.length;
   answers[curIdx] = { picked, correct };
@@ -333,27 +349,27 @@ function check(picked){
     if (item.a.includes(oi)) o.classList.add('right');
     else if (o.classList.contains('sel')) o.classList.add('wrong');
   });
-  showExp();
   updateTop();
-  if (curIdx === ROUND.length - 1) setTimeout(showResult, 300);
-  else { const b = document.createElement('div'); b.style.textAlign='right'; b.innerHTML = '<button class="confirm-btn" onclick="nextQ()">下一题 →</button>'; document.getElementById('exp').after(b); }
+  showExp(item);
 }
-function showExp(){
-  const item = ROUND[curIdx];
+function showExp(item){
   const exp = document.getElementById('exp');
-  let ansLine = '';
-  if (item.t === 'fill') ansLine = '<div class="ans" style="color:#15803d;font-weight:700">✅ 正确答案：' + esc(item.a.map(x=>x.split('|')[0]).join('；')) + '</div>';
-  else if (item.t === 'judge') ansLine = '<div class="ans" style="color:#15803d;font-weight:700">✅ 正确答案：' + (item.a[0]===0?'√':'×') + '</div>';
-  else ansLine = '<div class="ans" style="color:#15803d;font-weight:700">✅ 正确答案：' + item.a.map(i=>String.fromCharCode(65+i)).sort().join('') + '</div>';
-  exp.innerHTML = ansLine + '💡 ' + esc(item.e);
-  exp.classList.add('show');
+  let ansLine;
+  if (item.t === 'fill') ansLine = '✅ 正确答案：' + esc(item.a.map(x=>x.split('|')[0]).join('；'));
+  else if (item.t === 'judge') ansLine = '✅ 正确答案：' + (item.a[0]===0?'√':'×');
+  else ansLine = '✅ 正确答案：' + item.a.map(i=>String.fromCharCode(65+i)).sort().join('');
+  exp.innerHTML = '<div style="color:#15803d;font-weight:700;margin-bottom:4px">' + ansLine + '</div>💡 ' + esc(item.e);
+  exp.style.display = 'block';
 }
 function updateTop(){
   document.getElementById('rightN').textContent = rightN;
   document.getElementById('wrongN').textContent = answeredN - rightN;
 }
+function prevQ(){
+  if (curIdx > 0) { curIdx--; renderCard(); window.scrollTo({top:0}); }
+}
 function nextQ(){
-  if (curIdx >= ROUND.length - 1) { showResult(); return; }
+  if (curIdx >= ROUND.length - 1) { submitRound(); return; }
   curIdx++; renderCard(); window.scrollTo({top:0});
 }
 function submitRound(){
@@ -365,17 +381,32 @@ function showResult(){
   const el = document.getElementById('r-score');
   el.textContent = rightN + ' / ' + ROUND.length + '（' + p + '分）';
   el.style.color = p>=80 ? '#16a34a' : p>=60 ? '#d97706' : '#dc2626';
-  document.getElementById('r-msg').textContent =
-    p>=90 ? '🎉 太棒了！本线知识点已烂熟于心！' :
-    p>=80 ? '👍 很不错，把错题解析再看一遍就稳了！' :
-    p>=60 ? '💪 及格了，换一批继续刷，直到稳定 80 分以上。' :
-            '📖 建议回看当天课件与熟读手册，再刷一轮。';
+  // 逐题回顾
+  const rv = ROUND.map((q,i) => {
+    const a = answers[i] || {picked:[], fillVals:[], correct:false};
+    const ansTxt = q.t==='fill' ? q.a.map(x=>x.split('|')[0]).join('；')
+                 : q.t==='judge' ? (q.a[0]===0?'√':'×')
+                 : q.a.map(k=>String.fromCharCode(65+k)).sort().join('');
+    let your = q.t==='fill' ? (a.fillVals||[]).join('；') : (a.picked||[]).map(k=>String.fromCharCode(65+k)).sort().join('');
+    if (!your) your = '未作答';
+    const tag = a.correct
+      ? '<span style="background:#dcfce7;color:#15803d;font-size:11px;padding:1px 8px;border-radius:999px;font-weight:600;margin-right:6px">✓ 对</span>'
+      : '<span style="background:#fee2e2;color:#b91c1c;font-size:11px;padding:1px 8px;border-radius:999px;font-weight:600;margin-right:6px">✗ 错</span>';
+    return '<div style="border-top:1px solid #f3f4f6;padding:14px 0;font-size:14px;line-height:1.8;text-align:left">' + tag +
+      '<b>' + (i+1) + '. ' + esc(q.q) + '</b>' +
+      '<br><span style="color:#b45309">你的答案：' + esc(your) + '</span>　<span style="color:#15803d;font-weight:600">正确答案：' + esc(ansTxt) + '</span>' +
+      '<br><span style="color:#9ca3af;font-size:13px">💡 ' + esc(q.e) + '</span></div>';
+  }).join('');
+  document.getElementById('r-msg').innerHTML =
+    (p>=90 ? '🎉 太棒了！本线知识点已烂熟于心！' :
+     p>=80 ? '👍 很不错，把错题解析再看一遍就稳了！' :
+     p>=60 ? '💪 及格了，换一批继续刷，直到稳定 80 分以上。' :
+             '📖 建议回看当天课件与熟读手册，再刷一轮。') +
+    '<div style="text-align:left;margin-top:16px"><h3 style="font-size:15px;margin-bottom:4px">📋 逐题回顾（本题轮 30 题）</h3></div>' + rv;
   const r = document.getElementById('result');
   r.classList.add('show');
   r.scrollIntoView({behavior:'smooth'});
 }
-
-function backHomeSafe(){ backHome(); }
 
 /* ===== 启动 ===== */
 if (initIdentity()) {
