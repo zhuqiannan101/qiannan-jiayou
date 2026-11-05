@@ -306,10 +306,13 @@ function renderCard(){
 function pickOpt(el){
   const item = ROUND[curIdx];
   if (answers[curIdx] !== undefined) return;
+  if (item.t === 'multi') {
+    el.classList.toggle('sel');   // 多选：仅切换选中态，点「确认答案」后才判分
+    return;
+  }
   document.querySelectorAll('.opt').forEach(o=>o.classList.remove('sel'));
   el.classList.add('sel');
-  const picked = [+el.dataset.oi];
-  grade(picked);
+  grade([+el.dataset.oi]);
 }
 function submitMulti(){
   const item = ROUND[curIdx];
@@ -349,6 +352,8 @@ function grade(picked){
     if (item.a.includes(oi)) o.classList.add('right');
     else if (o.classList.contains('sel')) o.classList.add('wrong');
   });
+  var cbtn = document.querySelectorAll('.confirm-btn')[0];
+  if (cbtn) cbtn.style.display = 'none';
   updateTop();
   showExp(item);
 }
